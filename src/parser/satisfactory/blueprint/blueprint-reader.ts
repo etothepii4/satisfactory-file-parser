@@ -26,7 +26,7 @@ export class BlueprintReader extends ByteReader {
 
 	public static ReadHeader(reader: BinaryReadable): BlueprintHeader {
 		const alwaysTwo = reader.readBytes(4);  // 02 00 00 00 - always
-		const objectVersion = reader.readBytes(2 * 4);  // 24 00 00 00, 7F 3B 03 00 - varies over updates - 2A 00 00 00, EC CF 03 00
+		const objectVersion = reader.readBytes(2 * 4);  // 24 00 00 00, 7F 3B 03 00 - varies over updates - in 1.0 it's 46 and 0x7A960500.
 		const dimensions = vec3.ParseInt(reader); // 04 00 00 00, 04 00 00 00, 04 00 00 00 - dimensions in foundation size
 
 
@@ -187,11 +187,15 @@ export class BlueprintConfigReader extends ByteReader {
 		const description = reader.readString();
 		const iconID = reader.readInt32();
 		const color = col4.ParseRGBA(reader);
+		const referencedIconLibrary = reader.readString();
+		const iconLibraryType = reader.readString();
 
 		return {
 			description,
 			color,
 			iconID,
+			referencedIconLibrary,
+			iconLibraryType
 		}
 	}
 }

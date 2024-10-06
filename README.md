@@ -18,7 +18,7 @@ Game Version Files of U5 and below are NOT supported.
 | <= U5          |  ❌                          |
 | U6 + U7        |  ✅ 0.0.1 - 0.0.34           |
 | U8             |  ✅ 0.1.20 - 0.3.7           |
-| U1.0           |  ✅ >= 0.4.16                |
+| U1.0           |  ✅ >= 0.4.20                |
 
 # Installation via npm
 `npm install @etothepii/satisfactory-file-parser`
@@ -143,8 +143,15 @@ So far this was just a private hobby project. But i figure some people actually 
 If you find a bug or have feedback about the parser, you can just hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
-### [0.4.18] (2024-10-06)
+### [0.4.20] (2024-10-06)
+#### bugfix
+* added parsing of icon library reference to parsing blueprints.
+
+### [0.4.19] (2024-10-06)
 #### Migrated repo to public github
+
+### [0.4.18] (2024-10-05)
+#### updated README
 
 ### [0.4.17] (2024-10-05)
 #### updated README

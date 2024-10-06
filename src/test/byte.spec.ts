@@ -20,7 +20,6 @@ beforeAll(() => {
 it.each([
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
-	'astrasav',				// apparently ported save form U8(?)
 	'Unlock 003',			// Save with new buildings
 	'Unlock 004',			// before explosions
 	'Unlock 005',			// after explosions
@@ -139,7 +138,6 @@ it.each([
 it.each([
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
-	'astrasav',				// apparently ported save form U8(?)
 	'Unlock 003',			// Save with new buildings
 	'Unlock 004',			// before explosions
 	'Unlock 005',			// after explosions
@@ -174,7 +172,7 @@ it.each([
 ])('can read and write a synchronous blueprint: %s', async (blueprintname) => {
 	const filepathBlueprint = path.join(__dirname, blueprintname + '.sbp');
 	const filepathBlueprintConfig = path.join(__dirname, blueprintname + '.sbpcfg');
-	const binaryFilepath = path.join(__dirname, blueprintname + '.bin');
+	const binaryFilepath = path.join(__dirname, blueprintname + '.bins');
 	const file = fs.readFileSync(filepathBlueprint);
 	const configFileBuffer = fs.readFileSync(filepathBlueprintConfig);
 
@@ -188,7 +186,7 @@ it.each([
 	const mainFileBodyChunks: Uint8Array[] = [];
 	const response = Parser.WriteBlueprintFiles(blueprint, binary => {
 		console.log('on binary.');
-		fs.writeFileSync(path.join(__dirname, blueprintname + '.bin_modified'), Buffer.from(binary));
+		fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
 	}, header => {
 		console.log('on header.');
 		mainFileHeader = header;

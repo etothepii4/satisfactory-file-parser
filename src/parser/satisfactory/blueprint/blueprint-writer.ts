@@ -117,5 +117,7 @@ export class BlueprintConfigWriter extends ByteWriter {
 		writer.writeString(config.description);
 		writer.writeInt32(config.iconID);
 		col4.SerializeRGBA(writer, config.color);
+		writer.writeString(config.referencedIconLibrary);
+		writer.writeString(config.iconLibraryType);
 	}
 }
