@@ -1,0 +1,8 @@
+/node_modules/
+/src/
+/coverage/
+/dist/
+/.eslintrc.json
+/jest.config.json
+/tsconfig.json
+/webpack.config.js

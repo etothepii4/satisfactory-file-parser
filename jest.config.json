@@ -1,0 +1,17 @@
+{
+	"collectCoverage": true,
+	"collectCoverageFrom": [
+		"**/src/parser/**"
+	],
+	"testTimeout": 240000,
+	"detectOpenHandles": true,
+	"testEnvironment": "node",
+	"roots": [
+		"<rootDir>/src/test"
+	],
+	"preset": "ts-jest",
+	"transform": {
+		"^.+\\.ts?$": "ts-jest"
+	},
+	"verbose": true
+}
