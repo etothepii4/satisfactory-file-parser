@@ -4,7 +4,7 @@ import { Alignment } from "../../byte/alignment.enum";
 import { ByteReader } from "../../byte/byte-reader.class";
 import { CompressionLibraryError, CorruptSaveError, UnsupportedVersionError } from "../../error/parser.error";
 import { ChunkCompressionInfo } from "../../file.types";
-import { MD5Hash } from '../objects/ue/MD5Hash';
+import { MD5Hash } from '../types/structs/MD5Hash';
 import { RoughSaveVersion, SatisfactorySaveHeader } from "./save.types";
 
 export const DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE = 49;

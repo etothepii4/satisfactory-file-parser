@@ -1,4 +1,4 @@
-import { MD5Hash } from '../objects/ue/MD5Hash';
+import { MD5Hash } from '../types/structs/MD5Hash';
 
 /** @public */
 export interface ModData {

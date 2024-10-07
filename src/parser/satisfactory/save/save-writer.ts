@@ -3,7 +3,7 @@ import { Alignment } from "../../byte/alignment.enum";
 import { ByteWriter } from "../../byte/byte-writer.class";
 import { CompressionLibraryError, ParserError, UnsupportedVersionError } from "../../error/parser.error";
 import { ChunkCompressionInfo, ChunkSummary, CompressionAlgorithmCode } from "../../file.types";
-import { MD5Hash } from '../objects/ue/MD5Hash';
+import { MD5Hash } from '../types/structs/MD5Hash';
 import { Level } from "./level.class";
 import { SatisfactorySave } from "./satisfactory-save";
 import { ByteArray4, Grids, SaveReader } from "./save-reader";
@@ -96,7 +96,7 @@ export class SaveWriter extends ByteWriter {
 			if (level.name !== save.header.mapName) {
 				writer.writeString(level.name);
 			}
-			Level.WriteLevel(writer, level, buildVersion);
+			Level.SerializeLevel(writer, level, buildVersion);
 		}
 	}
 

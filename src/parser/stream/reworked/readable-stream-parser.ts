@@ -2,13 +2,13 @@ import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from
 import { BinaryReadable } from '../../byte/binary-readable.interface';
 import { CorruptSaveError, UnsupportedVersionError } from '../../error/parser.error';
 import { ChunkCompressionInfo } from "../../file.types";
-import { SaveComponent, isSaveComponent } from "../../satisfactory/objects/SaveComponent";
-import { SaveEntity, isSaveEntity } from "../../satisfactory/objects/SaveEntity";
-import { ObjectReference } from '../../satisfactory/objects/values/ObjectReference';
 import { Level } from "../../satisfactory/save/level.class";
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
 import { ByteArray4, Grids, SaveReader } from "../../satisfactory/save/save-reader";
 import { SatisfactorySaveHeader } from "../../satisfactory/save/save.types";
+import { SaveComponent, isSaveComponent } from "../../satisfactory/types/objects/SaveComponent";
+import { SaveEntity, isSaveEntity } from "../../satisfactory/types/objects/SaveEntity";
+import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
 const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): QueuingStrategy<string> => ({

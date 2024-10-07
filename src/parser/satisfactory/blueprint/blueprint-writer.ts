@@ -2,11 +2,11 @@ import { Alignment } from "../../byte/alignment.enum";
 import { ByteWriter } from "../../byte/byte-writer.class";
 import { ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo, ChunkSummary } from "../../file.types";
-import { SaveComponent, isSaveComponent } from "../objects/SaveComponent";
-import { SaveEntity, isSaveEntity } from "../objects/SaveEntity";
 import { Level } from "../save/level.class";
 import { SaveWriter } from "../save/save-writer";
-import { col4 } from '../structs/util.types';
+import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
+import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
+import { col4 } from '../types/structs/col4';
 import { BlueprintConfig, BlueprintHeader } from "./blueprint.types";
 
 

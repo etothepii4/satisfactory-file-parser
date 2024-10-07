@@ -1,9 +1,9 @@
 import { WritableStreamDefaultWriter } from "stream/web";
 import { ChunkCompressionInfo } from '../../file.types';
-import { SaveObject } from "../../satisfactory/objects/SaveObject";
-import { ObjectReference } from '../../satisfactory/objects/values/ObjectReference';
 import { ByteArray4, Grids } from '../../satisfactory/save/save-reader';
 import { SatisfactorySaveHeader } from '../../satisfactory/save/save.types';
+import { SaveObject } from "../../satisfactory/types/objects/SaveObject";
+import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
 
 type Mode = 'BEFORE_START' | 'OPENED_SAVE' | 'FINISHED_HEADER' | 'OPENED_LEVELS' | 'FINISHED_LEVELS' | 'OPENED_LEVEL' | 'FINISHED_LEVEL' | 'FINISHED_SAVE'
 	| 'WROTE_COMPRESSION_INFO' | 'WROTE_OBJECT' | 'SWITCH_TO_COLLECTABLES' | 'WROTE_COLLECTABLE' | 'WROTE_GRID_HASH' | 'WROTE_GRIDS';

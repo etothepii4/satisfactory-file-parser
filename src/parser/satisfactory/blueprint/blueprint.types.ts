@@ -1,7 +1,8 @@
 import { ChunkCompressionInfo } from "../../file.types";
-import { SaveComponent } from "../objects/SaveComponent";
-import { SaveEntity } from "../objects/SaveEntity";
-import { col4, vec3 } from "../structs/util.types";
+import { SaveComponent } from "../types/objects/SaveComponent";
+import { SaveEntity } from "../types/objects/SaveEntity";
+import { col4 } from '../types/structs/col4';
+import { vec3 } from '../types/structs/vec3';
 
 /** @public */
 export interface BlueprintConfig {

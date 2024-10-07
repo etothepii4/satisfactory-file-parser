@@ -1,10 +1,10 @@
 
 import { BinaryReadable } from "../../byte/binary-readable.interface";
 import { ByteWriter } from "../../byte/byte-writer.class";
-import { SaveComponent, isSaveComponent } from "../objects/SaveComponent";
-import { SaveEntity, isSaveEntity } from "../objects/SaveEntity";
-import { SaveObject } from "../objects/SaveObject";
-import { ObjectReference } from "../objects/values/ObjectReference";
+import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
+import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
+import { SaveObject } from "../types/objects/SaveObject";
+import { ObjectReference } from "../types/structs/ObjectReference";
 
 export class Level {
 	public objects: (SaveEntity | SaveComponent)[] = [];
@@ -14,27 +14,7 @@ export class Level {
 
 	}
 
-	public static SerializeObjectHeaders(writer: ByteWriter, objects: (SaveEntity | SaveComponent)[]): void {
-		writer.writeInt32(objects.length);
-		for (const obj of objects) {
-
-			switch (obj.type) {
-				case 'SaveEntity':
-					writer.writeInt32(SaveEntity.TypeID);
-					SaveEntity.SerializeHeader(writer, obj);
-					break;
-				case 'SaveComponent':
-					writer.writeInt32(SaveComponent.TypeID);
-					SaveComponent.SerializeHeader(writer, obj);
-					break;
-				default:
-					console.log('Unknown object type', obj);
-					break;
-			}
-		}
-	}
-
-	public static WriteLevel(writer: ByteWriter, level: Level, buildVersion: number) {
+	public static SerializeLevel(writer: ByteWriter, level: Level, buildVersion: number) {
 		const lenIndicatorHeaderAndDestroyedEntitiesSize = writer.getBufferPosition();
 		writer.writeInt32(0);	// len indicator
 		writer.writeInt32(0);	// unk
@@ -102,6 +82,26 @@ export class Level {
 					break;
 			}
 
+		}
+	}
+
+	public static SerializeObjectHeaders(writer: ByteWriter, objects: (SaveEntity | SaveComponent)[]): void {
+		writer.writeInt32(objects.length);
+		for (const obj of objects) {
+
+			switch (obj.type) {
+				case 'SaveEntity':
+					writer.writeInt32(SaveEntity.TypeID);
+					SaveEntity.SerializeHeader(writer, obj);
+					break;
+				case 'SaveComponent':
+					writer.writeInt32(SaveComponent.TypeID);
+					SaveComponent.SerializeHeader(writer, obj);
+					break;
+				default:
+					console.log('Unknown object type', obj);
+					break;
+			}
 		}
 	}
 

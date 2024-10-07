@@ -4,12 +4,13 @@ import { BinaryReadable } from "../../byte/binary-readable.interface";
 import { ByteReader } from "../../byte/byte-reader.class";
 import { CorruptSaveError, ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo } from "../../file.types";
-import { SaveComponent, isSaveComponent } from "../objects/SaveComponent";
-import { SaveEntity, isSaveEntity } from "../objects/SaveEntity";
-import { SaveObject } from "../objects/SaveObject";
 import { Level } from "../save/level.class";
 import { DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE } from "../save/save-reader";
-import { col4, vec3 } from "../structs/util.types";
+import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
+import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
+import { SaveObject } from "../types/objects/SaveObject";
+import { col4 } from '../types/structs/col4';
+import { vec3 } from '../types/structs/vec3';
 import { BlueprintConfig, BlueprintHeader } from "./blueprint.types";
 
 export class BlueprintReader extends ByteReader {
