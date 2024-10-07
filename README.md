@@ -1,8 +1,6 @@
 # Satisfactory File Parser
 This is an NPM TypeScript Module to parse Satisfactory Files. Satisfactory is a game released by Coffee Stain Studios.
-
-The Module is written entirely in TypeScript and comes with Type Definitions.
-Currently, only the built JavaScript and Type Definitions are available. But if needed, the TypeScript source can be provided as well in future versions.
+The reporitory is written entirely in TypeScript and comes with Type Definitions.
 
 This parser can read, modify and write:
 - Save Files `.sav`
@@ -140,7 +138,7 @@ fs.writeFileSync('./MyModifiedBlueprint.sbpcfg', Buffer.from(summary.configFileB
 
 # Bug Reports or Feedback
 So far this was just a private hobby project. But i figure some people actually use it.
-If you find a bug or have feedback about the parser, you can just hit me up on the satisfactory discord `etothepii`.
+If you find a bug or have feedback about the parser, you can just open an issue on the github repo or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
 ### [0.4.20] (2024-10-06)
