@@ -141,6 +141,10 @@ So far this was just a private hobby project. But i figure some people actually 
 If you find a bug or have feedback about the parser, you can just open an issue on the github repo or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
+### [0.4.22] (2024-10-07)
+#### compatibility fix
+* referenced icon libraries in blueprints are now optional when being parsed.
+
 ### [0.4.21] (2024-10-07)
 #### internal package restructuring
 * restructured some internal packages.

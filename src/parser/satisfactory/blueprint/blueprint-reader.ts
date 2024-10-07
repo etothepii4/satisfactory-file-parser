@@ -188,15 +188,19 @@ export class BlueprintConfigReader extends ByteReader {
 		const description = reader.readString();
 		const iconID = reader.readInt32();
 		const color = col4.ParseRGBA(reader);
-		const referencedIconLibrary = reader.readString();
-		const iconLibraryType = reader.readString();
 
-		return {
+		const config: BlueprintConfig = {
 			description,
 			color,
 			iconID,
-			referencedIconLibrary,
-			iconLibraryType
+		};
+
+		// since 1.0, created blueprints have those two strings
+		if (reader.getBufferPosition() < reader.getBufferLength()) {
+			config.referencedIconLibrary = reader.readString();
+			config.iconLibraryType = reader.readString();
 		}
+
+		return config;
 	}
 }

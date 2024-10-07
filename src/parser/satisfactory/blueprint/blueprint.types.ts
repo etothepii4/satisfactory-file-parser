@@ -9,8 +9,8 @@ export interface BlueprintConfig {
     description: string;
     color: col4;
     iconID: number;
-    referencedIconLibrary: string;
-    iconLibraryType: string;
+    referencedIconLibrary?: string;
+    iconLibraryType?: string;
 }
 
 /** @public */
