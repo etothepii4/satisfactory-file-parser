@@ -26,9 +26,9 @@ import { StrProperty } from './generic/StrProperty';
 import { StructProperty } from './generic/StructProperty';
 import { TextProperty } from './generic/TextProperty';
 import { Uint32Property } from './generic/Uint32Property';
-import { UInt64Property } from './generic/Uint64Property';
+import { Uint64Property } from './generic/Uint64Property';
 import { Uint8Property } from './generic/Uint8Property';
-import { BuildableSubsystemSpecialProperty, BuildableTypeInstance, ConveyorChainActorSpecialProperty, ConveyorChainSegmentSpecialProperty, ConveyorItemSpecialProperty, PlayerSpecialProperty, PowerLineSpecialProperty, SpecialAnyProperty } from './special/SpecialAnyProperty';
+import { BuildableSubsystemSpecialProperty, BuildableTypeInstance, ConveyorChainActorSpecialProperty, ConveyorChainSegmentSpecialProperty, ConveyorItemSpecialProperty, EmptySpecialProperty, PlayerSpecialProperty, PowerLineSpecialProperty, SpecialAnyProperty } from './special/SpecialAnyProperty';
 
 
 export class DataFields {
@@ -96,7 +96,7 @@ export class DataFields {
 
 				// since U1.0 the conveyor items are now in ConveyorChainActor. Not anymore on the belt itself. so this count of items is always 0.
 				reader.readInt32();
-				property = {};
+				property = {} satisfies EmptySpecialProperty;
 				break;
 
 			case '/Script/FactoryGame.FGConveyorChainActor':
@@ -134,7 +134,7 @@ export class DataFields {
 					});
 				}
 
-				const unknownInts = [reader.readInt32(), reader.readInt32()];
+				const unknownInts = [reader.readInt32(), reader.readInt32()] satisfies [number, number];
 				const firstChainItemIndex = reader.readInt32();
 				const lastChainItemIndex = reader.readInt32();
 				const countItemsInChain = reader.readInt32();
@@ -156,7 +156,7 @@ export class DataFields {
 					firstChainItemIndex,
 					lastChainItemIndex,
 					items
-				} as ConveyorChainActorSpecialProperty;
+				} satisfies ConveyorChainActorSpecialProperty;
 
 				break;
 
@@ -262,7 +262,7 @@ export class DataFields {
 
 			default:
 				// ignore / empty. Rest will land in trailing data anyway.
-				property = {};
+				property = {} satisfies EmptySpecialProperty;
 				break;
 		}
 
@@ -319,7 +319,7 @@ export class DataFields {
 				break;
 
 			case 'UInt64Property':
-				currentProperty = UInt64Property.Parse(reader, propertyType, index);
+				currentProperty = Uint64Property.Parse(reader, propertyType, index);
 				break;
 
 			case 'SingleProperty':
@@ -586,8 +586,8 @@ export class DataFields {
 				break;
 
 			case 'UInt64PRoperty':
-				overhead = UInt64Property.CalcOverhead(property as Int64Property);
-				UInt64Property.Serialize(writer, property as Int64Property);
+				overhead = Uint64Property.CalcOverhead(property as Int64Property);
+				Uint64Property.Serialize(writer, property as Int64Property);
 				break;
 
 			case 'SingleProperty':

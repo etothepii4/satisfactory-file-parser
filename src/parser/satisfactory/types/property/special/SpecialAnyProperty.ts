@@ -4,10 +4,13 @@ import { vec2 } from '../../structs/vec2';
 import { vec3 } from '../../structs/vec3';
 
 
-export type SpecialAnyProperty = {} | PowerLineSpecialProperty | PlayerSpecialProperty | ConveyorChainActorSpecialProperty | BuildableSubsystemSpecialProperty;
+export type SpecialAnyProperty = EmptySpecialProperty | PowerLineSpecialProperty | PlayerSpecialProperty | ConveyorChainActorSpecialProperty | BuildableSubsystemSpecialProperty;
+
+export type EmptySpecialProperty = {
+
+};
 
 export type PowerLineSpecialProperty = {
-    num: number;
     source: ObjectReference;
     target: ObjectReference;
     sourceTranslation?: vec3;
