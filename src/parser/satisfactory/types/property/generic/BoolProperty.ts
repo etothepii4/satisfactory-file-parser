@@ -4,6 +4,8 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
 
+export const isBoolProperty = (property: BasicProperty): property is BoolProperty => property.type === 'BoolProperty';
+
 export class BoolProperty extends BasicProperty {
 
     constructor(public value: boolean, ueType: string = 'BoolProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {

@@ -3,6 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
+export const isInt32Property = (property: BasicProperty): property is Int32Property => property.type === 'Int32Property';
 
 export class Int32Property extends BasicProperty {
 

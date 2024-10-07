@@ -4,6 +4,7 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { BasicProperty } from './BasicProperty';
 
+export const isObjectProperty = (property: BasicProperty): property is ObjectProperty => property.type === 'ObjectProperty';
 
 export class ObjectProperty extends BasicProperty {
 

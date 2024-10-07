@@ -60,6 +60,8 @@ export type ClientIdentityInfo = {
 export type GENERIC_STRUCT_PROPERTY_VALUE = BasicMultipleStructPropertyValue | BasicStructPropertyValue | BoxStructPropertyValue | RailroadTrackPositionStructPropertyValue |
     InventoryItemStructPropertyValue | FICFrameRangeStructPropertyValue | ClientIdentityInfo | DynamicStructPropertyValue | col4 | vec3 | vec4 | string;
 
+export const isStructProperty = (property: AbstractBaseProperty): property is StructProperty => property.type === 'StructProperty';
+
 export class StructProperty extends AbstractBaseProperty {
 
     public value: GENERIC_STRUCT_PROPERTY_VALUE = { values: {} };

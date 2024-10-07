@@ -4,6 +4,8 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
 
+export const isByteProperty = (property: BasicProperty): property is ByteProperty => property.type === 'ByteProperty';
+
 export class ByteProperty extends BasicProperty {
 
     constructor(public value: BytePropertyValue, ueType: string = 'ByteProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {

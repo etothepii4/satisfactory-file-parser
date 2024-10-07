@@ -3,6 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
+export const isUInt64Property = (property: BasicProperty): property is UInt64Property => property.type === 'UInt64Property';
 
 export class UInt64Property extends BasicProperty {
 

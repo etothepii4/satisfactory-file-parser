@@ -3,6 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
+export const isEnumProperty = (property: BasicProperty): property is EnumProperty => property.type === 'EnumProperty';
 
 export class EnumProperty extends BasicProperty {
 

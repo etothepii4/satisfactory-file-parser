@@ -26,6 +26,8 @@ export type ArrayPropertyStructValueFields = {
     allUnk4?: number;
 };
 
+export const isArrayProperty = (property: BasicProperty): property is ArrayProperty<any> => property.type === 'ArrayProperty';
+
 export class ArrayProperty<T> extends BasicProperty {
 
     constructor(public subtype: string, public values: T[], ueType: string = 'ArrayProperty', index: number = 0, public structValueFields?: ArrayPropertyStructValueFields) {

@@ -9,6 +9,7 @@ import { ObjectProperty } from './ObjectProperty';
 import { StrProperty } from './StrProperty';
 import { Uint32Property } from './Uint32Property';
 
+export const isSetProperty = (property: BasicProperty): property is SetProperty<any> => property.type === 'SetProperty';
 
 export class SetProperty<T> extends BasicProperty {
 

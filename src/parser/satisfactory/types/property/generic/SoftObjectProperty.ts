@@ -4,6 +4,7 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
 import { BasicProperty } from './BasicProperty';
 
+export const isSoftObjectProperty = (property: BasicProperty): property is SoftObjectProperty => property.type === 'SoftObjectProperty';
 
 export class SoftObjectProperty extends BasicProperty {
 

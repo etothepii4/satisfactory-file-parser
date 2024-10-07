@@ -4,6 +4,8 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
 
+export const isDoubleProperty = (property: BasicProperty): property is DoubleProperty => property.type === 'DoubleProperty';
+
 export class DoubleProperty extends BasicProperty {
 
     constructor(public value: number, ueType: string = 'DoubleProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {

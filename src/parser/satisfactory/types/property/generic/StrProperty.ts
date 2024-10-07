@@ -3,6 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { BasicProperty } from './BasicProperty';
 
+export const isStrProperty = (property: BasicProperty): property is StrProperty => property.type === 'StrProperty';
 
 export class StrProperty extends BasicProperty {
 
