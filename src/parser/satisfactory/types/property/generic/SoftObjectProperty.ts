@@ -18,6 +18,10 @@ export class SoftObjectProperty extends BasicProperty {
         return new SoftObjectProperty(value, ueType, guidInfo, index);
     }
 
+    public static ReadValue(reader: BinaryReadable): SoftObjectReference {
+        return SoftObjectReference.read(reader);
+    }
+
     public static CalcOverhead(property: SoftObjectProperty): number {
         return 1;
     }
@@ -25,5 +29,9 @@ export class SoftObjectProperty extends BasicProperty {
     public static Serialize(writer: ByteWriter, property: SoftObjectProperty): void {
         GUIDInfo.write(writer, property.guidInfo);
         SoftObjectReference.write(writer, property.value);
+    }
+
+    public static SerializeValue(writer: ByteWriter, value: SoftObjectReference): void {
+        SoftObjectReference.write(writer, value);
     }
 }

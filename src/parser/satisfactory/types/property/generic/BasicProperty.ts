@@ -35,7 +35,6 @@ export abstract class BasicProperty extends AbstractBaseProperty {
 
 	public guidInfo: GUIDInfo = undefined;
 
-	// type: string, ueType: string, public guidInfo: GUIDInfo, index: number = 0
 	constructor(options: AbstractBasePropertyOptions) {
 		super(options.type, options.ueType, options.index ?? 0);
 		if (options.guidInfo !== undefined) {

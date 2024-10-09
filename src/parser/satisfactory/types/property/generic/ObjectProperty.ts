@@ -19,11 +19,7 @@ export class ObjectProperty extends BasicProperty {
     }
 
     public static ReadValue(reader: BinaryReadable): ObjectReference {
-        const x = {
-            levelName: reader.readString(),
-            pathName: reader.readString()
-        };
-        return x;
+        return ObjectReference.read(reader);
     }
 
     public static CalcOverhead(property: ObjectProperty): number {
@@ -36,7 +32,6 @@ export class ObjectProperty extends BasicProperty {
     }
 
     public static SerializeValue(writer: ByteWriter, value: ObjectReference): void {
-        writer.writeString(value.levelName);
-        writer.writeString(value.pathName);
+        ObjectReference.write(writer, value);
     }
 }
