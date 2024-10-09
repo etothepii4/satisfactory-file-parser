@@ -20,10 +20,8 @@ export class SetProperty<T> extends BasicProperty {
     public static Parse(reader: BinaryReadable, ueType: string, index: number, propertyName: string): SetProperty<any> {
 
         const subtype = reader.readString();
-
-
-        const unk2 = reader.skipBytes(1); // 0
-        const unk3 = reader.skipBytes(4); // 0
+        reader.skipBytes(1); // 0
+        reader.skipBytes(4); // 0
         const elementCount = reader.readInt32();
 
         let property: SetProperty<any>;
@@ -46,7 +44,6 @@ export class SetProperty<T> extends BasicProperty {
                 break;
 
             case "StructProperty":
-                // outdated i guess
 
                 if (propertyName === 'mRemovalLocations') {
                     property = new SetProperty<vec3>(subtype, new Array(elementCount).fill(0).map(() => vec3.ParseF(reader)), ueType, index);
@@ -72,11 +69,8 @@ export class SetProperty<T> extends BasicProperty {
 
     public static Serialize(writer: ByteWriter, property: SetProperty<any>): void {
         writer.writeString(property.subtype);
-
-        //TODO: what is that
         writer.writeByte(0);
         writer.writeInt32(0);
-
         writer.writeInt32(property.values.length);
 
         switch (property.subtype) {

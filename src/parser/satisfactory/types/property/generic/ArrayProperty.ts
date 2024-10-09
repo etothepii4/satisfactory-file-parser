@@ -36,7 +36,7 @@ export class ArrayProperty<T> extends BasicProperty {
 
     public static Parse(reader: BinaryReadable, ueType: string, index: number, propertyName: string): ArrayProperty<any> {
         const subtype = reader.readString();
-        reader.skipBytes(1); // unk
+        reader.skipBytes(1); // 0
 
         let property;
         const elementCount = reader.readInt32();
