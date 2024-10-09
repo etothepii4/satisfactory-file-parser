@@ -164,8 +164,8 @@ export class DataFields {
 			case '/Game/FactoryGame/Events/Christmas/Buildings/PowerLineLights/Build_XmassLightsLine.Build_XmassLightsLine_C':
 
 				property = {
-					source: ObjectProperty.ReadValue(reader),
-					target: ObjectProperty.ReadValue(reader)
+					source: ObjectReference.read(reader),
+					target: ObjectReference.read(reader)
 				} as PowerLineSpecialProperty
 
 				if (remainingLen - (reader.getBufferPosition() - start) >= 24) {
@@ -464,8 +464,8 @@ export class DataFields {
 			case '/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Build_PowerLine_C':
 			case '/Game/FactoryGame/Events/Christmas/Buildings/PowerLineLights/Build_XmassLightsLine.Build_XmassLightsLine_C':
 
-				ObjectProperty.SerializeValue(writer, (property as PowerLineSpecialProperty).source);
-				ObjectProperty.SerializeValue(writer, (property as PowerLineSpecialProperty).target);
+				ObjectReference.write(writer, (property as PowerLineSpecialProperty).source);
+				ObjectReference.write(writer, (property as PowerLineSpecialProperty).target);
 
 				break;
 

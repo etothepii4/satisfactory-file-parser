@@ -65,7 +65,6 @@ export class ArrayProperty<T> extends BasicProperty {
                 property = new ArrayProperty<number>(subtype, new Array(elementCount).fill(0).map(() => ByteProperty.ReadValue(reader)), ueType, index);
                 break;
 
-
             case "StrProperty":
                 property = new ArrayProperty<string>(subtype, new Array(elementCount).fill(0).map(() => StrProperty.ReadValue(reader)), ueType, index);
                 break;
