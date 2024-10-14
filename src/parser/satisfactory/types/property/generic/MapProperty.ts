@@ -1,5 +1,6 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { BasicProperty } from './BasicProperty';
 import { ByteProperty } from './ByteProperty';
@@ -8,7 +9,7 @@ import { Int32Property } from './Int32Property';
 import { Int64Property } from './Int64Property';
 import { ObjectProperty } from './ObjectProperty';
 import { StrProperty } from './StrProperty';
-import { DynamicStructPropertyValue, GENERIC_STRUCT_PROPERTY_VALUE, ParseDynamicStructData, SerializeDynamicStructData } from './StructProperty';
+import { GENERIC_STRUCT_PROPERTY_VALUE } from './StructProperty';
 
 
 export type MAP_STRUCT_KEY_PROXY = [number, number, number, number, number, number, number, number, number, number, number, number];
@@ -56,7 +57,7 @@ export class MapProperty extends BasicProperty {
                     if (propertyName === 'mSaveData' || propertyName === 'mUnresolvedSaveData') {
                         key = Array.from(reader.readBytes(12)) as MAP_STRUCT_KEY_PROXY;
                     } else {
-                        key = ParseDynamicStructData(reader, 0, property.keyType);
+                        key = DynamicStructPropertyValue.read(reader, 0, property.keyType);
                     }
 
                     break;
@@ -74,6 +75,9 @@ export class MapProperty extends BasicProperty {
                 case 'Int32Property':
                     key = Int32Property.ReadValue(reader);
                     break;
+                case 'Int64Property':
+                    key = Int64Property.ReadValue(reader);
+                    break;
                 case 'ByteProperty':
                     key = ByteProperty.ReadValue(reader);
                     break;
@@ -83,7 +87,7 @@ export class MapProperty extends BasicProperty {
 
             switch (property.valueType) {
                 case 'StructProperty':
-                    value = ParseDynamicStructData(reader, 0, property.valueType);
+                    value = DynamicStructPropertyValue.read(reader, 0, property.valueType);
                     break;
                 case 'ObjectProperty':
                     value = ObjectProperty.ReadValue(reader);
@@ -136,7 +140,7 @@ export class MapProperty extends BasicProperty {
                     if (property.name === 'mSaveData' || property.name === 'mUnresolvedSaveData') {
                         writer.writeBytesArray(entry[0] as MAP_STRUCT_KEY_PROXY);
                     } else {
-                        SerializeDynamicStructData(writer, 0, entry[0] as DynamicStructPropertyValue);
+                        DynamicStructPropertyValue.write(writer, 0, entry[0] as DynamicStructPropertyValue);
                     }
 
                     break;
@@ -154,6 +158,9 @@ export class MapProperty extends BasicProperty {
                 case 'Int32Property':
                     Int32Property.SerializeValue(writer, entry[0] as number);
                     break;
+                case 'Int64Property':
+                    Int64Property.SerializeValue(writer, entry[0] as string);
+                    break;
                 case 'ByteProperty':
                     ByteProperty.SerializeValue(writer, entry[0] as number);
                     break;
@@ -163,7 +170,7 @@ export class MapProperty extends BasicProperty {
 
             switch (property.valueType) {
                 case 'StructProperty':
-                    SerializeDynamicStructData(writer, 0, entry[1] as DynamicStructPropertyValue);
+                    DynamicStructPropertyValue.write(writer, 0, entry[1] as DynamicStructPropertyValue);
                     break;
                 case 'ObjectProperty':
                     ObjectProperty.SerializeValue(writer, entry[1] as ObjectReference);

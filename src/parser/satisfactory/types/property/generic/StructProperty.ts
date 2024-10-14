@@ -3,10 +3,9 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { CorruptSaveError } from '../../../../error/parser.error';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
-import { ObjectReference } from '../../structs/ObjectReference';
+import { FINLuaProcessorStateStorage, FINNetworkTrace } from '../../structs/mods/Ficsit-Cam/ReadFINNetworkTrace';
 import { vec3 } from '../../structs/vec3';
 import { vec4 } from '../../structs/vec4';
-import { DataFields } from '../DataFields';
 import { AbstractBaseProperty } from './BasicProperty';
 
 
@@ -123,6 +122,10 @@ export class StructProperty extends AbstractBaseProperty {
                 value = col4.ParseBGRA(reader);
                 break;
 
+            case 'IntPoint':
+                value = reader.readInt64().toString();
+                break;
+
             case 'LinearColor':
                 value = col4.ParseRGBA(reader);
                 break;
@@ -235,11 +238,11 @@ export class StructProperty extends AbstractBaseProperty {
 
             // MODS
             case 'FINNetworkTrace':
-                value = ReadFINNetworkTrace(reader);
+                value = FINNetworkTrace.read(reader);
                 break;
             case 'FINLuaProcessorStateStorage':
                 value = {
-                    values: ReadFINLuaProcessorStateStorage(reader, size)
+                    values: FINLuaProcessorStateStorage.read(reader, size)
                 };
                 break;
             case 'FICFrameRange': // https://github.com/Panakotta00/FicsIt-Cam/blob/c55e254a84722c56e1badabcfaef1159cd7d2ef1/Source/FicsItCam/Public/Data/FICTypes.h#L34
@@ -251,7 +254,7 @@ export class StructProperty extends AbstractBaseProperty {
 
             default:
                 //TODO: use buildversion
-                value = ParseDynamicStructData(reader, 0, subtype);
+                value = DynamicStructPropertyValue.read(reader, 0, subtype);
         }
 
         return value;
@@ -279,6 +282,10 @@ export class StructProperty extends AbstractBaseProperty {
             case 'Color':
                 value = value as col4;
                 col4.SerializeBGRA(writer, value);
+                break;
+
+            case 'IntPoint':
+                writer.writeInt64(BigInt(value as string))
                 break;
 
             case 'LinearColor':
@@ -369,11 +376,11 @@ export class StructProperty extends AbstractBaseProperty {
             // MODS
             case 'FINNetworkTrace':
                 value = value as any;
-                SerializeFINNetworkTrace(writer, value);
+                FINNetworkTrace.write(writer, value);
                 break;
             case 'FINLuaProcessorStateStorage':
                 value = value as BasicMultipleStructPropertyValue;
-                SerializeFINLuaProcessorStateStorage(writer, value.values);
+                FINLuaProcessorStateStorage.write(writer, value.values);
                 break;
             case 'FICFrameRange': // https://github.com/Panakotta00/FicsIt-Cam/blob/c55e254a84722c56e1badabcfaef1159cd7d2ef1/Source/FicsItCam/Public/Data/FICTypes.h#L34
                 value = value as FICFrameRangeStructPropertyValue;
@@ -384,116 +391,9 @@ export class StructProperty extends AbstractBaseProperty {
             default:
                 //TODO: use buildversion
                 value = value as DynamicStructPropertyValue;
-                SerializeDynamicStructData(writer, 0, value);
+                DynamicStructPropertyValue.write(writer, 0, value);
         }
     }
 }
 
-export const ParseDynamicStructData = (reader: BinaryReadable, buildVersion: number, type: string): DynamicStructPropertyValue => {
-    const data: DynamicStructPropertyValue = {
-        type, properties: {}
-    };
 
-    const pos = reader.getBufferPosition();
-
-    let propertyName: string = reader.readString();
-    while (propertyName !== 'None') {
-        const parsedProperty = DataFields.ParseProperty(reader, buildVersion, propertyName)!;
-
-        // if it already exists, make it an array.
-        if (data.properties[propertyName]) {
-            if (!Array.isArray(data.properties[propertyName])) {
-                data.properties[propertyName] = [data.properties[propertyName] as AbstractBaseProperty];
-            }
-            (data.properties[propertyName] as AbstractBaseProperty[]).push(parsedProperty);
-        } else {
-            data.properties[propertyName] = parsedProperty;
-        }
-
-        propertyName = reader.readString();
-    }
-
-    return data;
-};
-
-export const SerializeDynamicStructData = (writer: ByteWriter, buildVersion: number, data: DynamicStructPropertyValue): void => {
-    for (const key in data.properties) {
-        for (const prop of (Array.isArray(data.properties[key]) ? data.properties[key] : [data.properties[key]]) as AbstractBaseProperty[]) {
-            writer.writeString(key);
-            DataFields.SerializeProperty(writer, prop, key, buildVersion);
-        }
-    }
-    writer.writeString('None');
-};
-
-export const ReadFINNetworkTrace = (reader: BinaryReadable): any => {
-    const networkTrace: any = {};
-
-    networkTrace.ref = ObjectReference.read(reader);
-    networkTrace.hasPrev = reader.readInt32();
-    if (networkTrace.hasPrev) {
-        networkTrace.prev = ReadFINNetworkTrace(reader);
-    }
-
-    networkTrace.hasStep = reader.readInt32();
-    if (networkTrace.hasStep) {
-        networkTrace.step = reader.readString();
-    }
-
-    return networkTrace;
-};
-
-export const SerializeFINNetworkTrace = (writer: ByteWriter, obj: any): void => {
-    const networkTrace: any = {};
-
-    ObjectReference.write(writer, obj.ref);
-    writer.writeInt32(obj.hasPrev);
-    if (obj.hasPrev) {
-        SerializeFINNetworkTrace(writer, obj.prev);
-    }
-
-    writer.writeInt32(obj.hasStep);
-    if (obj.hasStep) {
-        writer.writeString(obj.step);
-    }
-};
-
-export const ReadFINLuaProcessorStateStorage = (reader: BinaryReadable, size: number): any => {
-    const stateStorage: any = { traces: [], references: [], thread: '', globals: '', remainingStructData: {} };
-    const start = reader.getBufferPosition();
-
-    const traceCount = reader.readInt32();
-    for (let i = 0; i < traceCount; i++) {
-        stateStorage.traces.push(ReadFINNetworkTrace(reader));
-    }
-
-    const refCount = reader.readInt32();
-    for (let i = 0; i < refCount; i++) {
-        stateStorage.references.push(ObjectReference.read(reader));
-    }
-
-    stateStorage.thread = reader.readString();
-    stateStorage.globals = reader.readString();
-
-    const remaining = size - (reader.getBufferPosition() - start);
-    stateStorage.remainingStructData = reader.readBytes(remaining);
-
-    return stateStorage;
-};
-
-export const SerializeFINLuaProcessorStateStorage = (writer: ByteWriter, stateStorage: any): void => {
-    writer.writeInt32(stateStorage.traces.length);
-    for (const trace of stateStorage.traces) {
-        SerializeFINNetworkTrace(writer, trace);
-    }
-
-    writer.writeInt32(stateStorage.references.length);
-    for (const ref of stateStorage.references) {
-        ObjectReference.write(writer, ref);
-    }
-
-    writer.writeString(stateStorage.thread);
-    writer.writeString(stateStorage.globals);
-
-    writer.writeBytes(stateStorage.remainingStructData);
-};
