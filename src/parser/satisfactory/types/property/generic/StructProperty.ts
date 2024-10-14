@@ -2,11 +2,12 @@ import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { CorruptSaveError } from '../../../../error/parser.error';
 import { col4 } from '../../structs/col4';
+import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
 import { vec4 } from '../../structs/vec4';
 import { DataFields } from '../DataFields';
-import { AbstractBaseProperty, PropertiesMap } from './BasicProperty';
+import { AbstractBaseProperty } from './BasicProperty';
 
 
 export type BasicMultipleStructPropertyValue = {
@@ -45,11 +46,6 @@ export type InventoryItemStructPropertyValue = {
 export type FICFrameRangeStructPropertyValue = {
     begin: string;
     end: string;
-};
-
-export type DynamicStructPropertyValue = {
-    type: string;
-    properties: PropertiesMap;
 };
 
 export type ClientIdentityInfo = {
