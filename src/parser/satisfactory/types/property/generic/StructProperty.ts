@@ -3,7 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { CorruptSaveError } from '../../../../error/parser.error';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
-import { FINLuaProcessorStateStorage, FINNetworkTrace } from '../../structs/mods/Ficsit-Cam/ReadFINNetworkTrace';
+import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
 import { vec3 } from '../../structs/vec3';
 import { vec4 } from '../../structs/vec4';
 import { AbstractBaseProperty } from './BasicProperty';
@@ -237,19 +237,8 @@ export class StructProperty extends AbstractBaseProperty {
                 break;
 
             // MODS
-            case 'FINNetworkTrace':
-                value = FINNetworkTrace.read(reader);
-                break;
-            case 'FINLuaProcessorStateStorage':
-                value = {
-                    values: FINLuaProcessorStateStorage.read(reader, size)
-                };
-                break;
-            case 'FICFrameRange': // https://github.com/Panakotta00/FicsIt-Cam/blob/c55e254a84722c56e1badabcfaef1159cd7d2ef1/Source/FicsItCam/Public/Data/FICTypes.h#L34
-                value = {
-                    begin: reader.readInt64().toString(),
-                    end: reader.readInt64().toString(),
-                };
+            case 'FICFrameRange': // https://github.com/Panakotta00/FicsIt-Cam/blob/master/Source/FicsItCam/Public/Data/FICTypes.h#35
+                value = FICFrameRange.Parse(reader);
                 break;
 
             default:
@@ -374,18 +363,9 @@ export class StructProperty extends AbstractBaseProperty {
                 break;
 
             // MODS
-            case 'FINNetworkTrace':
-                value = value as any;
-                FINNetworkTrace.write(writer, value);
-                break;
-            case 'FINLuaProcessorStateStorage':
-                value = value as BasicMultipleStructPropertyValue;
-                FINLuaProcessorStateStorage.write(writer, value.values);
-                break;
-            case 'FICFrameRange': // https://github.com/Panakotta00/FicsIt-Cam/blob/c55e254a84722c56e1badabcfaef1159cd7d2ef1/Source/FicsItCam/Public/Data/FICTypes.h#L34
-                value = value as FICFrameRangeStructPropertyValue;
-                writer.writeInt64(BigInt(value.begin));
-                writer.writeInt64(BigInt(value.end));
+            case 'FICFrameRange': // https://github.com/Panakotta00/FicsIt-Cam/blob/master/Source/FicsItCam/Public/Data/FICTypes.h#35
+                value = value as FICFrameRange;
+                FICFrameRange.Serialize(writer, value);
                 break;
 
             default:
