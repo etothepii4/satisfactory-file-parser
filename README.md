@@ -141,11 +141,13 @@ So far this was just a private hobby project. But i figure some people actually 
 If you find a bug or have feedback about the parser, you can just open an issue on the github repo or hit me up on the satisfactory discord `etothepii`.
 
 # Explicitly Supported/Tested Mods (No guarantee for other mods)
-### Ficsit-Cam
-### Structural Solutions
-### Linear Motion
-### Container Screens
-### Conveyor Wall Hole
+### Ficsit-Cam (`FicsItCam`)
+### Structural Solutions (`SS_Mod`)
+### Linear Motion (`LinearMotion`)
+### Container Screens (`ContainerScreen`)
+### Conveyor Wall Hole (`WallHoleConveyor`)
+### X3-Signs (`x3_signs`)
+### X3-Roads (`x3_roads`)
 
 # Changelog
 ### [0.4.22] (2024-10-07)
