@@ -140,9 +140,12 @@ fs.writeFileSync('./MyModifiedBlueprint.sbpcfg', Buffer.from(summary.configFileB
 So far this was just a private hobby project. But i figure some people actually use it.
 If you find a bug or have feedback about the parser, you can just open an issue on the github repo or hit me up on the satisfactory discord `etothepii`.
 
-# Explicitly Supported Mods (No guarantee for other mods)
+# Explicitly Supported/Tested Mods (No guarantee for other mods)
 ### Ficsit-Cam
 ### Structural Solutions
+### Linear Motion
+### Container Screens
+### Conveyor Wall Hole
 
 # Changelog
 ### [0.4.22] (2024-10-07)
