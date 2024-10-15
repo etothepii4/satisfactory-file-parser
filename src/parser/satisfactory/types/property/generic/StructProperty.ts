@@ -250,7 +250,7 @@ export class StructProperty extends AbstractBaseProperty {
     }
 
     public static CalcOverhead(property: StructProperty): number {
-        return property.subtype.length + 5 + 17;
+        return property.subtype.length + 5 + 4 + 4 + 4 + 4 + 1;
     }
 
     public static Serialize(writer: ByteWriter, property: StructProperty): void {

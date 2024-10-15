@@ -23,7 +23,7 @@ export class BoolProperty extends BasicProperty {
     }
 
     public static CalcOverhead(property: BoolProperty): number {
-        return 2;
+        return 1 + 1;
     }
 
     public static Serialize(writer: ByteWriter, property: BoolProperty): void {

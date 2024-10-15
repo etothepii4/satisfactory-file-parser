@@ -11,9 +11,10 @@ import { FloatProperty } from './FloatProperty';
 import { Int32Property } from './Int32Property';
 import { Int64Property } from './Int64Property';
 import { ObjectProperty } from './ObjectProperty';
+import { SoftObjectProperty } from './SoftObjectProperty';
 import { StrProperty } from './StrProperty';
 import { StructProperty } from './StructProperty';
-import { TextProperty } from './TextProperty';
+import { TextProperty, TextPropertyValue } from './TextProperty';
 
 
 export type ArrayPropertyStructValueFields = {
@@ -74,7 +75,7 @@ export class ArrayProperty<T> extends BasicProperty {
                 break;
 
             case "TextProperty":
-                property = new ArrayProperty<any>(subtype, new Array(elementCount).fill(0).map(() => TextProperty.ParseValue(reader)), ueType, index);
+                property = new ArrayProperty<TextPropertyValue>(subtype, new Array(elementCount).fill(0).map(() => TextProperty.ReadValue(reader)), ueType, index);
                 break;
 
             case "InterfaceProperty":
@@ -83,7 +84,7 @@ export class ArrayProperty<T> extends BasicProperty {
                 break;
 
             case "SoftObjectProperty":
-                property = new ArrayProperty<SoftObjectReference>(subtype, new Array(elementCount).fill(0).map(() => SoftObjectReference.read(reader)), ueType, index);
+                property = new ArrayProperty<SoftObjectReference>(subtype, new Array(elementCount).fill(0).map(() => SoftObjectProperty.ReadValue(reader)), ueType, index);
                 break;
 
 
@@ -198,7 +199,7 @@ export class ArrayProperty<T> extends BasicProperty {
                 break;
 
             case "SoftObjectProperty":
-                property.values.forEach(v => SoftObjectReference.write(writer, v));
+                property.values.forEach(v => SoftObjectProperty.SerializeValue(writer, v));
                 break;
 
             case "StructProperty":

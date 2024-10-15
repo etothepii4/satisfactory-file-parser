@@ -22,7 +22,7 @@ export class Uint8Property extends BasicProperty {
     }
 
     public static CalcOverhead(property: Uint8Property): number {
-        throw new Error('Unimplemented.');
+        return 1;
     }
 
     public static Serialize(writer: ByteWriter, property: Uint8Property): void {

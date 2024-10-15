@@ -13,11 +13,11 @@ export class TextProperty extends BasicProperty {
 
     public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): TextProperty {
         const guidInfo = GUIDInfo.read(reader);
-        const value = TextProperty.ParseValue(reader);
+        const value = TextProperty.ReadValue(reader);
         return new TextProperty(value, ueType, guidInfo, index);
     }
 
-    public static ParseValue(reader: BinaryReadable): TextPropertyValue {
+    public static ReadValue(reader: BinaryReadable): TextPropertyValue {
         const prop: TextPropertyValue = {
             flags: reader.readInt32(),
             historyType: reader.readByte()
@@ -34,7 +34,7 @@ export class TextProperty extends BasicProperty {
             case 1:
             // HISTORYTYPE_ARGUMENTFORMAT
             case 3:
-                prop.sourceFmt = TextProperty.ParseValue(reader);
+                prop.sourceFmt = TextProperty.ReadValue(reader);
 
                 const argumentsCount = reader.readInt32();
                 prop.arguments = [];
@@ -46,7 +46,7 @@ export class TextProperty extends BasicProperty {
 
                     switch (currentArgumentsData.valueType) {
                         case 4:
-                            currentArgumentsData.argumentValue = TextProperty.ParseValue(reader);
+                            currentArgumentsData.argumentValue = TextProperty.ReadValue(reader);
                             break;
                         default:
 
@@ -59,7 +59,7 @@ export class TextProperty extends BasicProperty {
             // see https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/TextHistory.cpp#L2268
             // HISTORYTYPE_TRANSFORM
             case 10:
-                prop.sourceText = TextProperty.ParseValue(reader);
+                prop.sourceText = TextProperty.ReadValue(reader);
                 prop.transformType = reader.readByte();
                 break;
             // HISTORYTYPE_NONE

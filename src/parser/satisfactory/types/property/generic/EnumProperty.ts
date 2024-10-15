@@ -25,7 +25,7 @@ export class EnumProperty extends BasicProperty {
     }
 
     public static CalcOverhead(property: EnumProperty): number {
-        return property.value.name.length + 6;
+        return property.value.name.length + 5 + 1;
     }
 
     public static Serialize(writer: ByteWriter, property: EnumProperty): void {

@@ -4,31 +4,31 @@ import { vec2 } from '../../structs/vec2';
 import { vec3 } from '../../structs/vec3';
 
 
-export type SpecialAnyProperty = EmptySpecialProperty | PowerLineSpecialProperty | PlayerSpecialProperty | ConveyorChainActorSpecialProperty | BuildableSubsystemSpecialProperty;
+export type SpecialAnyProperties = EmptySpecialProperties | PowerLineSpecialProperties | PlayerSpecialProperties | ConveyorChainActorSpecialProperties | BuildableSubsystemSpecialProperties;
 
-export type EmptySpecialProperty = {
+export type EmptySpecialProperties = {
 
 };
 
-export type PowerLineSpecialProperty = {
+export type PowerLineSpecialProperties = {
     source: ObjectReference;
     target: ObjectReference;
     sourceTranslation?: vec3;
     targetTranslation?: vec3;
 };
 
-export type PlayerSpecialProperty = {
+export type PlayerSpecialProperties = {
     flag: number;
     eosData?: string;
     steamPlayerData?: string;
 };
 
-export type ConveyorItemSpecialProperty = {
+export type ConveyorItemSpecialProperties = {
     position: number;
     itemName: string;
 };
 
-export type ConveyorChainSegmentSpecialProperty = {
+export type ConveyorChainSegmentSpecialProperties = {
     chainActorRef: ObjectReference;
     beltRef: ObjectReference;
     someCount: number;
@@ -38,14 +38,14 @@ export type ConveyorChainSegmentSpecialProperty = {
     beltIndexInChain: number;
 }
 
-export type ConveyorChainActorSpecialProperty = {
+export type ConveyorChainActorSpecialProperties = {
     firstBelt: ObjectReference;
     lastBelt: ObjectReference;
-    beltsInChain: ConveyorChainSegmentSpecialProperty[];
+    beltsInChain: ConveyorChainSegmentSpecialProperties[];
     unknownInts: [number, number];
     firstChainItemIndex: number;
     lastChainItemIndex: number;
-    items: ConveyorItemSpecialProperty[];
+    items: ConveyorItemSpecialProperties[];
 };
 
 export type BuildableTypeInstance = {
@@ -58,7 +58,7 @@ export type BuildableTypeInstance = {
     blueprintProxy: ObjectReference;
 };
 
-export type BuildableSubsystemSpecialProperty = {
+export type BuildableSubsystemSpecialProperties = {
     buildables: {
         typePath: string;
         instances: BuildableTypeInstance[];

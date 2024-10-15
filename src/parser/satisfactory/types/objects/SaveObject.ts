@@ -1,8 +1,10 @@
 import { BinaryReadable } from "../../../byte/binary-readable.interface";
 import { ByteWriter } from "../../../byte/byte-writer.class";
-import { DataFields } from "../property/DataFields";
+import { ParserError } from '../../../error/parser.error';
+import { PropertiesList } from '../property/PropertiesList';
 import { PropertiesMap } from "../property/generic/BasicProperty";
-import { SpecialAnyProperty } from '../property/special/SpecialAnyProperty';
+import { SpecialAnyProperties } from '../property/special/SpecialAnyProperties';
+import { SpecialProperties } from '../property/special/SpecialProperties';
 
 export interface SaveObjectHeader {
 	typePath: string;
@@ -13,7 +15,7 @@ export interface SaveObjectHeader {
 export abstract class SaveObject implements SaveObjectHeader {
 
 	public properties: PropertiesMap = {};
-	public specialProperties: SpecialAnyProperty = {};
+	public specialProperties: SpecialAnyProperties = {};
 	public trailingData: number[] = [];
 
 	public objectVersion: number = 0;
@@ -36,10 +38,27 @@ export abstract class SaveObject implements SaveObjectHeader {
 	}
 
 	public static ParseData(obj: SaveObject, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void {
-		DataFields.ParseProperties(obj, length, reader, buildVersion, typePath);
+		const start = reader.getBufferPosition();
+
+		PropertiesList.ParseList(obj, length, reader, buildVersion, typePath);
+
+		reader.readInt32(); // 0
+
+		let remainingSize = length - (reader.getBufferPosition() - start);
+		obj.specialProperties = SpecialProperties.ParseClassSpecificSpecialProperties(reader, typePath, remainingSize);
+
+		remainingSize = length - (reader.getBufferPosition() - start);
+		if (remainingSize > 0) {
+			obj.trailingData = Array.from(reader.readBytes(remainingSize));
+		} else if (remainingSize < 0) {
+			throw new ParserError('ParserError', `Unexpected. Read more bytes than are indicated for entity ${obj.instanceName}. bytes left to read is ${remainingSize}`);
+		}
 	}
 
 	public static SerializeData(writer: any, obj: SaveObject, buildVersion: number): void {
-		DataFields.Serialize(obj, writer, buildVersion, obj.typePath);
+		PropertiesList.SerializeList(obj, writer, buildVersion, obj.typePath);
+		writer.writeInt32(0);
+		SpecialProperties.SerializeClassSpecificSpecialProperties(writer, obj.typePath, obj.specialProperties);
+		writer.writeBytesArray(obj.trailingData);
 	}
 }

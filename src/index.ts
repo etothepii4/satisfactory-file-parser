@@ -5,7 +5,6 @@ export * from './parser/satisfactory/save/satisfactory-save';
 export * from './parser/satisfactory/save/save.types';
 export * from './parser/satisfactory/types/objects/SaveComponent';
 export * from './parser/satisfactory/types/objects/SaveEntity';
-export * from './parser/satisfactory/types/property/DataFields';
 export * from './parser/satisfactory/types/property/generic/ArrayProperty';
 export * from './parser/satisfactory/types/property/generic/BasicProperty';
 export * from './parser/satisfactory/types/property/generic/BoolProperty';
@@ -25,11 +24,15 @@ export * from './parser/satisfactory/types/property/generic/TextProperty';
 export * from './parser/satisfactory/types/property/generic/Uint32Property';
 export * from './parser/satisfactory/types/property/generic/Uint64Property';
 export * from './parser/satisfactory/types/property/generic/Uint8Property';
-export * from './parser/satisfactory/types/property/special/SpecialAnyProperty';
+export * from './parser/satisfactory/types/property/PropertiesList';
+export * from './parser/satisfactory/types/property/special/SpecialAnyProperties';
+export * from './parser/satisfactory/types/property/special/SpecialProperties';
 export * from './parser/satisfactory/types/structs/col4';
+export * from './parser/satisfactory/types/structs/DynamicStructPropertyValue';
 export * from './parser/satisfactory/types/structs/GUID';
 export * from './parser/satisfactory/types/structs/GUIDInfo';
 export * from './parser/satisfactory/types/structs/MD5Hash';
+export * from './parser/satisfactory/types/structs/mods/FicsItCam/FICFrameRange';
 export * from './parser/satisfactory/types/structs/ObjectReference';
 export * from './parser/satisfactory/types/structs/SoftObjectReference';
 export * from './parser/satisfactory/types/structs/Transform';
@@ -51,7 +54,6 @@ export * from './parser/error/parser.error';
 // facade
 export { Parser } from './parser/parser';
 export { ReadableStreamParser } from './parser/stream/reworked/readable-stream-parser';
-
 
 // edit
 export * from './parser/satisfactory/edit/edit-constants';
