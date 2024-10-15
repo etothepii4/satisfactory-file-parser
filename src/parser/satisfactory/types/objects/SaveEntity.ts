@@ -21,15 +21,10 @@ export class SaveEntity extends SaveObject {
 	public readonly type = 'SaveEntity';
 
 	public needTransform: boolean;
-
 	public transform: Transform;
-
 	public wasPlacedInLevel: boolean;
-
 	public parentObjectRoot: string;
-
 	public parentObjectName: string;
-
 	public components: ObjectReference[];
 
 	constructor(public typePath: string, public rootObject: string, public instanceName: string, public parentEntityName = '', needsTransform: boolean = false) {
@@ -55,7 +50,7 @@ export class SaveEntity extends SaveObject {
 
 	public static ParseData(entity: SaveEntity, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void {
 
-		const afterSizeIndicator = reader.getBufferPosition();
+		const start = reader.getBufferPosition();
 
 		entity.parentObjectRoot = reader.readString();
 		entity.parentObjectName = reader.readString();
@@ -66,7 +61,7 @@ export class SaveEntity extends SaveObject {
 			entity.components.push(componentRef);
 		}
 
-		const remainingSize = length - (reader.getBufferPosition() - afterSizeIndicator);
+		const remainingSize = length - (reader.getBufferPosition() - start);
 		return SaveObject.ParseData(entity, remainingSize, reader, buildVersion, typePath);
 	}
 
@@ -83,9 +78,9 @@ export class SaveEntity extends SaveObject {
 		writer.writeString(entity.parentObjectName);
 
 		writer.writeInt32(entity.components.length);
-		for (const com of entity.components) {
-			writer.writeString(com.levelName);
-			writer.writeString(com.pathName);
+		for (const component of entity.components) {
+			writer.writeString(component.levelName);
+			writer.writeString(component.pathName);
 		}
 
 		SaveObject.SerializeData(writer, entity, buildVersion);
