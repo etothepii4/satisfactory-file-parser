@@ -150,6 +150,15 @@ If you find a bug or have feedback about the parser, you can just open an issue 
 ### X3-Roads (`x3_roads`)
 
 # Changelog
+### [0.5.1] (2024-10-15)
+#### Added Mod Support
+#### Internal Renamings
+* `DynamicStructPropertyValue` extracted to own file.
+* Parsing of object data partially moved to `SaveObject`.
+* Renamed `DataFields` class to `PropertiesList`.
+* Moved parsing of class-specific properties into own namespace.
+* `ObjectProperty` and `SoftObjectProperty` now reuse the correct method for parsing/serializing the reference value.
+
 ### [0.4.22] (2024-10-07)
 #### compatibility fix
 * referenced icon libraries in blueprints are now optional when being parsed.
@@ -198,7 +207,7 @@ If you find a bug or have feedback about the parser, you can just open an issue 
 # License 
 MIT License
 
-Copyright (c) 2024 etothepii
+Copyright (c) 2021-2024 etothepii
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

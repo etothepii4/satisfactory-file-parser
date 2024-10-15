@@ -71,7 +71,7 @@ export class SaveReader extends ByteReader {
 			try {
 				this.header.modMetadata = JSON.parse(this.header.rawModMetadataString);
 			} catch (error) {
-				//
+				// ignore.
 			}
 			this.header.isModdedSave = this.readInt32();
 		}

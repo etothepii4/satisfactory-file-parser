@@ -20,10 +20,13 @@ beforeAll(() => {
 it.each([
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
-	'Unlock 003',			// Save with new buildings
-	'Unlock 004',			// before explosions
-	'Unlock 005',			// after explosions
-	'264_ohne_Mods'			// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
+	'264_ohne_Mods',		// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
+
+	// Mods
+	'ficsitcam-1',
+	'structuralsolutions-1',
+	'mods-1',
+	'x3-roads-signs'
 ])('can stream a binary save (%s) to json with readablestream', async (savename: string) => {
 	const filepath = path.join(__dirname, savename + '.sav');
 	const binaryFilepath = path.join(__dirname, savename + '.bins');
@@ -138,10 +141,13 @@ it.each([
 it.each([
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
-	'Unlock 003',			// Save with new buildings
-	'Unlock 004',			// before explosions
-	'Unlock 005',			// after explosions
-	'264_ohne_Mods',	// belt with items on it.
+	'264_ohne_Mods',		// ported Save from U8.
+
+	// Mods
+	'ficsitcam-1',
+	'structuralsolutions-1',
+	'mods-1',
+	'x3-roads-signs',
 ])('can write a synchronous save', async (savename) => {
 	const filepath = path.join(__dirname, savename + '.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
