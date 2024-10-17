@@ -21,31 +21,40 @@ Game Version Files of U5 and below are NOT supported.
 # Installation via npm
 `npm install @etothepii/satisfactory-file-parser`
 
-# Usage of Save Parsing
+# Mod Support ✅
+By Default, most Mods just reuse Properties and Structs of the base game.
+If however a Mod should not be working or have just objects with a lot of trailing unparseable data, Raise an issue or contact me.
 
-I recommend parsing via stream, to save RAM. The binary data of the whole save will still be in memory, but the converted JSON can be streamed. (You can of course keep reading the stream in memory).
-The returned `stream` is a readable WHATWG stream of type string and represents a `SatisfactorySave` object. this object can be serialized again.
-WHATWG is used by default by browsers. Node js can use them using `Writable.toWeb()` and `Writable.fromWeb()` for example.
+Some explicitly tested mods include:
+Ficsit-Cam, Structural Solutions, Linear Motion, Container Screens, Conveyor Wall Hole, X3-Signs, X3-Roads
+
+# Reading a Save
+Reading a Save in Memory.
 
 ```js
 import * as fs from 'fs';
-import * as path from 'path';
+import { Parser } from '@etothepii/satisfactory-file-parser';
+
+const file = fs.readFileSync('./MySave.sav');
+const save = Parser.ParseSave('MySave', file.buffer);
+```
+
+
+You can also read a Save via stream, to save RAM.
+The binary data of the whole save will still be in memory, but the converted JSON can be streamed. (You can of course keep reading the stream in memory).
+The returned `stream` is a readable WHATWG stream of type string and represents a `SatisfactorySave` object. this object can be serialized again.
+WHATWG is used by default by browsers. Node js can use them using `Writable.toWeb()` and `Writable.fromWeb()` for example.
+```js
+import * as fs from 'fs';
 import { Writable } from 'stream';
 import { WritableStream } from 'stream/web';
 import { ReadableStreamParser } from '@etothepii/satisfactory-file-parser';
 
-const filepath = path.join(__dirname, 'MySave.sav');
-const file = fs.readFileSync(filepath);
-const outJsonPath = path.join(__dirname, 'MySave.json');
-const jsonFileStream = fs.createWriteStream(outJsonPath, { highWaterMark: 1024 * 1024 * 200 });     // your outgoing JSON stream. In this case directly to file.
+const file = fs.readFileSync('./MySave.sav');
+const jsonFileStream = fs.createWriteStream('./MySave.json', { highWaterMark: 1024 * 1024 * 200 }); // your outgoing JSON stream. In this case directly to file.  
 const whatwgWriteStream = Writable.toWeb(jsonFileStream) as WritableStream<string>;                  // convert the file stream to WHATWG-compliant stream
 
-const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson('MySave', file, decompressedBody => {
-    console.log('on binary body data.');
-}, (progress: number, msg: string | undefined) => {
-    // a callback for reporting progress as number [0,1]. Sometimes has a message.
-    console.log(`progress`, progress, msg);
-});
+const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson('MySave', file);
 
 stream.pipeTo(whatwgWriteStream);
 jsonFileStream.on('close', () => {
@@ -55,17 +64,14 @@ jsonFileStream.on('close', () => {
 startStreaming();
 ```
 
+
 Consequently, writing a parsed save file back is just as easy.
 The SaveParser has callbacks to assist during syncing on different occasions during the process.
 For example, when writing the header or when writing a chunk of the save body.
 The splitting in individual chunks enables you to more easily stream the binary data to somewhere else.
 ```js
 import * as fs from 'fs';
-import * as path from 'path';
 import { Parser } from "@etothepii/satisfactory-file-parser";
-
-// save is your SatisfactorySave object to serialize. In this example i read it back in from a json file.
-const save = JSON.parse(fs.readFileSync(path.join(__dirname, 'MySave.json'), {encoding: 'utf-8'}));
 
 let fileHeader: Uint8Array;
 const bodyChunks: Uint8Array[] = [];
@@ -85,7 +91,6 @@ fs.writeFileSync('./MyModifiedSave.sav', Buffer.concat([fileHeader!, ...bodyChun
 
 
 ## Inspecting Save Objects
-Once you have the complete parsing done, the JSON is a `SatisfactorySave` object.
 You can for example loop through players and print their cached names and positions.
 
 ```js
@@ -109,7 +114,7 @@ import { Parser } from "@etothepii/satisfactory-file-parser";
 
 const mainFile = fs.readFileSync('./MyBlueprint.sbp');
 const configFile = fs.readFileSync('./MyBlueprint.sbpcfg');
-const parsedBlueprint = Parser.ParseBlueprintFiles('MyBlueprint', mainFile, configFile);
+const blueprint = Parser.ParseBlueprintFiles('Myblueprint', mainFile, configFile);
 ```
 
 Consequently, writing a blueprint into binary data works the same way with getting callbacks in the same style as the save parsing.
@@ -119,37 +124,57 @@ import { Parser } from "@etothepii/satisfactory-file-parser";
 
 let mainFileHeader: Uint8Array;
 const mainFileBodyChunks: Uint8Array[] = [];
-const summary = Parser.WriteBlueprintFiles(blueprint, mainFileBinaryBeforeCompressed => {
-    console.log('on main file binary data before being compressed.');
-}, header => {
-    console.log('on main file blueprint header.');
-    mainFileHeader = header;
-}, chunk => {
-    console.log('on main file blueprint body chunk.');
-    mainFileBodyChunks.push(chunk);
+const summary = Parser.WriteBlueprintFiles(blueprint, {
+    onMainFileHeader: header => {
+        console.log('on main file header.');
+        mainFileHeader = header;
+    }, onMainFileChunk: chunk => {
+        console.log('on main file body chunk.');
+        mainFileBodyChunks.push(chunk);
+    }
 });
 
 // write complete .sbp file back to disk
-fs.writeFileSync('./MyModifiedBlueprint.sbp', Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
+fs.writeFileSync('./MyBlueprint.sbp', Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
 
 // write .sbpcfg file back to disk, we get that data from the result of WriteBlueprintFiles
-fs.writeFileSync('./MyModifiedBlueprint.sbpcfg', Buffer.from(summary.configFileBinary));
+fs.writeFileSync('./MyBlueprint.sbpcfg', Buffer.from(summary.configFileBinary));
+```
+
+# Additional Infos
+For every parser call, you can pass optional callbacks to receive additional info.
+Like a callback on the decompressed save body. Parsing saves provides a callback for reporting progress [0,1] and an occasional message.
+```js
+const save = Parser.ParseSave('MySave', file.buffer, {
+    onDecompressedSaveBody: (body) => console.log('on decompressed body', body.byteLength),
+    onProgressCallback: (progress, msg) => console.log(progress, msg)
+});
+```
+```js
+const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson(savename, file, {
+    onProgress: (progress, msg) => console.log(`progress`, progress, msg);
+});
+```
+```js
+const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
+    onDecompressedBlueprintBody: (body) => console.log('on decompressed body', body.byteLength),
+});
 ```
 
 # Bug Reports or Feedback
-So far this was just a private hobby project. But i figure some people actually use it.
-If you find a bug or have feedback about the parser, you can just open an issue on the github repo or hit me up on the satisfactory discord `etothepii`.
-
-# Explicitly Supported/Tested Mods (No guarantee for other mods)
-### Ficsit-Cam (`FicsItCam`)
-### Structural Solutions (`SS_Mod`)
-### Linear Motion (`LinearMotion`)
-### Container Screens (`ContainerScreen`)
-### Conveyor Wall Hole (`WallHoleConveyor`)
-### X3-Signs (`x3_signs`)
-### X3-Roads (`x3_roads`)
+You can always raise an issue on the linked github project or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
+### [1.0.1] (2024-10-17)
+#### Major breaking changes on Parser usage
+* Cleaned Usage methods of Save / Blueprint Parsing. The callbacks are an optional additional parameter object now instead of required.
+* Re-Added a method to parse Saves in memory again. (sorry for the inconvenience)
+#### Internal structure changes
+* `SatisfactorySave` structure changed, the `grids` and `gridHash` fields are slightly different now, since their meaning became more clear. Not relevant for normal save editing.
+* `Level` is a namespace instead of a class now, since the classes had only static methods anyway.
+#### module build now includes source maps
+#### module build should now include a docs folder for auto-generated documentation
+
 ### [0.5.1] (2024-10-15)
 #### Added Mod Support
 #### Internal Renamings

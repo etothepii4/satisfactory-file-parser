@@ -98,7 +98,7 @@ export class ReadableStreamParser {
 	public static CreateReadableStreamFromSaveToJson = (
 		name: string,
 		bytes: Uint8Array,
-		options: Partial<{
+		options?: Partial<{
 			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
 			onProgress: (progress: number, message?: string) => void
 		}>
@@ -137,7 +137,7 @@ export class ReadableStreamParser {
 
 		const startStreaming = async (): Promise<void> => {
 
-			const reader = new SaveReader(bytes.buffer, options.onProgress);
+			const reader = new SaveReader(bytes.buffer, options?.onProgress);
 
 			// read header
 			const header = reader.readHeader();
@@ -157,7 +157,7 @@ export class ReadableStreamParser {
 			const inflateResult = reader.inflateChunks();
 
 			// call callback on decompressed save body
-			if (options.onDecompressedSaveBody !== undefined) {
+			if (options?.onDecompressedSaveBody !== undefined) {
 				options.onDecompressedSaveBody(reader.getBuffer());
 			}
 
@@ -172,7 +172,7 @@ export class ReadableStreamParser {
 			// parse levels
 			await ReadableStreamParser.ReadWriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
 
-			if (options.onProgress !== undefined) {
+			if (options?.onProgress !== undefined) {
 				options.onProgress(1, 'finished parsing.');
 			}
 

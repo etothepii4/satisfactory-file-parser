@@ -164,7 +164,7 @@ it.each([
 	// write complete .sbp file back to disk
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbp_modified'), Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
 
-	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'), configFileBuffer);
+	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'), Buffer.from(response.configFileBinary));
 });
 
 it.skip('benchmarks await values vs real values', async () => {

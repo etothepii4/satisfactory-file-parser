@@ -11,16 +11,23 @@ import { SaveWriter } from "./satisfactory/save/save-writer";
 /** @public */
 export class Parser {
 
+	/**
+	 * Parses a given binary buffer as {@link SatisfactorySave}
+	 * @param name the save name. It won't be serialized, so it does not matter how you name it.
+	 * @param bytes the actual binary buffer
+	 * @param options provides callbacks. Either on the decompressed save body or on reported progress as a number [0,1] with an occasional message.
+	 * @returns 
+	 */
 	public static ParseSave(
 		name: string,
 		bytes: Uint8Array,
-		options: Partial<{
+		options?: Partial<{
 			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
 			onProgressCallback: (progress: number, msg?: string) => void
 		}>
 	): SatisfactorySave {
 
-		const reader = new SaveReader(bytes.buffer, options.onProgressCallback);
+		const reader = new SaveReader(bytes.buffer, options?.onProgressCallback);
 
 		const header = reader.readHeader();
 		const save = new SatisfactorySave(name, header);
@@ -40,7 +47,7 @@ export class Parser {
 		save.compressionInfo = reader.compressionInfo;
 
 		// call callback on decompressed save body
-		if (options.onDecompressedSaveBody !== undefined) {
+		if (options?.onDecompressedSaveBody !== undefined) {
 			options.onDecompressedSaveBody(reader.getBuffer());
 		}
 
@@ -59,13 +66,13 @@ export class Parser {
 	/**
 	 * serializes a {@link SatisfactorySave} into binary and reports back on individual callbacks.
 	 * @param save the {@link SatisfactorySave} to serialize into binary.
-	 * @param onBinaryBeforeCompressing gets called on the binary save body before it is compressed.
-	 * @param onHeader gets called on the binary save header, which is always uncompressed.
-	 * @param onChunk gets called when a chunk of the compressed save body was generated. Often, files' save bodies consist of multiple chunks.
+	 * @param options provides callbacks. onBinaryBeforeCompressing gets called on the binary save body before it is compressed.
+	 * onHeader gets called on the binary save header, which is always uncompressed.
+	 * onChunk gets called when a chunk of the compressed save body was generated. Often, files' save bodies consist of multiple chunks.
 	 * @returns a summary of the generated chunks.
 	 */
 	public static WriteSave(save: SatisfactorySave,
-		options: Partial<{
+		options?: Partial<{
 			onBinaryBeforeCompressing: (buffer: ArrayBuffer) => void,
 			onHeader: (header: Uint8Array) => void,
 			onChunk: (chunk: Uint8Array) => void
@@ -82,21 +89,20 @@ export class Parser {
 		SaveWriter.WriteLevels(writer, save, save.header.buildVersion);
 
 		writer.endWriting();
-		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options.onBinaryBeforeCompressing ?? (() => { }), options.onHeader ?? (() => { }), options.onChunk ?? (() => { }));
+		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options?.onBinaryBeforeCompressing ?? (() => { }), options?.onHeader ?? (() => { }), options?.onChunk ?? (() => { }));
 		return chunkSummary;
 	}
 
 	/**
 	 * Writes a {@link Blueprint} object to binary. And reports back on individual callbacks.
 	 * @param blueprint the blueprint to be written
-	 * @param onMainFileBinaryBeforeCompressing gets called back when the main blueprint file binary is ready before compressing
-	 * @param onMainFileHeader gets called back when the main blueprint file header is ready
-	 * @param onMainFileChunk gets called back when a main blueprint file chunk is ready
+	 * @param options onMainFileBinaryBeforeCompressing gets called back when the main blueprint file binary is ready before compressing.
+	 * onMainFileHeader gets called back when the main blueprint file header is ready. onMainFileChunk gets called back when a main blueprint file chunk is ready.
 	 * @returns a chunk summary of the main file generated chunks. Plus the binary data of the config file, since it is often very small.
 	 */
 	public static WriteBlueprintFiles(
 		blueprint: Blueprint,
-		options: Partial<{
+		options?: Partial<{
 			onMainFileBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
 			onMainFileHeader: (header: Uint8Array) => void,
 			onMainFileChunk: (chunk: Uint8Array) => void,
@@ -118,9 +124,9 @@ export class Parser {
 			blueprint.compressionInfo,
 			saveBodyPos,
 			{
-				onBinaryBeforeCompressing: options.onMainFileBinaryBeforeCompressing ?? (() => { }),
-				onHeader: options.onMainFileHeader ?? (() => { }),
-				onChunk: options.onMainFileChunk ?? (() => { })
+				onBinaryBeforeCompressing: options?.onMainFileBinaryBeforeCompressing ?? (() => { }),
+				onHeader: options?.onMainFileHeader ?? (() => { }),
+				onChunk: options?.onMainFileChunk ?? (() => { })
 			}
 		);
 
@@ -140,14 +146,14 @@ export class Parser {
 	 * @param name the name of the blueprint, since it is not part of the binary data and has to be passed.
 	 * @param blueprintFile the main blueprint file ".sbp"
 	 * @param blueprintConfigFile the config blueprint file ".sbpcfg"
-	 * @param onDecompressedBlueprintBody gets called when the body of the main blueprint file is decompressed.
+	 * @param options provides callbacks. onDecompressedBlueprintBody gets called when the body of the main blueprint file is decompressed.
 	 * @returns 
 	 */
 	public static ParseBlueprintFiles(
 		name: string,
 		blueprintFile: Buffer,
 		blueprintConfigFile: Buffer,
-		options: Partial<{
+		options?: Partial<{
 			onDecompressedBlueprintBody: (buffer: ArrayBuffer) => void
 		}>
 	): Blueprint {
@@ -162,7 +168,7 @@ export class Parser {
 		const inflateResult = blueprintReader.inflateChunks();
 
 		// call back on decompressed body.
-		if (options.onDecompressedBlueprintBody !== undefined) {
+		if (options?.onDecompressedBlueprintBody !== undefined) {
 			options.onDecompressedBlueprintBody(inflateResult.inflatedData);
 		}
 
