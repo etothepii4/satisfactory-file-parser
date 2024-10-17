@@ -24,7 +24,7 @@ export abstract class ByteReader implements BinaryReadable {
 	 */
 	public reset(newFileBuffer: ArrayBuffer) {
 		this.fileBuffer = newFileBuffer;
-		this.bufferView = new DataView(newFileBuffer, 0, Math.min(102400, this.fileBuffer.byteLength));
+		this.bufferView = new DataView(newFileBuffer, 0, this.fileBuffer.byteLength);
 		this.maxByte = newFileBuffer.byteLength;
 		this.currentByte = 0;
 		this.handledByte = 0;
