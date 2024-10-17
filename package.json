@@ -15,7 +15,8 @@
 	],
 	"scripts": {
 		"test": "set PARSER_DEBUG=debug&& jest --config=jest.config.json --max_old_space_size=30720",
-		"build": "tsc && npm run bundle",
+		"build": "tsc",
+		"build-jsr": "tsc",
 		"bundle": "npx webpack && dts-bundle-generator -o dist/index.d.ts src/index.ts",
 		"prepublishOnly": "npm run build && npm version patch"
 	},
