@@ -72,10 +72,10 @@ export class Parser {
 	 * @returns a summary of the generated chunks.
 	 */
 	public static WriteSave(save: SatisfactorySave,
+		onHeader: (header: Uint8Array) => void,
+		onChunk: (chunk: Uint8Array) => void,
 		options?: Partial<{
 			onBinaryBeforeCompressing: (buffer: ArrayBuffer) => void,
-			onHeader: (header: Uint8Array) => void,
-			onChunk: (chunk: Uint8Array) => void
 		}>
 	): ChunkSummary[] {
 
@@ -89,7 +89,7 @@ export class Parser {
 		SaveWriter.WriteLevels(writer, save, save.header.buildVersion);
 
 		writer.endWriting();
-		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options?.onBinaryBeforeCompressing ?? (() => { }), options?.onHeader ?? (() => { }), options?.onChunk ?? (() => { }));
+		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options?.onBinaryBeforeCompressing ?? (() => { }), onHeader, onChunk);
 		return chunkSummary;
 	}
 
@@ -102,10 +102,10 @@ export class Parser {
 	 */
 	public static WriteBlueprintFiles(
 		blueprint: Blueprint,
+		onMainFileHeader: (header: Uint8Array) => void,
+		onMainFileChunk: (chunk: Uint8Array) => void,
 		options?: Partial<{
 			onMainFileBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
-			onMainFileHeader: (header: Uint8Array) => void,
-			onMainFileChunk: (chunk: Uint8Array) => void,
 		}>
 	): {
 		mainFileChunkSummary: ChunkSummary[],
@@ -125,8 +125,8 @@ export class Parser {
 			saveBodyPos,
 			{
 				onBinaryBeforeCompressing: options?.onMainFileBinaryBeforeCompressing ?? (() => { }),
-				onHeader: options?.onMainFileHeader ?? (() => { }),
-				onChunk: options?.onMainFileChunk ?? (() => { })
+				onHeader: onMainFileHeader,
+				onChunk: onMainFileChunk
 			}
 		);
 

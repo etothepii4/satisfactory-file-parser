@@ -108,18 +108,21 @@ it.each(saveList)('can write a synchronous save', async (savename) => {
 
 	let mainFileHeader: Uint8Array;
 	const mainFileBodyChunks: Uint8Array[] = [];
-	const response = Parser.WriteSave(save, {
-		onBinaryBeforeCompressing: binary => {
-			console.log('on binary.');
-			fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
-		}, onHeader: header => {
+	const response = Parser.WriteSave(save,
+		header => {
 			console.log('on header.');
 			mainFileHeader = header;
-		}, onChunk: chunk => {
+		},
+		chunk => {
 			console.log('on main file.');
 			mainFileBodyChunks.push(chunk);
-		}
-	});
+		},
+		{
+			onBinaryBeforeCompressing: binary => {
+				console.log('on binary.');
+				fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
+			}
+		});
 
 	// write complete .sav file back to disk
 	fs.writeFileSync(path.join(__dirname, savename + '_on-writing.sav'), Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
@@ -148,18 +151,20 @@ it.each([
 
 	let mainFileHeader: Uint8Array;
 	const mainFileBodyChunks: Uint8Array[] = [];
-	const response = Parser.WriteBlueprintFiles(blueprint, {
-		onMainFileBinaryBeforeCompressing: binary => {
-			console.log('on binary.');
-			fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
-		}, onMainFileHeader: header => {
+	const response = Parser.WriteBlueprintFiles(blueprint,
+		header => {
 			console.log('on header.');
 			mainFileHeader = header;
-		}, onMainFileChunk: chunk => {
+		}, chunk => {
 			console.log('on main file.');
 			mainFileBodyChunks.push(chunk);
-		}
-	});
+		},
+		{
+			onMainFileBinaryBeforeCompressing: binary => {
+				console.log('on binary.');
+				fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
+			},
+		});
 
 	// write complete .sbp file back to disk
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbp_modified'), Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));

@@ -75,9 +75,7 @@ import { Parser } from "@etothepii/satisfactory-file-parser";
 
 let fileHeader: Uint8Array;
 const bodyChunks: Uint8Array[] = [];
-Parser.WriteSave(save, binaryBeforeCompressed => { 
-    console.log('on binary data before being compressed.');
-}, header => {
+Parser.WriteSave(save, header => {
     console.log('on save header.');
     fileHeader = header;
 }, chunk => {
@@ -124,15 +122,16 @@ import { Parser } from "@etothepii/satisfactory-file-parser";
 
 let mainFileHeader: Uint8Array;
 const mainFileBodyChunks: Uint8Array[] = [];
-const summary = Parser.WriteBlueprintFiles(blueprint, {
-    onMainFileHeader: header => {
+const summary = Parser.WriteBlueprintFiles(blueprint,
+    header => {
         console.log('on main file header.');
         mainFileHeader = header;
-    }, onMainFileChunk: chunk => {
+    },
+    chunk => {
         console.log('on main file body chunk.');
         mainFileBodyChunks.push(chunk);
     }
-});
+);
 
 // write complete .sbp file back to disk
 fs.writeFileSync('./MyBlueprint.sbp', Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
@@ -165,8 +164,13 @@ const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
 You can always raise an issue on the linked github project or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
+## [1.0.3] (2024-10-17)
+#### Hotfix
+* fix being forced to use callbacks when writing saves or blueprints.
+
 ## [1.0.2] (2024-10-17)
-#### `...SpecialProperty` got all renamed to `...SpecialProperties`.
+#### Internal renaming
+* `...SpecialProperty` got all renamed to `...SpecialProperties`.
 
 ### [1.0.1] (2024-10-17)
 #### Major breaking changes on Parser usage
