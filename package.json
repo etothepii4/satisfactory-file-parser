@@ -15,6 +15,7 @@
 	],
 	"scripts": {
 		"test": "set PARSER_DEBUG=debug&& jest --config=jest.config.json --max_old_space_size=30720",
+		"doc": "typedoc src/index.ts",
 		"build": "tsc",
 		"build-jsr": "tsc",
 		"bundle": "npx webpack && dts-bundle-generator -o dist/index.d.ts src/index.ts",
@@ -41,6 +42,7 @@
 		"ts-jest": "^29.0.5",
 		"ts-loader": "^9.4.2",
 		"ts-node": "^10.9.1",
+		"typedoc": "^0.26.10",
 		"typescript": "^5.0.2",
 		"webpack": "^5.78.0",
 		"webpack-cli": "^5.0.1"
