@@ -165,6 +165,9 @@ const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
 You can always raise an issue on the linked github project or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
+## [1.0.2] (2024-10-17)
+#### `...SpecialProperty` got all renamed to `...SpecialProperties`.
+
 ### [1.0.1] (2024-10-17)
 #### Major breaking changes on Parser usage
 * Cleaned Usage methods of Save / Blueprint Parsing. The callbacks are an optional additional parameter object now instead of required.
