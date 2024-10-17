@@ -2,7 +2,7 @@ import { Alignment } from "../../byte/alignment.enum";
 import { ByteWriter } from "../../byte/byte-writer.class";
 import { ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo, ChunkSummary } from "../../file.types";
-import { Level } from "../save/level.class";
+import { Level } from '../save/level.class';
 import { SaveWriter } from "../save/save-writer";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
@@ -53,9 +53,11 @@ export class BlueprintWriter extends ByteWriter {
 		compressionInfo: ChunkCompressionInfo,
 		posAfterHeader: number,
 
-		onBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
-		onHeader: (header: Uint8Array) => void,
-		onChunk: (chunk: Uint8Array) => void,
+		options: Partial<{
+			onBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
+			onHeader: (header: Uint8Array) => void,
+			onChunk: (chunk: Uint8Array) => void,
+		}>
 	): ChunkSummary[] {
 
 		if (posAfterHeader <= 0) {
@@ -64,11 +66,13 @@ export class BlueprintWriter extends ByteWriter {
 
 		// send plain header first.
 		const header = new Uint8Array(this.bufferArray.slice(0, posAfterHeader));
-		onHeader(header);
+		if (options.onHeader !== undefined) {
+			options.onHeader(header);
+		}
 
 		// create save body
 		this.bufferArray = this.bufferArray.slice(posAfterHeader);
-		const chunkSummary = SaveWriter.GenerateCompressedChunksFromData(this.bufferArray, compressionInfo, onBinaryBeforeCompressing, onChunk, this.alignment);
+		const chunkSummary = SaveWriter.GenerateCompressedChunksFromData(this.bufferArray, compressionInfo, options.onBinaryBeforeCompressing ?? (() => { }), options.onChunk ?? (() => { }), this.alignment);
 		return chunkSummary;
 	}
 
@@ -77,7 +81,7 @@ export class BlueprintWriter extends ByteWriter {
 		// object headers
 		const headersLenIndicator = writer.getBufferPosition();
 		writer.writeInt32(0);
-		Level.SerializeObjectHeaders(writer, objects);
+		Level.SerializeAllObjectHeaders(writer, objects);
 		writer.writeBinarySizeFromPosition(headersLenIndicator, headersLenIndicator + 4);
 
 		// objects contents

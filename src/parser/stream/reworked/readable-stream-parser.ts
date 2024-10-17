@@ -1,14 +1,11 @@
 import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
-import { BinaryReadable } from '../../byte/binary-readable.interface';
-import { CorruptSaveError, UnsupportedVersionError } from '../../error/parser.error';
+import { UnsupportedVersionError } from '../../error/parser.error';
 import { ChunkCompressionInfo } from "../../file.types";
-import { Level } from "../../satisfactory/save/level.class";
+import { Level } from '../../satisfactory/save/level.class';
+import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
-import { ByteArray4, Grids, SaveReader } from "../../satisfactory/save/save-reader";
+import { Grids, SaveBodyValidation, SaveReader } from "../../satisfactory/save/save-reader";
 import { SatisfactorySaveHeader } from "../../satisfactory/save/save.types";
-import { SaveComponent, isSaveComponent } from "../../satisfactory/types/objects/SaveComponent";
-import { SaveEntity, isSaveEntity } from "../../satisfactory/types/objects/SaveEntity";
-import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
 const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): QueuingStrategy<string> => ({
@@ -101,8 +98,10 @@ export class ReadableStreamParser {
 	public static CreateReadableStreamFromSaveToJson = (
 		name: string,
 		bytes: Uint8Array,
-		onDecompressedSaveBody: (buffer: ArrayBuffer) => void = () => { },
-		onProgress: (progress: number, message?: string) => void = () => { }
+		options: Partial<{
+			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
+			onProgress: (progress: number, message?: string) => void
+		}>
 	) => {
 
 		// create a simple lock to sync with consumer of the stream. Aka handle backpressure.
@@ -138,14 +137,14 @@ export class ReadableStreamParser {
 
 		const startStreaming = async (): Promise<void> => {
 
-			const reader = new SaveReader(bytes.buffer, onProgress);
+			const reader = new SaveReader(bytes.buffer, options.onProgress);
 
 			// read header
 			const header = reader.readHeader();
 			const save = new SatisfactorySave(name, header);
 
 			// guard save version
-			const roughSaveVersion = SaveReader.getRoughSaveVersion(header.saveVersion, header.saveHeaderType);
+			const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.saveHeaderType);
 			if (roughSaveVersion === '<U6') {
 				throw new UnsupportedVersionError('Game Version < U6 is not supported.');
 			} else if (roughSaveVersion === 'U6/U7') {
@@ -158,7 +157,9 @@ export class ReadableStreamParser {
 			const inflateResult = reader.inflateChunks();
 
 			// call callback on decompressed save body
-			onDecompressedSaveBody(reader.getBuffer());
+			if (options.onDecompressedSaveBody !== undefined) {
+				options.onDecompressedSaveBody(reader.getBuffer());
+			}
 
 			// grid hash i guess
 			const gridHash = reader.readSaveBodyHash();
@@ -166,10 +167,14 @@ export class ReadableStreamParser {
 			// parse grids
 			const grids = reader.readGrids();
 
-			await ReadableStreamParser.WriteHeaderAndGrids(write, reader.compressionInfo, header, grids, gridHash);
+			await ReadableStreamParser.WriteHeaderAndGrids(write, name, reader.compressionInfo, header, grids, gridHash);
 
 			// parse levels
-			await ReadableStreamParser.WriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
+			await ReadableStreamParser.ReadWriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
+
+			if (options.onProgress !== undefined) {
+				options.onProgress(1, 'finished parsing.');
+			}
 
 			// close the levels and save object.
 			await write(`]}`,);
@@ -182,19 +187,20 @@ export class ReadableStreamParser {
 
 	private static WriteHeaderAndGrids = async (
 		write: (value: string, waitTilConsumingEndIsReady?: boolean) => Promise<void>,
+		name: string,
 		compressionInfo: ChunkCompressionInfo,
 		header: SatisfactorySaveHeader,
 		grids: Grids,
-		gridHash: ByteArray4
+		gridHash: SaveBodyValidation
 	) => {
-		return write(`{"header": ${JSON.stringify(header)}, "compressionInfo": ${JSON.stringify(compressionInfo)}, "gridHash": ${JSON.stringify(gridHash)}, "grids": ${JSON.stringify(grids)}, "levels": [`, false);
+		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", "compressionInfo": ${JSON.stringify(compressionInfo)}, "gridHash": ${JSON.stringify(gridHash)}, "grids": ${JSON.stringify(grids)}, "levels": [`, false);
 	}
 
-	private static async WriteLevels(
+	private static async ReadWriteLevels(
 		write: (value: string, waitTilConsumingEndIsReady?: boolean) => Promise<void>,
 		reader: SaveReader,
 		mapName: string,
-		buildVersion: number
+		buildVersion: number,
 	): Promise<void> {
 
 		const batchingSizeOfObjects = 1000;
@@ -216,7 +222,7 @@ export class ReadableStreamParser {
 
 
 			// object headers
-			const headersBinLen = reader.readInt32(); // object headers + binary length
+			const headersBinLen = reader.readInt32(); // object headers + destroyed colelctables
 			reader.readInt32();	// 0
 			const posBeforeHeaders = reader.getBufferPosition();
 			const afterAllHeaders = posBeforeHeaders + headersBinLen;
@@ -234,7 +240,7 @@ export class ReadableStreamParser {
 
 				// read batch
 				const objectCountToRead = Math.min(countObjectHeaders - totalReadObjectsInLevel, batchingSizeOfObjects);
-				const objects = ReadableStreamParser.ReadNObjectHeaders(reader, objectCountToRead);
+				const objects = Level.ReadNObjectHeaders(reader, objectCountToRead);
 
 				afterHeadersOfBatch = reader.getBufferPosition();
 
@@ -244,7 +250,7 @@ export class ReadableStreamParser {
 				if (countObjectHeaders === totalReadObjectsInLevel + objects.length) {
 					const bytesLeft = afterAllHeaders - reader.getBufferPosition();
 					if (bytesLeft > 0) {
-						ReadableStreamParser.ReadDestroyedEntityReferences(reader);
+						ObjectReferencesList.ReadList(reader);
 					}
 				}
 
@@ -255,7 +261,7 @@ export class ReadableStreamParser {
 					reader.skipBytes(afterAllHeaders - reader.getBufferPosition());
 
 					const objectContentsBinLen = reader.readInt32();
-					const unk2 = reader.readInt32();
+					reader.readInt32();	// 0
 					const posBeforeContents = reader.getBufferPosition();
 					const countEntities = reader.readInt32();
 					afterObjectsOfBatch = reader.getBufferPosition();	// at first no batch is read.
@@ -263,7 +269,7 @@ export class ReadableStreamParser {
 					reader.skipBytes(afterObjectsOfBatch - reader.getBufferPosition());
 				}
 
-				ReadableStreamParser.ReadNObjects(reader, objectCountToRead, objects, buildVersion);
+				Level.ReadNObjectContents(reader, objectCountToRead, objects, 0, buildVersion);
 				afterObjectsOfBatch = reader.getBufferPosition();
 
 				totalReadObjectsInLevel += objectCountToRead;
@@ -286,68 +292,12 @@ export class ReadableStreamParser {
 
 			await write('], "collectables": [', false);
 
-			const collectables = Level.ReadCollectablesList(reader);
+			const collectables = ObjectReferencesList.ReadList(reader);
 
 			await write(`${collectables.map(obj => JSON.stringify(obj)).join(', ')}`, true);
 
 			await write(']', false);
 			await write('}', false);
-		}
-
-	}
-
-	// list of destroyed actors. i think they can be ignored.
-	private static ReadDestroyedEntityReferences = (reader: BinaryReadable): ObjectReference[] => {
-		const destroyedEntitiesCount = reader.readInt32();
-		const destroyedEntities: ObjectReference[] = [];
-		for (let i = 0; i < destroyedEntitiesCount; i++) {
-			const destroyed = ObjectReference.read(reader);
-			destroyedEntities.push(destroyed);
-		}
-		return destroyedEntities;
-	};
-
-	private static ReadNObjectHeaders = (reader: SaveReader, count: number): (SaveEntity | SaveComponent)[] => {
-		let objects: (SaveEntity | SaveComponent)[] = [];
-		let objectsRead = 0;
-		for (; objectsRead < count; objectsRead++) {
-
-			let obj: SaveEntity | SaveComponent;
-			let objectType = reader.readInt32();
-			switch (objectType) {
-				case SaveEntity.TypeID:
-					obj = new SaveEntity('', '', '', '');
-					SaveEntity.ParseHeader(reader, obj);
-					break;
-				case SaveComponent.TypeID:
-					obj = new SaveComponent('', '', '', '');
-					SaveComponent.ParseHeader(reader, obj);
-					break;
-				default:
-					throw new CorruptSaveError('Unknown object type' + objectType);
-			}
-			objects.push(obj);
-		}
-		return objects;
-	}
-
-	private static ReadNObjects = (reader: SaveReader, count: number, objects: (SaveEntity | SaveComponent)[], buildVersion: number) => {
-		for (let i = 0; i < count; i++) {
-			objects[i].objectVersion = reader.readInt32();	// 36, 41..... 42, 46 at 1.0 Release - so its probably an object version
-			objects[i].unknownType2 = reader.readInt32();	//1 - //occasionally 0 ?
-			const binarySize = reader.readInt32();
-
-			const before = reader.getBufferPosition();
-			if (isSaveEntity(objects[i])) {
-				SaveEntity.ParseData(objects[i] as SaveEntity, binarySize, reader, buildVersion, objects[i].typePath);
-			} else if (isSaveComponent(objects[i])) {
-				SaveComponent.ParseData(objects[i] as SaveComponent, binarySize, reader, buildVersion, objects[i].typePath);
-			}
-
-			const after = reader.getBufferPosition();
-			if (after - before !== binarySize) {
-				throw new CorruptSaveError(`Could not read entity ${objects[i].instanceName}, as ${after - before} bytes were read, but ${binarySize} bytes were indicated.`);
-			}
 		}
 	}
 }

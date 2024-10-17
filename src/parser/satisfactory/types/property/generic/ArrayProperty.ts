@@ -1,5 +1,6 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { UnimplementedError } from '../../../../error/parser.error';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
 import { BasicProperty } from './BasicProperty';
@@ -138,8 +139,7 @@ export class ArrayProperty<T> extends BasicProperty {
                 break;
 
             default:
-                console.log(subtype, ueType);
-                throw new Error();
+                throw new UnimplementedError(`Unknown subtype ${subtype} for ${ueType}. Not implemented.`);
 
         }
 

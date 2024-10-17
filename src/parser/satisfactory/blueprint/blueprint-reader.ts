@@ -4,7 +4,7 @@ import { BinaryReadable } from "../../byte/binary-readable.interface";
 import { ByteReader } from "../../byte/byte-reader.class";
 import { CorruptSaveError, ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo } from "../../file.types";
-import { Level } from "../save/level.class";
+import { Level } from '../save/level.class';
 import { DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE } from "../save/save-reader";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
@@ -142,7 +142,7 @@ export class BlueprintReader extends ByteReader {
 		// object headers
 		const objectHeadersBinarySize = reader.readInt32();
 		let objects: (SaveEntity | SaveComponent)[] = [];
-		Level.ReadObjectHeaders(reader, objects, () => { });
+		Level.ReadAllObjectHeaders(reader, objects);
 
 		const someChecksumThing = reader.readInt32();
 

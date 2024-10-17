@@ -7,8 +7,10 @@ import { SatisfactorySave } from '../parser/satisfactory/save/satisfactory-save'
 import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
+let fileLog: fs.WriteStream;
+
 beforeAll(() => {
-	const fileLog = fs.createWriteStream(path.join(__dirname, './test-log.txt'), { flags: 'w' });
+	fileLog = fs.createWriteStream(path.join(__dirname, './test-log.txt'), { flags: 'w' });
 	const logOutput = process.stdout;
 	console.log = (...e: any[]) => {
 		fileLog.write(e.map(el => util.format(el)).join(' ') + '\n');
@@ -16,8 +18,13 @@ beforeAll(() => {
 	};
 });
 
+afterAll(() => {
+	if (fileLog !== undefined) {
+		fileLog.close();
+	}
+});
 
-it.each([
+const saveList = [
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
 	'264_ohne_Mods',		// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
@@ -27,24 +34,26 @@ it.each([
 	'structuralsolutions-1',
 	'mods-1',
 	'x3-roads-signs'
-])('can stream a binary save (%s) to json with readablestream', async (savename: string) => {
+];
+
+it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
 	const filepath = path.join(__dirname, savename + '.sav');
-	const binaryFilepath = path.join(__dirname, savename + '.bins');
+	const binaryFilepathStream = path.join(__dirname, savename + '.stream.bin');
+	const binaryFilepathSync = path.join(__dirname, savename + '.sync.bin');
 	const file = fs.readFileSync(filepath);
-
-
-	const outJsonPath = path.join(__dirname, savename + '.json');
+	const outJsonPathStream = path.join(__dirname, savename + '.stream.json');
+	const outJsonPathSync = path.join(__dirname, savename + '.sync.json');
 
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less waiting on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
-	const outJsonStream = fs.createWriteStream(outJsonPath, { highWaterMark: 1024 * 1024 * 200 });
+	const outJsonStream = fs.createWriteStream(outJsonPathStream, { highWaterMark: 1024 * 1024 * 200 });
 
-
-	// TODO: is a progress callback on a readable stream useful?? rather report progress on consuming that stream!
-	const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson(savename, file, decompressedBody => {
-		fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBody));
-	}, (progress: number, msg: string | undefined) => {
-		console.log(`${new Date().toString()}: progress`, progress, msg);
+	const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson(savename, file, {
+		onDecompressedSaveBody: decompressedBody => {
+			fs.writeFileSync(binaryFilepathStream, Buffer.from(decompressedBody));
+		}, onProgress: (progress, msg) => {
+			console.log(`progress`, progress, msg);
+		}
 	});
 
 	// streaming to file, WritableStream is from stream/web
@@ -66,103 +75,50 @@ it.each([
 			});
 	});
 
-
-	// Release xxx ?
-	//257 = 64 seconds when streaming to file, 60 seconds when streaming in memory
-	//FreshStartU8001 = 1.6 seconds when streaming to file, 1.2 seconds when streaming in memory
-	console.log(`we are looking at ${(end - start) / 1000} seconds.`);
-});
+	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
 
 
-/*
-it.each([
-	//'Creative without Mods 7-2',
-	//'Creative without Mods 7-3',
-	//'Creative without Mods 7-4',
-	//'Froddo U8',
-	//'CreativeU8',
-	//'257',
-	//'FreshStartU8001-vehicles-2'
-	//'210', //--> should be same like without mods.
-	//'210-u8-wo-mods',
-	//'210-u8-wo-mods-2',	// saved at playtime 248h 16m ~40s, at 4th November 2023 19:29
-	//'Creative without Mods 3',
-	//'Creative without Mods 5',
-	//'FreshStartU8001',	// nothing removed
-	//'FreshStartU8001-2',	// still nothing.
-	//'FreshStartU8001-3',	// 2 foundations
-	//'FreshStartU8002',		//
-	//'FreshStartU8002-2',	//  001 but conveyorpole removed immediately.
-	//'FreshStartU8002-3',	// before yellow slug
-	//'FreshStartU8003',	// yellow slug removed
-	//'FreshStartU8004',	// purple slug and 2 berries removed
-	//'FreshStartU8005',	// 1 fart rock destroyed
-	//'FreshStartU8006',	// 1 fart plant destroyed
-	//'FreshStartU8007',	// 5 destructible rock destroyed
-	//'FreshStartU8008',	// 2 more destructible rock destroyed, without moving the player really. SeeMs like destructible large rocks and gas pillars that are removed are saved in objects.
-	//'FreshStartU8009',	// 004 with a handful of plants removed with chainsaw.
-	//'FreshStartU8010',	// before crashsite.
-	//'FreshStartU8011',	// collecting a few items at crashsite
-	//'FreshStartU8012',	// opening drop pod
-	//'FreshStartU8013',	// retrived hard drive into inventory.
-	//'Session_Name_is_Too_Long_U8',
-	//'FreshStartU8002-2-1',
-	//'FreshStartU8002-2-2',
-	//'FreshStartU8002-2-1_modified',
-	//'FreshStartU8002-2-2_modified'
-])('can read a synchronous save', async (savename) => {
-	const filepath = path.join(__dirname, savename + '.sav');
-	const binaryFilepath = path.join(__dirname, savename + '.bins');
-	const file = fs.readFileSync(filepath);
-
-	const start = performance.now();
-	const save = Parser.ParseSaveFile(savename, file, decompressedBody => {
-		fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBody));
-	}, (progress, msg) => {
-		if (msg) {
-			console.log(`${new Date().toString()}: progress`, progress, msg);
+	// parse sync as well.
+	const start2 = performance.now();
+	const secondParse = Parser.ParseSave(savename, file, {
+		onDecompressedSaveBody: (decompressedBody) => {
+			fs.writeFileSync(binaryFilepathSync, Buffer.from(decompressedBody));
+		},
+		onProgressCallback: (progress, msg) => {
+			console.log(`progress`, progress, msg);
 		}
 	});
-	const end = performance.now();
+	fs.writeFileSync(outJsonPathSync, JSON.stringify(secondParse));
+	const end2 = performance.now();
 
-	// stream output to json file.
-	const jsonWriteStream = fs.createWriteStream(path.join(__dirname, savename + '.json'), { highWaterMark: 1024 * 1024 * 200 });
-	await SaveStreamJsonStringifier.StreamStringifySave(save, Writable.toWeb(jsonWriteStream));
-	jsonWriteStream.close();
+	console.log(`Sync Parsing took ${(end2 - start2) / 1000} seconds.`);
 
-	//U7 --- FreshStart001 ~= 0.5s, 210 ~= 14s
-	//U8 --- FreshStart001 ~= ?, 210 ~= ?
-	console.log(`we are looking at ${(end - start) / 1000} seconds.`);
+	// check that the minified jsons are equal.
+	const json1 = fs.readFileSync(outJsonPathStream, { encoding: 'utf-8' });
+	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
+	const thing1 = JSON.parse(json1) as SatisfactorySave;
+	const thing2 = JSON.parse(json2) as SatisfactorySave;
+	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
 });
-*/
 
 
-
-it.each([
-	'Release 001',			// 1.0 Save, almost empty.
-	'Release 032',			// 1.0 Save
-	'264_ohne_Mods',		// ported Save from U8.
-
-	// Mods
-	'ficsitcam-1',
-	'structuralsolutions-1',
-	'mods-1',
-	'x3-roads-signs',
-])('can write a synchronous save', async (savename) => {
+it.each(saveList)('can write a synchronous save', async (savename) => {
 	const filepath = path.join(__dirname, savename + '.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
 
 	let mainFileHeader: Uint8Array;
 	const mainFileBodyChunks: Uint8Array[] = [];
-	const response = Parser.WriteSave(save, binary => {
-		console.log('on binary.');
-		fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
-	}, header => {
-		console.log('on header.');
-		mainFileHeader = header;
-	}, chunk => {
-		console.log('on main file.');
-		mainFileBodyChunks.push(chunk);
+	const response = Parser.WriteSave(save, {
+		onBinaryBeforeCompressing: binary => {
+			console.log('on binary.');
+			fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
+		}, onHeader: header => {
+			console.log('on header.');
+			mainFileHeader = header;
+		}, onChunk: chunk => {
+			console.log('on main file.');
+			mainFileBodyChunks.push(chunk);
+		}
 	});
 
 	// write complete .sav file back to disk
@@ -182,23 +138,27 @@ it.each([
 	const file = fs.readFileSync(filepathBlueprint);
 	const configFileBuffer = fs.readFileSync(filepathBlueprintConfig);
 
-	const blueprint = Parser.ParseBlueprintFiles(blueprintname, file, configFileBuffer, decompressedBlueprintBody => {
-		fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBlueprintBody));
+	const blueprint = Parser.ParseBlueprintFiles(blueprintname, file, configFileBuffer, {
+		onDecompressedBlueprintBody: (decompressedBody) => {
+			fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBody));
+		}
 	});
 
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.json'), JSON.stringify(blueprint, null, 4));
 
 	let mainFileHeader: Uint8Array;
 	const mainFileBodyChunks: Uint8Array[] = [];
-	const response = Parser.WriteBlueprintFiles(blueprint, binary => {
-		console.log('on binary.');
-		fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
-	}, header => {
-		console.log('on header.');
-		mainFileHeader = header;
-	}, chunk => {
-		console.log('on main file.');
-		mainFileBodyChunks.push(chunk);
+	const response = Parser.WriteBlueprintFiles(blueprint, {
+		onMainFileBinaryBeforeCompressing: binary => {
+			console.log('on binary.');
+			fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
+		}, onMainFileHeader: header => {
+			console.log('on header.');
+			mainFileHeader = header;
+		}, onMainFileChunk: chunk => {
+			console.log('on main file.');
+			mainFileBodyChunks.push(chunk);
+		}
 	});
 
 	// write complete .sbp file back to disk

@@ -4,9 +4,9 @@ import { ByteWriter } from "../../byte/byte-writer.class";
 import { CompressionLibraryError, ParserError, UnsupportedVersionError } from "../../error/parser.error";
 import { ChunkCompressionInfo, ChunkSummary, CompressionAlgorithmCode } from "../../file.types";
 import { MD5Hash } from '../types/structs/MD5Hash';
-import { Level } from "./level.class";
+import { Level } from './level.class';
 import { SatisfactorySave } from "./satisfactory-save";
-import { ByteArray4, Grids, SaveReader } from "./save-reader";
+import { Grids, SaveBodyValidation, SaveReader } from "./save-reader";
 import { SatisfactorySaveHeader } from "./save.types";
 
 
@@ -64,30 +64,29 @@ export class SaveWriter extends ByteWriter {
 		}
 	}
 
-	public static WriteSaveBodyHash = (writer: ByteWriter, hash: ByteArray4): void => {
+	public static WriteSaveBodyHash = (writer: ByteWriter, saveBodyValidation: SaveBodyValidation): void => {
 		writer.writeInt32(0);
-		writer.writeInt32(6);
+		writer.writeInt32(saveBodyValidation.version);
 		writer.writeString('None');
 		writer.writeInt32(0);
-		writer.writeBytesArray(hash);
+		writer.writeBytesArray(saveBodyValidation.hash1);
 		writer.writeInt32(1);
 		writer.writeString('None');
+		writer.writeBytesArray(saveBodyValidation.hash2);
 	}
 
 	public static WriteGrids = (writer: ByteWriter, grids: Grids): void => {
-		for (const parentEntry of Object.entries(grids)) {
-			writer.writeInt32(parentEntry[1].checksum);
-			writer.writeString(parentEntry[0]);
-			writer.writeInt32(parentEntry[1].cellSize);
-			writer.writeUint32(parentEntry[1].gridHash);
+		for (const gridEntry of Object.entries(grids)) {
+			writer.writeString(gridEntry[0]);
+			writer.writeInt32(gridEntry[1].cellSize);
+			writer.writeUint32(gridEntry[1].gridHash);
 
-			for (const child of Object.entries(parentEntry[1].children)) {
-				writer.writeUint32(child[1]);
+			writer.writeUint32(Object.values(gridEntry[1].children).length);
+			for (const child of Object.entries(gridEntry[1].children)) {
 				writer.writeString(child[0]);
+				writer.writeUint32(child[1]);
 			}
 		}
-
-		writer.writeInt32(0);
 	};
 
 	public static WriteLevels(writer: ByteWriter, save: SatisfactorySave, buildVersion: number): void {
@@ -108,7 +107,6 @@ export class SaveWriter extends ByteWriter {
 		alignment: Alignment = Alignment.LITTLE_ENDIAN
 	): ChunkSummary[] {
 
-		const errors: string[] = [];
 		const totalUncompressedSize = bufferArray.byteLength;
 
 		const saveBody = new Uint8Array(bufferArray.byteLength + 8);

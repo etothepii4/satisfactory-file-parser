@@ -1,3 +1,4 @@
+import { CorruptSaveError } from '../error/parser.error';
 import { Alignment } from "./alignment.enum";
 import { BinaryReadable } from "./binary-readable.interface";
 
@@ -129,9 +130,7 @@ export abstract class ByteReader implements BinaryReadable {
 			return string.join('');
 		}
 		catch (error) {
-			let errorMessage = `Cannot read UTF8 string of length ${strLength} at position ${this.currentByte}.`;
-			console.log(errorMessage, error);
-			throw error;
+			throw new CorruptSaveError(`Cannot read UTF8 string of length ${strLength} at position ${this.currentByte}.`);
 		}
 	}
 

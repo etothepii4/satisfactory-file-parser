@@ -1,13 +1,60 @@
+import { UnsupportedVersionError } from './error/parser.error';
 import { ChunkSummary } from "./file.types";
 import { BlueprintConfigReader, BlueprintReader } from "./satisfactory/blueprint/blueprint-reader";
 import { BlueprintConfigWriter, BlueprintWriter } from "./satisfactory/blueprint/blueprint-writer";
 import { Blueprint } from "./satisfactory/blueprint/blueprint.types";
 import { SatisfactorySave } from "./satisfactory/save/satisfactory-save";
+import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
 
 
 /** @public */
 export class Parser {
+
+	public static ParseSave(
+		name: string,
+		bytes: Uint8Array,
+		options: Partial<{
+			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
+			onProgressCallback: (progress: number, msg?: string) => void
+		}>
+	): SatisfactorySave {
+
+		const reader = new SaveReader(bytes.buffer, options.onProgressCallback);
+
+		const header = reader.readHeader();
+		const save = new SatisfactorySave(name, header);
+
+		// guard save version
+		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.saveHeaderType);
+		if (roughSaveVersion === '<U6') {
+			throw new UnsupportedVersionError('Game Version < U6 is not supported.');
+		} else if (roughSaveVersion === 'U6/U7') {
+			throw new UnsupportedVersionError('Game Version U6/U7 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.0.34');
+		} else if (roughSaveVersion === 'U8') {
+			throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
+		}
+
+		// inflate chunks
+		const inflateResult = reader.inflateChunks();
+		save.compressionInfo = reader.compressionInfo;
+
+		// call callback on decompressed save body
+		if (options.onDecompressedSaveBody !== undefined) {
+			options.onDecompressedSaveBody(reader.getBuffer());
+		}
+
+		// save body validation hash
+		save.gridHash = reader.readSaveBodyHash();
+
+		// parse grids
+		save.grids = reader.readGrids();
+
+		// parse levels
+		save.levels = reader.readLevels();
+
+		return save;
+	}
 
 	/**
 	 * serializes a {@link SatisfactorySave} into binary and reports back on individual callbacks.
@@ -18,9 +65,11 @@ export class Parser {
 	 * @returns a summary of the generated chunks.
 	 */
 	public static WriteSave(save: SatisfactorySave,
-		onBinaryBeforeCompressing: (buffer: ArrayBuffer) => void,
-		onHeader: (header: Uint8Array) => void,
-		onChunk: (chunk: Uint8Array) => void
+		options: Partial<{
+			onBinaryBeforeCompressing: (buffer: ArrayBuffer) => void,
+			onHeader: (header: Uint8Array) => void,
+			onChunk: (chunk: Uint8Array) => void
+		}>
 	): ChunkSummary[] {
 
 		const writer = new SaveWriter();
@@ -33,7 +82,7 @@ export class Parser {
 		SaveWriter.WriteLevels(writer, save, save.header.buildVersion);
 
 		writer.endWriting();
-		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, onBinaryBeforeCompressing, onHeader, onChunk);
+		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options.onBinaryBeforeCompressing ?? (() => { }), options.onHeader ?? (() => { }), options.onChunk ?? (() => { }));
 		return chunkSummary;
 	}
 
@@ -47,9 +96,11 @@ export class Parser {
 	 */
 	public static WriteBlueprintFiles(
 		blueprint: Blueprint,
-		onMainFileBinaryBeforeCompressing: (binary: ArrayBuffer) => void = () => { },
-		onMainFileHeader: (header: Uint8Array) => void = () => { },
-		onMainFileChunk: (chunk: Uint8Array) => void = () => { },
+		options: Partial<{
+			onMainFileBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
+			onMainFileHeader: (header: Uint8Array) => void,
+			onMainFileChunk: (chunk: Uint8Array) => void,
+		}>
 	): {
 		mainFileChunkSummary: ChunkSummary[],
 		configFileBinary: ArrayBuffer
@@ -66,9 +117,11 @@ export class Parser {
 		const mainFileChunkSummary = blueprintWriter.generateChunks(
 			blueprint.compressionInfo,
 			saveBodyPos,
-			onMainFileBinaryBeforeCompressing,
-			onMainFileHeader,
-			onMainFileChunk
+			{
+				onBinaryBeforeCompressing: options.onMainFileBinaryBeforeCompressing ?? (() => { }),
+				onHeader: options.onMainFileHeader ?? (() => { }),
+				onChunk: options.onMainFileChunk ?? (() => { })
+			}
 		);
 
 		// write config as well.
@@ -94,7 +147,9 @@ export class Parser {
 		name: string,
 		blueprintFile: Buffer,
 		blueprintConfigFile: Buffer,
-		onDecompressedBlueprintBody: (buffer: ArrayBuffer) => void = () => { },
+		options: Partial<{
+			onDecompressedBlueprintBody: (buffer: ArrayBuffer) => void
+		}>
 	): Blueprint {
 
 		// read config file
@@ -107,7 +162,9 @@ export class Parser {
 		const inflateResult = blueprintReader.inflateChunks();
 
 		// call back on decompressed body.
-		onDecompressedBlueprintBody(inflateResult.inflatedData);
+		if (options.onDecompressedBlueprintBody !== undefined) {
+			options.onDecompressedBlueprintBody(inflateResult.inflatedData);
+		}
 
 		const blueprintObjects = BlueprintReader.ParseObjects(blueprintReader);
 		const blueprint: Blueprint = {
