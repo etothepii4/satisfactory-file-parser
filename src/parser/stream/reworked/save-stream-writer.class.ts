@@ -1,6 +1,6 @@
 import { WritableStreamDefaultWriter } from "stream/web";
 import { ChunkCompressionInfo } from '../../file.types';
-import { ByteArray4, Grids } from '../../satisfactory/save/save-reader';
+import { Grids, SaveBodyValidation } from '../../satisfactory/save/save-reader';
 import { SatisfactorySaveHeader } from '../../satisfactory/save/save.types';
 import { SaveObject } from "../../satisfactory/types/objects/SaveObject";
 import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
@@ -75,7 +75,7 @@ export class SaveStreamWriter {
 		'WROTE_COMPRESSION_INFO'
 	);
 
-	public writeGridHash = (gridHash: ByteArray4) => this.createExecutionFunction(
+	public writeGridHash = (gridHash: SaveBodyValidation) => this.createExecutionFunction(
 		['WROTE_COMPRESSION_INFO'],
 		async () => {
 			await this.writer.write(`, "gridHash": ${JSON.stringify(gridHash)}`);
