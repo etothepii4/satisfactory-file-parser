@@ -164,11 +164,11 @@ const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
 You can always raise an issue on the linked github project or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
-## [1.0.3] (2024-10-17)
+### [1.0.3] (2024-10-17)
 #### Hotfix
 * fix being forced to use callbacks when writing saves or blueprints.
 
-## [1.0.2] (2024-10-17)
+### [1.0.2] (2024-10-17)
 #### Internal renaming
 * `...SpecialProperty` got all renamed to `...SpecialProperties`.
 

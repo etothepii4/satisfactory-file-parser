@@ -103,7 +103,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 
 
 it.each(saveList)('can write a synchronous save', async (savename) => {
-	const filepath = path.join(__dirname, savename + '.json');
+	const filepath = path.join(__dirname, savename + '.sync.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
 
 	let mainFileHeader: Uint8Array;
