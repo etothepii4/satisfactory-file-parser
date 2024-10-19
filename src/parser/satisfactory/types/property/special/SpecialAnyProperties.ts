@@ -1,6 +1,6 @@
+import { col4 } from '../../structs/col4';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { Transform } from '../../structs/Transform';
-import { vec2 } from '../../structs/vec2';
 import { vec3 } from '../../structs/vec3';
 
 
@@ -50,11 +50,15 @@ export type ConveyorChainActorSpecialProperties = {
 
 export type BuildableTypeInstance = {
     transform: Transform;
-    unknownUseNumbers: [vec2, vec3];
-    swatchSlotTypePath: string;
-    paintFinishPath: string;
-    recipeTypePath: string;
-    patternPath: string;
+    primaryColor: col4;
+    secondaryColor: col4;
+    usedSwatchSlot: ObjectReference;
+    usedPattern: ObjectReference;
+    usedMaterial: ObjectReference;
+    usedSkin: ObjectReference;
+    usedPaintFinish: ObjectReference;
+    patternRotation: number;
+    usedRecipe: ObjectReference;
     blueprintProxy: ObjectReference;
 };
 

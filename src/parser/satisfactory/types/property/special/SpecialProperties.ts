@@ -1,8 +1,8 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { col4 } from '../../structs/col4';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { Transform } from '../../structs/Transform';
-import { vec2 } from '../../structs/vec2';
 import { vec3 } from '../../structs/vec3';
 import { BuildableSubsystemSpecialProperties, BuildableTypeInstance, ConveyorChainActorSpecialProperties, ConveyorChainSegmentSpecialProperties, ConveyorItemSpecialProperties, EmptySpecialProperties, PlayerSpecialProperties, PowerLineSpecialProperties, SpecialAnyProperties } from './SpecialAnyProperties';
 
@@ -147,39 +147,30 @@ export namespace SpecialProperties {
 
                             const transform = Transform.Parse(reader);
 
-                            reader.readInt32(); // 0
+                            const usedSwatchSlot = ObjectReference.read(reader);
+                            const usedMaterial = ObjectReference.read(reader);
+                            const usedPattern = ObjectReference.read(reader);
+                            const usedSkin = ObjectReference.read(reader);
 
+                            const primaryColor = col4.ParseRGBA(reader);
+                            const secondaryColor = col4.ParseRGBA(reader);
 
-                            const swatchSlotTypePath = reader.readString();
-
-                            reader.readInt32(); // 0
-                            reader.readInt64(); // 0
-
-                            const patternPath = reader.readString();
-
-                            //TODO: whatever this is, not sure whether something is gonna be here.
-                            const zeroes = vec2.Parse(reader);
-                            const oneZeroOne = vec3.Parse(reader);
-                            const unknownUseNumbers = [zeroes, oneZeroOne] as [vec2, vec3];
-
-                            reader.readInt32(); // 0
-
-                            const paintFinishPath = reader.readString();
-
-                            reader.readInt32(); // 0
-                            reader.readBytes(1); // 0
-
-                            const recipeTypePath = reader.readString();
-
+                            const usedPaintFinish = ObjectReference.read(reader);
+                            const patternRotation = reader.readByte();
+                            const usedRecipe = ObjectReference.read(reader);
                             const blueprintProxy = ObjectReference.read(reader);
 
                             instances.push({
                                 transform,
-                                unknownUseNumbers,
-                                swatchSlotTypePath,
-                                paintFinishPath,
-                                recipeTypePath,
-                                patternPath,
+                                primaryColor,
+                                secondaryColor,
+                                usedSwatchSlot,
+                                usedMaterial,
+                                usedPattern,
+                                usedSkin,
+                                usedRecipe,
+                                usedPaintFinish,
+                                patternRotation,
                                 blueprintProxy
                             } satisfies BuildableTypeInstance);
                         }
@@ -294,30 +285,18 @@ export namespace SpecialProperties {
                         for (const instance of buildable.instances) {
 
                             Transform.Serialize(writer, instance.transform);
-                            writer.writeInt32(0);
 
+                            ObjectReference.write(writer, instance.usedSwatchSlot);
+                            ObjectReference.write(writer, instance.usedMaterial);
+                            ObjectReference.write(writer, instance.usedPattern);
+                            ObjectReference.write(writer, instance.usedSkin);
 
-                            writer.writeString(instance.swatchSlotTypePath);
+                            col4.SerializeRGBA(writer, instance.primaryColor);
+                            col4.SerializeRGBA(writer, instance.secondaryColor);
 
-                            writer.writeInt32(0);
-                            writer.writeInt64(0n);
-
-                            writer.writeString(instance.patternPath);
-
-                            //TODO: same, whatever this is
-                            vec2.Serialize(writer, instance.unknownUseNumbers[0]);
-                            vec3.Serialize(writer, instance.unknownUseNumbers[1]);
-
-                            writer.writeInt32(0);
-
-                            writer.writeString(instance.paintFinishPath);
-
-                            writer.writeInt32(0);
-                            writer.writeByte(0);
-
-
-                            writer.writeString(instance.recipeTypePath);
-
+                            ObjectReference.write(writer, instance.usedPaintFinish);
+                            writer.writeByte(instance.patternRotation);
+                            ObjectReference.write(writer, instance.usedRecipe);
                             ObjectReference.write(writer, instance.blueprintProxy);
                         }
                     }
