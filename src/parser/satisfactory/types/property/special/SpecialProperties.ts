@@ -34,7 +34,10 @@ export namespace SpecialProperties {
                 break;
 
             case '/Script/FactoryGame.FGConveyorChainActor':
-
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeMedium':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull':
 
                 const lastBelt = ObjectReference.read(reader);
                 const firstBelt = ObjectReference.read(reader);
@@ -44,15 +47,21 @@ export namespace SpecialProperties {
                 for (let i = 0; i < countBeltsInChain; i++) {
                     const chainActorRef = ObjectReference.read(reader);
                     const beltRef = ObjectReference.read(reader);
-                    const someCount = reader.readInt32();
+                    const splinePointsCount = reader.readInt32();
 
-                    //2,  6*24 + 12 somethings, not always 0
-                    //4, 12*24 + 12 somethings
-                    //6, 18*24 + 12 somethings
-                    //almost looks like GUIDs
-                    const unknownUseBytes = Array.from(reader.readBytes(someCount * 3 * 24 + 12));
+                    const splinePoints: { location: vec3; arriveTangent: vec3; leaveTangent: vec3 }[] = [];
+                    for (let j = 0; j < splinePointsCount; j++) {
+                        splinePoints.push({
+                            location: vec3.Parse(reader),
+                            arriveTangent: vec3.Parse(reader),
+                            leaveTangent: vec3.Parse(reader),
+                        });
+                    }
 
                     // indices which items of this chain are on this belt.
+                    const offsetAtStart = reader.readFloat32();
+                    const startsAtLength = reader.readFloat32();
+                    const endsAtLength = reader.readFloat32();
                     const firstItemIndex = reader.readInt32();
                     const lastItemIndex = reader.readInt32();
                     const beltIndexInChain = reader.readInt32();
@@ -60,8 +69,10 @@ export namespace SpecialProperties {
                     beltsInChain.push({
                         chainActorRef,
                         beltRef,
-                        someCount,
-                        unknownUseBytes,
+                        splinePoints,
+                        offsetAtStart,
+                        startsAtLength,
+                        endsAtLength,
                         firstItemIndex,
                         lastItemIndex,
                         beltIndexInChain
@@ -128,8 +139,7 @@ export namespace SpecialProperties {
                 }
                 break;
 
-            //buildables like foundations are now here
-            // Persistent_Level:PersistentLevel.LightweightBuildableSubsystem
+            //buildables like foundations are now here since 1.0
             case '/Script/FactoryGame.FGLightweightBuildableSubsystem':
 
                 property = { buildables: [] } as BuildableSubsystemSpecialProperties;
@@ -215,6 +225,10 @@ export namespace SpecialProperties {
 
 
             case '/Script/FactoryGame.FGConveyorChainActor':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeMedium':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge':
+            case '/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull':
 
                 ObjectReference.write(writer, (property as ConveyorChainActorSpecialProperties).lastBelt);
                 ObjectReference.write(writer, (property as ConveyorChainActorSpecialProperties).firstBelt);
@@ -223,10 +237,18 @@ export namespace SpecialProperties {
                 for (const belt of (property as ConveyorChainActorSpecialProperties).beltsInChain) {
                     ObjectReference.write(writer, belt.chainActorRef);
                     ObjectReference.write(writer, belt.beltRef);
-                    writer.writeInt32(belt.someCount);
+                    writer.writeInt32(belt.splinePoints.length);
 
-                    writer.writeBytesArray(belt.unknownUseBytes);
 
+                    for (const splinepoint of belt.splinePoints) {
+                        vec3.Serialize(writer, splinepoint.location);
+                        vec3.Serialize(writer, splinepoint.arriveTangent);
+                        vec3.Serialize(writer, splinepoint.leaveTangent);
+                    }
+
+                    writer.writeFloat32(belt.offsetAtStart);
+                    writer.writeFloat32(belt.startsAtLength);
+                    writer.writeFloat32(belt.endsAtLength);
                     writer.writeInt32(belt.firstItemIndex);
                     writer.writeInt32(belt.lastItemIndex);
                     writer.writeInt32(belt.beltIndexInChain);

@@ -31,8 +31,14 @@ export type ConveyorItemSpecialProperties = {
 export type ConveyorChainSegmentSpecialProperties = {
     chainActorRef: ObjectReference;
     beltRef: ObjectReference;
-    someCount: number;
-    unknownUseBytes: number[];
+    splinePoints: {
+        location: vec3;
+        arriveTangent: vec3;
+        leaveTangent: vec3;
+    }[];
+    offsetAtStart: number;
+    startsAtLength: number;
+    endsAtLength: number;
     firstItemIndex: number;
     lastItemIndex: number;
     beltIndexInChain: number;
