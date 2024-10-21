@@ -164,6 +164,12 @@ const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
 You can always raise an issue on the linked github project or hit me up on the satisfactory discord `etothepii`.
 
 # Changelog
+### [1.1.1] (2024-10-21)
+#### Improved Special Properties
+* Improved on SpecialProperties of BuildableSubsystem and ConveyorChainActor as the meaning became more clear.
+* Special Properties are refactored into their own namespaces and exported.
+* The union type `SpecialAnyProperties` is now automatically derived and more concisely named `SpecialProperties.AvailableSpecialPropertiesTypes` instead, in case you need it.
+
 ### [1.0.3] (2024-10-17)
 #### Hotfix
 * fix being forced to use callbacks when writing saves or blueprints.
