@@ -20,14 +20,14 @@ export class Parser {
 	 */
 	public static ParseSave(
 		name: string,
-		bytes: Uint8Array,
+		bytes: ArrayBuffer,
 		options?: Partial<{
 			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
 			onProgressCallback: (progress: number, msg?: string) => void
 		}>
 	): SatisfactorySave {
 
-		const reader = new SaveReader(bytes.buffer, options?.onProgressCallback);
+		const reader = new SaveReader(bytes, options?.onProgressCallback);
 
 		const header = reader.readHeader();
 		const save = new SatisfactorySave(name, header);
