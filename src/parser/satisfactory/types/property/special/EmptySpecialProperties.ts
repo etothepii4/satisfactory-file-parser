@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 
 
@@ -10,7 +10,7 @@ export type EmptySpecialProperties = {
 };
 
 export namespace EmptySpecialProperties {
-    export const Parse = (reader: ByteReader): EmptySpecialProperties => {
+    export const Parse = (reader: BinaryReadable): EmptySpecialProperties => {
         return {
             type: 'EmptySpecialProperties',
         };

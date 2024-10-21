@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { BuildableSubsystemSpecialProperties, isBuildableSubsystemSpecialProperties } from './BuildableSubsystemSpecialProperties';
 import { CircuitSpecialProperties, isCircuitSpecialProperties } from './CircuitSpecialProperties';
@@ -17,7 +17,7 @@ export namespace SpecialProperties {
 
     export type AvailableSpecialPropertiesTypes = ReturnType<typeof ParseClassSpecificSpecialProperties>;
 
-    export const ParseClassSpecificSpecialProperties = (reader: ByteReader, typePath: string, remainingLen: number) => {
+    export const ParseClassSpecificSpecialProperties = (reader: BinaryReadable, typePath: string, remainingLen: number) => {
         let property;
 
         switch (typePath) {

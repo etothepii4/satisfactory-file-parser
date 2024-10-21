@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
@@ -16,7 +16,7 @@ export type PowerLineSpecialProperties = {
 };
 
 export namespace PowerLineSpecialProperties {
-    export const Parse = (reader: ByteReader, remainingLen: number): PowerLineSpecialProperties => {
+    export const Parse = (reader: BinaryReadable, remainingLen: number): PowerLineSpecialProperties => {
         const start = reader.getBufferPosition();
         const property: PowerLineSpecialProperties = {
             source: ObjectReference.read(reader),

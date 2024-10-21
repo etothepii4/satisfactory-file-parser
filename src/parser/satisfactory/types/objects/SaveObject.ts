@@ -3,7 +3,6 @@ import { ByteWriter } from "../../../byte/byte-writer.class";
 import { ParserError } from '../../../error/parser.error';
 import { PropertiesList } from '../property/PropertiesList';
 import { PropertiesMap } from "../property/generic/BasicProperty";
-import { SpecialAnyProperties } from '../property/special/SpecialAnyProperties';
 import { SpecialProperties } from '../property/special/SpecialProperties';
 
 export interface SaveObjectHeader {
@@ -15,7 +14,7 @@ export interface SaveObjectHeader {
 export abstract class SaveObject implements SaveObjectHeader {
 
 	public properties: PropertiesMap = {};
-	public specialProperties: SpecialAnyProperties = {};
+	public specialProperties = {} as SpecialProperties.AvailableSpecialPropertiesTypes;
 	public trailingData: number[] = [];
 
 	public objectVersion: number = 0;
