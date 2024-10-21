@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { PropertiesMap } from '../generic/BasicProperty';
 import { PropertiesList } from '../PropertiesList';
@@ -18,7 +18,7 @@ export type SpecialDroneActionProperties = {
 };
 
 export namespace SpecialDroneActionProperties {
-    export const Parse = (reader: ByteReader): SpecialDroneActionProperties => {
+    export const Parse = (reader: BinaryReadable): SpecialDroneActionProperties => {
         reader.readInt32(); //0
 
         const countActiveActions = reader.readInt32();

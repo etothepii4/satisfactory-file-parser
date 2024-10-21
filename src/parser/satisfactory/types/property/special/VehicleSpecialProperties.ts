@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { ObjectReference } from '../../structs/ObjectReference';
 
@@ -16,7 +16,7 @@ export type VehicleSpecialProperties = {
 };
 
 export namespace VehicleSpecialProperties {
-    export const Parse = (reader: ByteReader, remainingLen: number, typePath: string): VehicleSpecialProperties => {
+    export const Parse = (reader: BinaryReadable, remainingLen: number, typePath: string): VehicleSpecialProperties => {
         const start = reader.getBufferPosition();
 
         const objects = [];

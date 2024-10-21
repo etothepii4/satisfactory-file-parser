@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { ObjectReferencesList } from '../../../save/object-references-list';
 import { ObjectReference } from '../../structs/ObjectReference';
@@ -13,7 +13,7 @@ export type ObjectsListSpecialProperties = {
 };
 
 export namespace ObjectsListSpecialProperties {
-    export const Parse = (reader: ByteReader): ObjectsListSpecialProperties => {
+    export const Parse = (reader: BinaryReadable): ObjectsListSpecialProperties => {
         const objectsList = ObjectReferencesList.ReadList(reader);
         return {
             type: 'ObjectsListSpecialProperties',
