@@ -1,5 +1,5 @@
 import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../byte/byte-writer.class';
+import { BinaryWritable } from '../../../byte/binary-writable.interface';
 import { GUID } from './GUID';
 
 export type GUIDInfo = undefined | GUID;
@@ -14,7 +14,7 @@ export namespace GUIDInfo {
         }
     }
 
-    export const write = (writer: ByteWriter, guid: GUIDInfo): void => {
+    export const write = (writer: BinaryWritable, guid: GUIDInfo): void => {
         if (guid === undefined) {
             writer.writeByte(0);
             return;

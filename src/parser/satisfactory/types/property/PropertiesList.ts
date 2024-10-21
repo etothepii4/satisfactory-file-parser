@@ -1,10 +1,8 @@
 import { BinaryReadable } from '../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../byte/byte-writer.class';
 import { ParserError } from '../../../error/parser.error';
-import { SaveWriter } from '../../save/save-writer';
-import { SaveObject } from '../objects/SaveObject';
 import { ArrayProperty } from './generic/ArrayProperty';
-import { AbstractBaseProperty } from './generic/BasicProperty';
+import { AbstractBaseProperty, PropertiesMap } from './generic/BasicProperty';
 import { BoolProperty } from './generic/BoolProperty';
 import { ByteProperty } from './generic/ByteProperty';
 import { DoubleProperty } from './generic/DoubleProperty';
@@ -27,35 +25,31 @@ import { Uint8Property } from './generic/Uint8Property';
 
 export namespace PropertiesList {
 
-	export const ParseList = (obj: SaveObject, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void => {
+	export const ParseList = (reader: BinaryReadable, buildVersion: number): PropertiesMap => {
 
-		obj.properties = {};
-		if (length === 0) {
-			console.warn(`properties length for object ${obj.instanceName} was indicated as 0. Which is suspicious. Skipping object properties.`);
-			return;
-		}
-
+		const properties: PropertiesMap = {};
 		let propertyName: string = reader.readString();
 		while (propertyName !== 'None') {
 			const parsedProperty = PropertiesList.ParseSingleProperty(reader, buildVersion, propertyName);
 
 			// if it already exists, make it an array.
-			if (obj.properties[propertyName]) {
-				if (!Array.isArray(obj.properties[propertyName])) {
-					obj.properties[propertyName] = [obj.properties[propertyName] as AbstractBaseProperty];
+			if (properties[propertyName]) {
+				if (!Array.isArray(properties[propertyName])) {
+					properties[propertyName] = [properties[propertyName] as AbstractBaseProperty];
 				}
-				(obj.properties[propertyName] as AbstractBaseProperty[]).push(parsedProperty);
+				(properties[propertyName] as AbstractBaseProperty[]).push(parsedProperty);
 			} else {
-				obj.properties[propertyName] = parsedProperty;
+				properties[propertyName] = parsedProperty;
 			}
 
 			propertyName = reader.readString();
 		}
 
+		return properties;
 	}
 
-	export const SerializeList = (obj: SaveObject, writer: SaveWriter, buildVersion: number, typePath: string): void => {
-		for (const property of Object.values(obj.properties).flatMap(val => Array.isArray(val) ? val : [val])) {
+	export const SerializeList = (properties: PropertiesMap, writer: ByteWriter, buildVersion: number): void => {
+		for (const property of Object.values(properties).flatMap(val => Array.isArray(val) ? val : [val])) {
 			writer.writeString(property.name);
 			PropertiesList.SerializeSingleProperty(writer, property, property.name, buildVersion);
 		}

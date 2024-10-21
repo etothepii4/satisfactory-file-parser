@@ -1,5 +1,5 @@
 import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { BinaryWritable } from '../../../../../byte/binary-writable.interface';
 
 export type FICFrameRange = {
     begin: string;
@@ -15,7 +15,7 @@ export namespace FICFrameRange {
         };
     };
 
-    export const Serialize = (writer: ByteWriter, value: FICFrameRange): void => {
+    export const Serialize = (writer: BinaryWritable, value: FICFrameRange): void => {
         writer.writeInt64(BigInt(value.begin));
         writer.writeInt64(BigInt(value.end));
     };

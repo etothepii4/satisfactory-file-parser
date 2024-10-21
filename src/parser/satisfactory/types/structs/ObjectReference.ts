@@ -1,5 +1,5 @@
 import { BinaryReadable } from "../../../byte/binary-readable.interface";
-import { ByteWriter } from "../../../byte/byte-writer.class";
+import { BinaryWritable } from '../../../byte/binary-writable.interface';
 
 export type ObjectReference = {
 	levelName: string;
@@ -14,7 +14,7 @@ export namespace ObjectReference {
 		};
 	};
 
-	export const write = (writer: ByteWriter, ref: ObjectReference): void => {
+	export const write = (writer: BinaryWritable, ref: ObjectReference): void => {
 		writer.writeString(ref.levelName);
 		writer.writeString(ref.pathName);
 	};

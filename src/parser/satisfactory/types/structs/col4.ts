@@ -1,5 +1,5 @@
 import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../byte/byte-writer.class';
+import { BinaryWritable } from '../../../byte/binary-writable.interface';
 
 
 export type col4 = {
@@ -10,7 +10,7 @@ export type col4 = {
 };
 
 export namespace col4 {
-    export const SerializeRGBA = (writer: ByteWriter, value: col4): void => {
+    export const SerializeRGBA = (writer: BinaryWritable, value: col4): void => {
         writer.writeFloat32(value.r);
         writer.writeFloat32(value.g);
         writer.writeFloat32(value.b);
@@ -26,7 +26,7 @@ export namespace col4 {
         };
     };
 
-    export const SerializeBGRA = (writer: ByteWriter, value: col4): void => {
+    export const SerializeBGRA = (writer: BinaryWritable, value: col4): void => {
         writer.writeByte(value.b);
         writer.writeByte(value.g);
         writer.writeByte(value.r);

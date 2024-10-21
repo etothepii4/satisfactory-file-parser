@@ -1,19 +1,25 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
+import { ByteReader } from '../../../../byte/byte-reader.class';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
-import { col4 } from '../../structs/col4';
-import { ObjectReference } from '../../structs/ObjectReference';
-import { Transform } from '../../structs/Transform';
-import { vec3 } from '../../structs/vec3';
-import { BuildableSubsystemSpecialProperties, BuildableTypeInstance, ConveyorChainActorSpecialProperties, ConveyorChainSegmentSpecialProperties, ConveyorItemSpecialProperties, EmptySpecialProperties, PlayerSpecialProperties, PowerLineSpecialProperties, SpecialAnyProperties } from './SpecialAnyProperties';
+import { BuildableSubsystemSpecialProperties, isBuildableSubsystemSpecialProperties } from './BuildableSubsystemSpecialProperties';
+import { CircuitSpecialProperties, isCircuitSpecialProperties } from './CircuitSpecialProperties';
+import { ConveyorChainActorSpecialProperties, isConveyorChainActorSpecialProperties } from './ConveyorChainActorSpecialProperties';
+import { ConveyorSpecialProperties, isConveyorSpecialProperties } from './ConveyorSpecialProperties';
+import { EmptySpecialProperties, isEmptySpecialProperties } from './EmptySpecialProperties';
+import { isObjectsListSpecialProperties, ObjectsListSpecialProperties } from './ObjectsListSpecialProperties';
+import { isPlayerSpecialProperties, PlayerSpecialProperties } from './PlayerSpecialProperties';
+import { isPowerLineSpecialProperties, PowerLineSpecialProperties } from './PowerLineSpecialProperties';
+import { isSpecialDroneActionProperties, SpecialDroneActionProperties } from './SpecialDroneActionProperties';
+import { isVehicleSpecialProperties, VehicleSpecialProperties } from './VehicleSpecialProperties';
 
 
 
 export namespace SpecialProperties {
 
-    export const ParseClassSpecificSpecialProperties = (reader: BinaryReadable, typePath: string, remainingLen: number): SpecialAnyProperties => {
+    export type AvailableSpecialPropertiesTypes = ReturnType<typeof ParseClassSpecificSpecialProperties>;
+
+    export const ParseClassSpecificSpecialProperties = (reader: ByteReader, typePath: string, remainingLen: number) => {
         let property;
 
-        const start = reader.getBufferPosition();
         switch (typePath) {
             case '/Game/FactoryGame/Buildable/Factory/ConveyorBeltMk1/Build_ConveyorBeltMk1.Build_ConveyorBeltMk1_C':
             case '/Game/FactoryGame/Buildable/Factory/ConveyorBeltMk2/Build_ConveyorBeltMk2.Build_ConveyorBeltMk2_C':
@@ -27,10 +33,17 @@ export namespace SpecialProperties {
             case '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk4/Build_ConveyorLiftMk4.Build_ConveyorLiftMk4_C':
             case '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk5/Build_ConveyorLiftMk5.Build_ConveyorLiftMk5_C':
             case '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk6/Build_ConveyorLiftMk6.Build_ConveyorLiftMk6_C':
+                // since U1.0 the conveyor items are now in ConveyorChainActor.
+                property = ConveyorSpecialProperties.Parse(reader);
+                break;
 
-                // since U1.0 the conveyor items are now in ConveyorChainActor. Not anymore on the belt itself. so this count of items is always 0.
-                reader.readInt32();
-                property = {} satisfies EmptySpecialProperties;
+            case '/Game/FactoryGame/-Shared/Blueprint/BP_CircuitSubsystem.BP_CircuitSubsystem_C':
+                property = CircuitSpecialProperties.Parse(reader);
+                break;
+
+            case '/Game/FactoryGame/-Shared/Blueprint/BP_GameState.BP_GameState_C':
+            case '/Game/FactoryGame/-Shared/Blueprint/BP_GameMode.BP_GameMode_C':
+                property = ObjectsListSpecialProperties.Parse(reader);
                 break;
 
             case '/Script/FactoryGame.FGConveyorChainActor':
@@ -38,173 +51,74 @@ export namespace SpecialProperties {
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge':
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge':
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull':
-
-                const lastBelt = ObjectReference.read(reader);
-                const firstBelt = ObjectReference.read(reader);
-                const countBeltsInChain = reader.readInt32();
-
-                const beltsInChain: ConveyorChainSegmentSpecialProperties[] = [];
-                for (let i = 0; i < countBeltsInChain; i++) {
-                    const chainActorRef = ObjectReference.read(reader);
-                    const beltRef = ObjectReference.read(reader);
-                    const splinePointsCount = reader.readInt32();
-
-                    const splinePoints: { location: vec3; arriveTangent: vec3; leaveTangent: vec3 }[] = [];
-                    for (let j = 0; j < splinePointsCount; j++) {
-                        splinePoints.push({
-                            location: vec3.Parse(reader),
-                            arriveTangent: vec3.Parse(reader),
-                            leaveTangent: vec3.Parse(reader),
-                        });
-                    }
-
-                    // indices which items of this chain are on this belt.
-                    const offsetAtStart = reader.readFloat32();
-                    const startsAtLength = reader.readFloat32();
-                    const endsAtLength = reader.readFloat32();
-                    const firstItemIndex = reader.readInt32();
-                    const lastItemIndex = reader.readInt32();
-                    const beltIndexInChain = reader.readInt32();
-
-                    beltsInChain.push({
-                        chainActorRef,
-                        beltRef,
-                        splinePoints,
-                        offsetAtStart,
-                        startsAtLength,
-                        endsAtLength,
-                        firstItemIndex,
-                        lastItemIndex,
-                        beltIndexInChain
-                    });
-                }
-
-                const unknownInts = [reader.readInt32(), reader.readInt32()] satisfies [number, number];
-                const firstChainItemIndex = reader.readInt32();
-                const lastChainItemIndex = reader.readInt32();
-                const countItemsInChain = reader.readInt32();
-
-                const items: ConveyorItemSpecialProperties[] = [];
-                for (let n = 0; n < countItemsInChain; n++) {
-                    reader.readInt32(); //0
-                    const itemName = reader.readString();
-                    reader.readInt32(); //0
-                    const position = reader.readInt32();
-                    items.push({ itemName, position });
-                }
-
-                property = {
-                    firstBelt: firstBelt,
-                    lastBelt: lastBelt,
-                    beltsInChain,
-                    unknownInts,
-                    firstChainItemIndex,
-                    lastChainItemIndex,
-                    items
-                } satisfies ConveyorChainActorSpecialProperties;
-
+                property = ConveyorChainActorSpecialProperties.Parse(reader);
                 break;
 
             case '/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Build_PowerLine_C':
             case '/Game/FactoryGame/Events/Christmas/Buildings/PowerLineLights/Build_XmassLightsLine.Build_XmassLightsLine_C':
+                property = PowerLineSpecialProperties.Parse(reader, remainingLen);
+                break;
 
-                property = {
-                    source: ObjectReference.read(reader),
-                    target: ObjectReference.read(reader)
-                } as PowerLineSpecialProperties;
+            case '/Game/FactoryGame/Buildable/Vehicle/Tractor/BP_Tractor.BP_Tractor_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Truck/BP_Truck.BP_Truck_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Explorer/BP_Explorer.BP_Explorer_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Cyberwagon/Testa_BP_WB.Testa_BP_WB_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_Golfcart.BP_Golfcart_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Train/Locomotive/BP_Locomotive.BP_Locomotive_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Train/Wagon/BP_FreightWagon.BP_FreightWagon_C':
+                property = VehicleSpecialProperties.Parse(reader, remainingLen, typePath);
+                break;
 
-                if (remainingLen - (reader.getBufferPosition() - start) >= 24) {
-                    property.sourceTranslation = vec3.ParseF(reader);
-                    property.targetTranslation = vec3.ParseF(reader);
-                }
-
+            case '/Game/FactoryGame/Buildable/Factory/DroneStation/BP_DroneTransport.BP_DroneTransport_C':
+                property = SpecialDroneActionProperties.Parse(reader);
                 break;
 
             case '/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C':
-
-                // TODO - i don't know enough about player state yet. need more players.
-                property = {} as PlayerSpecialProperties;
-
-                // 241 = byte, byte, length? flag, id with length bytes
-                property.flag = reader.readByte(); // 241?
-                switch (property.flag) {
-                    case 248: // default EOS
-                        const eos = reader.readString();
-                        property.eosData = reader.readString();
-                        break;
-                    case 25: // steam!?
-                        break;
-                    default:
-                        break;
-                }
+                property = PlayerSpecialProperties.Parse(reader);
                 break;
 
             //buildables like foundations are now here since 1.0
             case '/Script/FactoryGame.FGLightweightBuildableSubsystem':
-
-                property = { buildables: [] } as BuildableSubsystemSpecialProperties;
-
-                const entriesCount = reader.readInt32();
-                if (entriesCount > 0) {
-
-                    for (let i = 0; i < entriesCount; i++) {
-                        reader.readInt32(); //0
-                        const typePath = reader.readString();
-                        const count = reader.readInt32();
-
-                        const instances = [];
-                        for (let j = 0; j < count; j++) {
-
-                            const transform = Transform.Parse(reader);
-
-                            const usedSwatchSlot = ObjectReference.read(reader);
-                            const usedMaterial = ObjectReference.read(reader);
-                            const usedPattern = ObjectReference.read(reader);
-                            const usedSkin = ObjectReference.read(reader);
-
-                            const primaryColor = col4.ParseRGBA(reader);
-                            const secondaryColor = col4.ParseRGBA(reader);
-
-                            const usedPaintFinish = ObjectReference.read(reader);
-                            const patternRotation = reader.readByte();
-                            const usedRecipe = ObjectReference.read(reader);
-                            const blueprintProxy = ObjectReference.read(reader);
-
-                            instances.push({
-                                transform,
-                                primaryColor,
-                                secondaryColor,
-                                usedSwatchSlot,
-                                usedMaterial,
-                                usedPattern,
-                                usedSkin,
-                                usedRecipe,
-                                usedPaintFinish,
-                                patternRotation,
-                                blueprintProxy
-                            } satisfies BuildableTypeInstance);
-                        }
-
-                        property.buildables.push({
-                            typePath,
-                            instances
-                        });
-                    }
-                }
-
+                property = BuildableSubsystemSpecialProperties.Parse(reader);
                 break;
 
             default:
                 // ignore / empty. Rest will land in trailing data anyway.
-                property = {} satisfies EmptySpecialProperties;
+                property = EmptySpecialProperties.Parse(reader);
                 break;
         }
 
         return property;
     }
 
-    export const SerializeClassSpecificSpecialProperties = (writer: ByteWriter, typePath: string, property: SpecialAnyProperties): void => {
-
+    export const SerializeClassSpecificSpecialProperties = (writer: ByteWriter, typePath: string, property: AvailableSpecialPropertiesTypes): void => {
+        if (isConveyorSpecialProperties(property)) {
+            ConveyorSpecialProperties.Serialize(writer, property);
+        } else if (isCircuitSpecialProperties(property)) {
+            CircuitSpecialProperties.Serialize(writer, property);
+        } else if (isConveyorSpecialProperties(property)) {
+            ConveyorSpecialProperties.Serialize(writer, property);
+        } else if (isConveyorChainActorSpecialProperties(property)) {
+            ConveyorChainActorSpecialProperties.Serialize(writer, property);
+        } else if (isPowerLineSpecialProperties(property)) {
+            PowerLineSpecialProperties.Serialize(writer, property);
+        } else if (isObjectsListSpecialProperties(property)) {
+            ObjectsListSpecialProperties.Serialize(writer, property);
+        } else if (isVehicleSpecialProperties(property)) {
+            VehicleSpecialProperties.Serialize(writer, property);
+        } else if (isSpecialDroneActionProperties(property)) {
+            SpecialDroneActionProperties.Serialize(writer, property);
+        } else if (isPlayerSpecialProperties(property)) {
+            PlayerSpecialProperties.Serialize(writer, property);
+        } else if (isBuildableSubsystemSpecialProperties(property)) {
+            BuildableSubsystemSpecialProperties.Serialize(writer, property);
+        } else if (isEmptySpecialProperties(property)) {
+            EmptySpecialProperties.Serialize(writer, property);
+        } else {
+            console.warn(`Parser is not serializing special property ${JSON.stringify(property)} of object with type ${typePath}. Unimplemented.`);
+        }
+        /*
         switch (typePath) {
             case '/Game/FactoryGame/Buildable/Factory/ConveyorBeltMk1/Build_ConveyorBeltMk1.Build_ConveyorBeltMk1_C':
             case '/Game/FactoryGame/Buildable/Factory/ConveyorBeltMk2/Build_ConveyorBeltMk2.Build_ConveyorBeltMk2_C':
@@ -218,114 +132,74 @@ export namespace SpecialProperties {
             case '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk4/Build_ConveyorLiftMk4.Build_ConveyorLiftMk4_C':
             case '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk5/Build_ConveyorLiftMk5.Build_ConveyorLiftMk5_C':
             case '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk6/Build_ConveyorLiftMk6.Build_ConveyorLiftMk6_C':
-
-                // see parsing behavior.
-                writer.writeInt32(0);
+                if (isConveyorSpecialProperties(property)) {
+                    ConveyorSpecialProperties.Serialize(writer, property);
+                }
                 break;
 
+
+            case '/Game/FactoryGame/-Shared/Blueprint/BP_CircuitSubsystem.BP_CircuitSubsystem_C':
+                if (isCircuitSpecialProperties(property)) {
+                    CircuitSpecialProperties.Serialize(writer, property);
+                }
+                break;
 
             case '/Script/FactoryGame.FGConveyorChainActor':
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeMedium':
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeLarge':
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeHuge':
             case '/Script/FactoryGame.FGConveyorChainActor_RepSizeNoCull':
-
-                ObjectReference.write(writer, (property as ConveyorChainActorSpecialProperties).lastBelt);
-                ObjectReference.write(writer, (property as ConveyorChainActorSpecialProperties).firstBelt);
-                writer.writeInt32((property as ConveyorChainActorSpecialProperties).beltsInChain.length);
-
-                for (const belt of (property as ConveyorChainActorSpecialProperties).beltsInChain) {
-                    ObjectReference.write(writer, belt.chainActorRef);
-                    ObjectReference.write(writer, belt.beltRef);
-                    writer.writeInt32(belt.splinePoints.length);
-
-
-                    for (const splinepoint of belt.splinePoints) {
-                        vec3.Serialize(writer, splinepoint.location);
-                        vec3.Serialize(writer, splinepoint.arriveTangent);
-                        vec3.Serialize(writer, splinepoint.leaveTangent);
-                    }
-
-                    writer.writeFloat32(belt.offsetAtStart);
-                    writer.writeFloat32(belt.startsAtLength);
-                    writer.writeFloat32(belt.endsAtLength);
-                    writer.writeInt32(belt.firstItemIndex);
-                    writer.writeInt32(belt.lastItemIndex);
-                    writer.writeInt32(belt.beltIndexInChain);
-                }
-
-                writer.writeInt32((property as ConveyorChainActorSpecialProperties).unknownInts[0]);
-                writer.writeInt32((property as ConveyorChainActorSpecialProperties).unknownInts[1]);
-                writer.writeInt32((property as ConveyorChainActorSpecialProperties).firstChainItemIndex);
-                writer.writeInt32((property as ConveyorChainActorSpecialProperties).lastChainItemIndex);
-                writer.writeInt32((property as ConveyorChainActorSpecialProperties).items.length);
-
-                for (const item of (property as ConveyorChainActorSpecialProperties).items) {
-                    writer.writeInt32(0);
-                    writer.writeString(item.itemName);
-                    writer.writeInt32(0);
-                    writer.writeInt32(item.position);
+                if (isConveyorChainActorSpecialProperties(property)) {
+                    ConveyorChainActorSpecialProperties.Serialize(writer, property);
                 }
                 break;
 
             case '/Game/FactoryGame/Buildable/Factory/PowerLine/Build_PowerLine.Build_PowerLine_C':
             case '/Game/FactoryGame/Events/Christmas/Buildings/PowerLineLights/Build_XmassLightsLine.Build_XmassLightsLine_C':
 
-                ObjectReference.write(writer, (property as PowerLineSpecialProperties).source);
-                ObjectReference.write(writer, (property as PowerLineSpecialProperties).target);
+                if (isPowerLineSpecialProperties(property)) {
+                    PowerLineSpecialProperties.Serialize(writer, property);
+                }
+                break;
 
+            case '/Game/FactoryGame/-Shared/Blueprint/BP_GameState.BP_GameState_C':
+            case '/Game/FactoryGame/-Shared/Blueprint/BP_GameMode.BP_GameMode_C':
+                if (isObjectsListSpecialProperties(property)) {
+                    ObjectsListSpecialProperties.Serialize(writer, property);
+                }
+                break;
+
+            case '/Game/FactoryGame/Buildable/Vehicle/Tractor/BP_Tractor.BP_Tractor_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Truck/BP_Truck.BP_Truck_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Explorer/BP_Explorer.BP_Explorer_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Cyberwagon/Testa_BP_WB.Testa_BP_WB_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_Golfcart.BP_Golfcart_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Golfcart/BP_GolfcartGold.BP_GolfcartGold_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Train/Locomotive/BP_Locomotive.BP_Locomotive_C':
+            case '/Game/FactoryGame/Buildable/Vehicle/Train/Wagon/BP_FreightWagon.BP_FreightWagon_C':
+                if (isVehicleSpecialProperties(property)) {
+                    VehicleSpecialProperties.Serialize(writer, property);
+                }
+                break;
+
+            case '/Game/FactoryGame/Buildable/Factory/DroneStation/BP_DroneTransport.BP_DroneTransport_C':
+                if (isSpecialDroneActionProperties(property)) {
+                    SpecialDroneActionProperties.Serialize(writer, property);
+                }
                 break;
 
             case '/Game/FactoryGame/Character/Player/BP_PlayerState.BP_PlayerState_C':
-
-                writer.writeByte((property as PlayerSpecialProperties).flag);
-                switch ((property as PlayerSpecialProperties).flag) {
-                    case 248: // default EOS
-                        writer.writeString('EOS');
-                        writer.writeString((property as PlayerSpecialProperties).eosData!);
-                        break;
-                    case 25: // steam!?
-                        break;
-                    default:
-                        break;
-
+                if (isPlayerSpecialProperties(property)) {
+                    PlayerSpecialProperties.Serialize(writer, property);
                 }
                 break;
-
 
             case '/Script/FactoryGame.FGLightweightBuildableSubsystem':
-
-                writer.writeInt32((property as BuildableSubsystemSpecialProperties).buildables.length);
-
-                if ((property as BuildableSubsystemSpecialProperties).buildables.length > 0) {
-
-                    for (const buildable of (property as BuildableSubsystemSpecialProperties).buildables) {
-                        writer.writeInt32(0);
-                        writer.writeString(buildable.typePath);
-                        writer.writeInt32(buildable.instances.length);
-
-                        for (const instance of buildable.instances) {
-
-                            Transform.Serialize(writer, instance.transform);
-
-                            ObjectReference.write(writer, instance.usedSwatchSlot);
-                            ObjectReference.write(writer, instance.usedMaterial);
-                            ObjectReference.write(writer, instance.usedPattern);
-                            ObjectReference.write(writer, instance.usedSkin);
-
-                            col4.SerializeRGBA(writer, instance.primaryColor);
-                            col4.SerializeRGBA(writer, instance.secondaryColor);
-
-                            ObjectReference.write(writer, instance.usedPaintFinish);
-                            writer.writeByte(instance.patternRotation);
-                            ObjectReference.write(writer, instance.usedRecipe);
-                            ObjectReference.write(writer, instance.blueprintProxy);
-                        }
-                    }
+                if (isBuildableSubsystemSpecialProperties(property)) {
+                    BuildableSubsystemSpecialProperties.Serialize(writer, property);
                 }
-
                 break;
         }
-
+        */
     }
 }

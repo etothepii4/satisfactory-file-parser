@@ -40,7 +40,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 	public static ParseData(obj: SaveObject, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void {
 		const start = reader.getBufferPosition();
 
-		PropertiesList.ParseList(obj, length, reader, buildVersion, typePath);
+		obj.properties = PropertiesList.ParseList(reader, buildVersion);
 
 		reader.readInt32(); // 0
 
@@ -56,7 +56,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 	}
 
 	public static SerializeData(writer: any, obj: SaveObject, buildVersion: number): void {
-		PropertiesList.SerializeList(obj, writer, buildVersion, obj.typePath);
+		PropertiesList.SerializeList(obj.properties, writer, buildVersion);
 		writer.writeInt32(0);
 		SpecialProperties.SerializeClassSpecificSpecialProperties(writer, obj.typePath, obj.specialProperties);
 		writer.writeBytesArray(obj.trailingData);

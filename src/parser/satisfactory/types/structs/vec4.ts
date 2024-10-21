@@ -1,5 +1,5 @@
 import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../byte/byte-writer.class';
+import { BinaryWritable } from '../../../byte/binary-writable.interface';
 import { vec3 } from './vec3';
 
 
@@ -15,7 +15,7 @@ export namespace vec4 {
         };
     };
 
-    export const Serialize = (writer: ByteWriter, vec: vec4): void => {
+    export const Serialize = (writer: BinaryWritable, vec: vec4): void => {
         vec3.Serialize(writer, vec as vec3);
         writer.writeDouble(vec.w);
     };
@@ -27,7 +27,7 @@ export namespace vec4 {
         };
     };
 
-    export const SerializeF = (writer: ByteWriter, vec: vec4): void => {
+    export const SerializeF = (writer: BinaryWritable, vec: vec4): void => {
         vec3.SerializeF(writer, vec as vec3);
         writer.writeFloat32(vec.w);
     };
