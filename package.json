@@ -14,7 +14,7 @@
 		"typescript"
 	],
 	"scripts": {
-		"test": "set PARSER_DEBUG=debug&& jest --config=jest.config.json --max_old_space_size=30720",
+		"test": "tsc --noEmit && set PARSER_DEBUG=debug && jest --config=jest.config.json --max_old_space_size=30720",
 		"doc": "typedoc src/index.ts",
 		"build": "tsc && npm run doc",
 		"prepublishOnly": "npm run build && npm version patch"
