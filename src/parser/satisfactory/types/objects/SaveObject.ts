@@ -1,8 +1,8 @@
 import { BinaryReadable } from "../../../byte/binary-readable.interface";
 import { ByteWriter } from "../../../byte/byte-writer.class";
 import { ParserError } from '../../../error/parser.error';
-import { PropertiesList } from '../property/PropertiesList';
 import { PropertiesMap } from "../property/generic/BasicProperty";
+import { PropertiesList } from '../property/PropertiesList';
 import { SpecialProperties } from '../property/special/SpecialProperties';
 
 export interface SaveObjectHeader {
@@ -14,7 +14,7 @@ export interface SaveObjectHeader {
 export abstract class SaveObject implements SaveObjectHeader {
 
 	public properties: PropertiesMap = {};
-	public specialProperties = {} as SpecialProperties.AvailableSpecialPropertiesTypes;
+	public specialProperties: SpecialProperties.AvailableSpecialPropertiesTypes = { type: 'EmptySpecialProperties' };
 	public trailingData: number[] = [];
 
 	public objectVersion: number = 0;

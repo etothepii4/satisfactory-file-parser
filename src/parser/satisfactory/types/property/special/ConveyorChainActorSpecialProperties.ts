@@ -5,7 +5,7 @@ import { vec3 } from '../../structs/vec3';
 
 
 
-export const isConveyorChainActorSpecialProperties = (obj: any): obj is ConveyorChainActorSpecialProperties => obj.type === 'CircuiConveyorChainActorSpecialPropertiestSpecialProperties';
+export const isConveyorChainActorSpecialProperties = (obj: any): obj is ConveyorChainActorSpecialProperties => obj.type === 'ConveyorChainActorSpecialProperties';
 
 export type ConveyorChainActorSpecialProperties = {
     type: 'ConveyorChainActorSpecialProperties';

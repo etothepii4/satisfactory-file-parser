@@ -19,9 +19,10 @@ export namespace PowerLineSpecialProperties {
     export const Parse = (reader: BinaryReadable, remainingLen: number): PowerLineSpecialProperties => {
         const start = reader.getBufferPosition();
         const property: PowerLineSpecialProperties = {
+            type: 'PowerLineSpecialProperties',
             source: ObjectReference.read(reader),
             target: ObjectReference.read(reader)
-        } as PowerLineSpecialProperties;
+        };
 
         if (remainingLen - (reader.getBufferPosition() - start) >= 24) {
             property.sourceTranslation = vec3.ParseF(reader);
