@@ -40,7 +40,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const filepath = path.join(__dirname, savename + '.sav');
 	const binaryFilepathStream = path.join(__dirname, savename + '.stream.bin');
 	const binaryFilepathSync = path.join(__dirname, savename + '.sync.bin');
-	const file = fs.readFileSync(filepath);
+	const file = fs.readFileSync(filepath).buffer;
 	const outJsonPathStream = path.join(__dirname, savename + '.stream.json');
 	const outJsonPathSync = path.join(__dirname, savename + '.sync.json');
 
