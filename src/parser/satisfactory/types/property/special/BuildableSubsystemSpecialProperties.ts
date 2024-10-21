@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { col4 } from '../../structs/col4';
 import { ObjectReference } from '../../structs/ObjectReference';
@@ -17,7 +17,7 @@ export type BuildableSubsystemSpecialProperties = {
 };
 
 export namespace BuildableSubsystemSpecialProperties {
-    export const Parse = (reader: ByteReader): BuildableSubsystemSpecialProperties => {
+    export const Parse = (reader: BinaryReadable): BuildableSubsystemSpecialProperties => {
 
         const property: BuildableSubsystemSpecialProperties = {
             type: 'BuildableSubsystemSpecialProperties',

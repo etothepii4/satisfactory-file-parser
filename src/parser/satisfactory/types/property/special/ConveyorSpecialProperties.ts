@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 
 
@@ -10,7 +10,7 @@ export type ConveyorSpecialProperties = {
 };
 
 export namespace ConveyorSpecialProperties {
-    export const Parse = (reader: ByteReader): ConveyorSpecialProperties => {
+    export const Parse = (reader: BinaryReadable): ConveyorSpecialProperties => {
         reader.readInt32(); // 0
         return {
             type: 'ConveyorSpecialProperties',

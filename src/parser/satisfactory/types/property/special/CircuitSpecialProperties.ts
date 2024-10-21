@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { ObjectReference } from '../../structs/ObjectReference';
 
@@ -15,7 +15,7 @@ export type CircuitSpecialProperties = {
 };
 
 export namespace CircuitSpecialProperties {
-    export const Parse = (reader: ByteReader): CircuitSpecialProperties => {
+    export const Parse = (reader: BinaryReadable): CircuitSpecialProperties => {
         const count = reader.readInt32();
         const circuits = [];
         for (let i = 0; i < count; i++) {

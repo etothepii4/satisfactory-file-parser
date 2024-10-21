@@ -1,4 +1,4 @@
-import { ByteReader } from '../../../../byte/byte-reader.class';
+import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 
 
@@ -13,7 +13,7 @@ export type PlayerSpecialProperties = {
 };
 
 export namespace PlayerSpecialProperties {
-    export const Parse = (reader: ByteReader): PlayerSpecialProperties => {
+    export const Parse = (reader: BinaryReadable): PlayerSpecialProperties => {
 
         const flag = reader.readByte(); // 241?
 
