@@ -97,7 +97,7 @@ export class ReadableStreamParser {
 	 */
 	public static CreateReadableStreamFromSaveToJson = (
 		name: string,
-		bytes: Uint8Array,
+		bytes: ArrayBuffer,
 		options?: Partial<{
 			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
 			onProgress: (progress: number, message?: string) => void
@@ -137,7 +137,7 @@ export class ReadableStreamParser {
 
 		const startStreaming = async (): Promise<void> => {
 
-			const reader = new SaveReader(bytes.buffer, options?.onProgress);
+			const reader = new SaveReader(bytes, options?.onProgress);
 
 			// read header
 			const header = reader.readHeader();
