@@ -5,6 +5,7 @@ export * from './parser/satisfactory/save/satisfactory-save';
 export * from './parser/satisfactory/save/save.types';
 export * from './parser/satisfactory/types/objects/SaveComponent';
 export * from './parser/satisfactory/types/objects/SaveEntity';
+export * from './parser/satisfactory/types/objects/SaveObject';
 export * from './parser/satisfactory/types/property/generic/ArrayProperty';
 export * from './parser/satisfactory/types/property/generic/BasicProperty';
 export * from './parser/satisfactory/types/property/generic/BoolProperty';
