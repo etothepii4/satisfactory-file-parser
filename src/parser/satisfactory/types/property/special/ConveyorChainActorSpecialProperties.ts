@@ -116,7 +116,7 @@ export namespace ConveyorChainActorSpecialProperties {
             writer.writeInt32(belt.beltIndexInChain);
         }
 
-        writer.writeInt32(property.totalLength);
+        writer.writeFloat32(property.totalLength);
         writer.writeInt32(property.totalNumberItemsMaybe);
         writer.writeInt32(property.firstChainItemIndex);
         writer.writeInt32(property.lastChainItemIndex);
