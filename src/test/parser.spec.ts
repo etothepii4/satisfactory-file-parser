@@ -24,6 +24,33 @@ afterAll(() => {
 	}
 });
 
+const ParseSaveSync = (savename: string, file: ArrayBuffer, onDecompressedSaveBody: (body: ArrayBuffer) => void): SatisfactorySave => {
+	const save = Parser.ParseSave(savename, file, {
+		onDecompressedSaveBody,
+		onProgressCallback: (progress, msg) => {
+			console.log(`progress`, progress, msg);
+		}
+	});
+	return save;
+};
+
+const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing: (binary: ArrayBuffer) => void) => {
+	let mainFileHeader: Uint8Array;
+	const mainFileBodyChunks: Uint8Array[] = [];
+	Parser.WriteSave(save,
+		header => {
+			mainFileHeader = header;
+		},
+		chunk => {
+			mainFileBodyChunks.push(chunk);
+		},
+		{ onBinaryBeforeCompressing });
+
+	// write complete .sav file back to disk
+	fs.writeFileSync(path.join(__dirname, save.name + '_on-writing.sav'), Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
+};
+
+
 const saveList = [
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
@@ -79,20 +106,15 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 
 	// parse sync as well.
 	const start2 = performance.now();
-	const secondParse = Parser.ParseSave(savename, file, {
-		onDecompressedSaveBody: (decompressedBody) => {
-			fs.writeFileSync(binaryFilepathSync, Buffer.from(decompressedBody));
-		},
-		onProgressCallback: (progress, msg) => {
-			console.log(`progress`, progress, msg);
-		}
+	const save = ParseSaveSync(savename, file, decompressedBody => {
+		fs.writeFileSync(binaryFilepathSync, Buffer.from(decompressedBody));
 	});
-	fs.writeFileSync(outJsonPathSync, JSON.stringify(secondParse));
+	fs.writeFileSync(outJsonPathSync, JSON.stringify(save));
 	const end2 = performance.now();
 
 	console.log(`Sync Parsing took ${(end2 - start2) / 1000} seconds.`);
 
-	// check that the minified jsons are equal.
+	// check that the minified jsons of stream and sync parsing are equal.
 	const json1 = fs.readFileSync(outJsonPathStream, { encoding: 'utf-8' });
 	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
 	const thing1 = JSON.parse(json1) as SatisfactorySave;
@@ -104,24 +126,9 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 it.each(saveList)('can write a synchronous save', async (savename) => {
 	const filepath = path.join(__dirname, savename + '.sync.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
-
-	let mainFileHeader: Uint8Array;
-	const mainFileBodyChunks: Uint8Array[] = [];
-	const response = Parser.WriteSave(save,
-		header => {
-			mainFileHeader = header;
-		},
-		chunk => {
-			mainFileBodyChunks.push(chunk);
-		},
-		{
-			onBinaryBeforeCompressing: binary => {
-				fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
-			}
-		});
-
-	// write complete .sav file back to disk
-	fs.writeFileSync(path.join(__dirname, savename + '_on-writing.sav'), Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
+	WriteSaveSync(save, binary => {
+		fs.writeFileSync(path.join(__dirname, save.name + '_on-writing.bin'), Buffer.from(binary));
+	});
 });
 
 
