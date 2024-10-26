@@ -170,19 +170,3 @@ it.each([
 
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'), Buffer.from(response.configFileBinary));
 });
-
-it.skip('benchmarks await values vs real values', async () => {
-	const numOperations = 5000000;
-	const start1 = performance.now();
-	for (let i = 0; i < numOperations; i++) {
-		const x = 20;
-	}
-	const end1 = performance.now();
-	const start2 = performance.now();
-	for (let i = 0; i < numOperations; i++) {
-		const x = await 20;
-	}
-	const end2 = performance.now();
-
-	console.log(`executed ${numOperations} times. Synchronous code needed ${end1 - start1} ms, while await synchronous code needed ${end2 - start2} ms`);
-});
