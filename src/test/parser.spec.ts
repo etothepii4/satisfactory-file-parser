@@ -109,16 +109,13 @@ it.each(saveList)('can write a synchronous save', async (savename) => {
 	const mainFileBodyChunks: Uint8Array[] = [];
 	const response = Parser.WriteSave(save,
 		header => {
-			console.log('on header.');
 			mainFileHeader = header;
 		},
 		chunk => {
-			console.log('on main file.');
 			mainFileBodyChunks.push(chunk);
 		},
 		{
 			onBinaryBeforeCompressing: binary => {
-				console.log('on binary.');
 				fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
 			}
 		});
@@ -152,15 +149,12 @@ it.each([
 	const mainFileBodyChunks: Uint8Array[] = [];
 	const response = Parser.WriteBlueprintFiles(blueprint,
 		header => {
-			console.log('on header.');
 			mainFileHeader = header;
 		}, chunk => {
-			console.log('on main file.');
 			mainFileBodyChunks.push(chunk);
 		},
 		{
 			onMainFileBinaryBeforeCompressing: binary => {
-				console.log('on binary.');
 				fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
 			},
 		});
