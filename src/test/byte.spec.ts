@@ -32,7 +32,6 @@ const saveList = [
 	// Mods
 	'ficsitcam-1',
 	'structuralsolutions-1',
-	'mods-1',
 	'x3-roads-signs'
 ];
 

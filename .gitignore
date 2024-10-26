@@ -7,6 +7,7 @@
 /src/test/*.json
 /src/test/test-log.txt
 
+# ignore saves, blueprints, binary files
 /src/test/*.bin
 /src/test/*.sbpcfg_modified
 /src/test/*.bin_modified
@@ -17,9 +18,14 @@
 /src/test/*.bins
 /src/test/*.bins_modified
 /src/test/*.sav_modified
-
 /src/test/*.sbp
 /src/test/*.sbp_modified
 /src/test/*.sbpcfg
-/src/test/debugging.xlsx
-/src/test/~$debugging.xlsx
+
+# But not these specific examples
+!/src/test/Release 001.sav
+!/src/test/Release 032.sav
+!/src/test/264_ohne_Mods.sav
+!/src/test/ficsitcam-1.sav
+!/src/test/structuralsolutions-1.sav
+!/src/test/x3-roads-signs-1.sav
