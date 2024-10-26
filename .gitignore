@@ -22,10 +22,19 @@
 /src/test/*.sbp_modified
 /src/test/*.sbpcfg
 
-# But not these specific examples
+# But not these specific example saves and blueprints
 !/src/test/Release 001.sav
 !/src/test/Release 032.sav
 !/src/test/264_ohne_Mods.sav
 !/src/test/ficsitcam-1.sav
 !/src/test/structuralsolutions-1.sav
 !/src/test/x3-roads-signs-1.sav
+
+!src/test/release-single-wall.sbp
+!src/test/release-single-wall.sbpcfg
+!src/test/release-storage-mk1.sbp
+!src/test/release-storage-mk1.sbpcfg
+!src/test/release-storage-mk2-blueprintmk2.sbp
+!src/test/release-storage-mk2-blueprintmk2.sbpcfg
+!src/test/release-two-foundations.sbp
+!src/test/release-two-foundations.sbpcfg
