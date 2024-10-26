@@ -1,9 +1,10 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { UnimplementedError } from '../../../../error/parser.error';
+import { GUIDInfo } from '../../structs/GUIDInfo';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 import { BoolProperty } from './BoolProperty';
 import { ByteProperty } from './ByteProperty';
 import { DoubleProperty } from './DoubleProperty';
@@ -20,23 +21,23 @@ import { TextProperty, TextPropertyValue } from './TextProperty';
 
 export type ArrayPropertyStructValueFields = {
     allStructType: string;
-    allIndex: number;
-    allGuid: number;
+    allIndex?: number;
+    allGuid: GUIDInfo;
     allUnk1?: number;
     allUnk2?: number;
     allUnk3?: number;
     allUnk4?: number;
 };
 
-export const isArrayProperty = (property: BasicProperty): property is ArrayProperty<any> => property.type === 'ArrayProperty';
+export const isArrayProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is ArrayProperty<any> => !Array.isArray(property) && property.type === 'ArrayProperty';
 
-export class ArrayProperty<T> extends BasicProperty {
+export class ArrayProperty<T> extends AbstractBaseProperty {
 
     constructor(public subtype: string, public values: T[], ueType: string = 'ArrayProperty', index: number = 0, public structValueFields?: ArrayPropertyStructValueFields) {
         super({ type: 'ArrayProperty', ueType, index });
     }
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number, propertyName: string): ArrayProperty<any> {
+    public static Parse(reader: BinaryReadable, ueType: string, index: number, size: number): ArrayProperty<any> {
         const subtype = reader.readString();
         reader.skipBytes(1); // 0
 
@@ -92,20 +93,20 @@ export class ArrayProperty<T> extends BasicProperty {
             case "StructProperty":
 
                 const name = reader.readString(); // Same as currentProperty.name
-                const type = reader.readString(); // StructProperty
+                const allUEType = reader.readString(); // StructProperty
 
                 const binarySize = reader.readInt32(); // structureSize
-                const allIndex = reader.readInt32(); // 0
+                const allIndex = reader.readInt32(); // Since ArrayProperty itself has an index already, this was never observed to be anything else than 0.
 
                 const allStructType = reader.readString();
-                const allGuid = reader.readInt32();
+                const allGuid = GUIDInfo.read(reader);
 
                 const allUnk1 = reader.readInt32();
                 const allUnk2 = reader.readInt32();
                 const allUnk3 = reader.readInt32();
-                const allUnk4 = reader.readByte();
+                const allUnk4 = reader.readInt32();
 
-                const innerStructValueFields: ArrayPropertyStructValueFields = { allStructType, allIndex, allGuid };
+                const innerStructValueFields: ArrayPropertyStructValueFields = { allStructType, allIndex: allIndex > 0 ? allIndex : undefined, allGuid };
                 if (allUnk1 !== 0) {
                     innerStructValueFields.allUnk1 = allUnk1;
                 }
@@ -123,7 +124,7 @@ export class ArrayProperty<T> extends BasicProperty {
                 const before = reader.getBufferPosition();
                 const maArr = new Array(elementCount).fill(0).map(() => {
 
-                    const struct = new StructProperty(allStructType, type, allIndex, allGuid);
+                    const struct = new StructProperty(allStructType, allUEType, allIndex, allGuid);
 
                     // we do NOT assign individual unk's here. Since they are only serialized always on ArrayProperty's Level once for all elements.
                     struct.value = StructProperty.ParseValue(reader, allStructType, binarySize);
@@ -150,7 +151,7 @@ export class ArrayProperty<T> extends BasicProperty {
         return property.subtype.length + 5 + 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: ArrayProperty<any>, propertyName: string): void {
+    public static Serialize(writer: ByteWriter, property: ArrayProperty<any>): void {
 
         writer.writeString(property.subtype);
         writer.writeByte(0);
@@ -204,20 +205,20 @@ export class ArrayProperty<T> extends BasicProperty {
 
             case "StructProperty":
 
-                writer.writeString(propertyName);
+                writer.writeString(property.name);
                 writer.writeString(property.subtype);
 
                 const lenIndicator = writer.getBufferPosition();
                 writer.writeInt32(0);
-                writer.writeInt32(property.structValueFields!.allIndex);
+                writer.writeInt32(property.structValueFields!.allIndex ?? 0);
 
                 writer.writeString(property.structValueFields!.allStructType);
-                writer.writeInt32(property.structValueFields!.allGuid);
+                GUIDInfo.write(writer, property.structValueFields!.allGuid)
 
                 writer.writeInt32(property.structValueFields!.allUnk1 ?? 0);
                 writer.writeInt32(property.structValueFields!.allUnk2 ?? 0);
                 writer.writeInt32(property.structValueFields!.allUnk3 ?? 0);
-                writer.writeByte(property.structValueFields!.allUnk4 ?? 0);
+                writer.writeInt32(property.structValueFields!.allUnk4 ?? 0);
 
                 const before = writer.getBufferPosition();
                 property.values.forEach(v => StructProperty.SerializeValue(writer, property.structValueFields!.allStructType, v.value));

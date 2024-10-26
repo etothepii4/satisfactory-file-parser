@@ -2,7 +2,7 @@ import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { ObjectReference } from '../../structs/ObjectReference';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 import { ByteProperty } from './ByteProperty';
 import { EnumProperty } from './EnumProperty';
 import { Int32Property } from './Int32Property';
@@ -16,9 +16,9 @@ export type MAP_STRUCT_KEY_PROXY = [number, number, number, number, number, numb
 export type GENERIC_MAP_KEY_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | MAP_STRUCT_KEY_PROXY;
 export type GENERIC_MAP_VALUE_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE;
 
-export const isMapProperty = (property: BasicProperty): property is MapProperty => property.type === 'MapProperty';
+export const isMapProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is MapProperty => !Array.isArray(property) && property.type === 'MapProperty';
 
-export class MapProperty extends BasicProperty {
+export class MapProperty extends AbstractBaseProperty {
 
     public modeType: number = 0;
     public modeUnk1: string | undefined;

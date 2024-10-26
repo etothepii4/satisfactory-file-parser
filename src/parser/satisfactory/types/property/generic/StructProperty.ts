@@ -3,10 +3,11 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { CorruptSaveError } from '../../../../error/parser.error';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
+import { GUIDInfo } from '../../structs/GUIDInfo';
 import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
 import { vec3 } from '../../structs/vec3';
 import { vec4 } from '../../structs/vec4';
-import { AbstractBaseProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
 export type BasicMultipleStructPropertyValue = {
@@ -55,7 +56,7 @@ export type ClientIdentityInfo = {
 export type GENERIC_STRUCT_PROPERTY_VALUE = BasicMultipleStructPropertyValue | BasicStructPropertyValue | BoxStructPropertyValue | RailroadTrackPositionStructPropertyValue |
     InventoryItemStructPropertyValue | FICFrameRangeStructPropertyValue | ClientIdentityInfo | DynamicStructPropertyValue | col4 | vec3 | vec4 | string;
 
-export const isStructProperty = (property: AbstractBaseProperty): property is StructProperty => property.type === 'StructProperty';
+export const isStructProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is StructProperty => !Array.isArray(property) && property.type === 'StructProperty';
 
 export class StructProperty extends AbstractBaseProperty {
 
@@ -66,8 +67,8 @@ export class StructProperty extends AbstractBaseProperty {
     public unk3?: number;
     public unk4?: number;
 
-    constructor(public subtype: string, ueType: string = 'StructProperty', index: number = 0, public guid = 0) {
-        super('StructProperty', ueType, index);
+    constructor(public subtype: string, ueType: string = 'StructProperty', index: number = 0, guidInfo: GUIDInfo = undefined) {
+        super({ type: 'StructProperty', ueType, index, guidInfo });
     }
 
     public static Parse(reader: BinaryReadable, ueType: string, index: number, size: number): StructProperty {
@@ -75,7 +76,7 @@ export class StructProperty extends AbstractBaseProperty {
             reader.readString(),
             ueType,
             index,
-            reader.readInt32()
+            GUIDInfo.read(reader)
         );
 
         const unk1 = reader.readInt32();
@@ -93,7 +94,7 @@ export class StructProperty extends AbstractBaseProperty {
             struct.unk3 = unk3;
         }
 
-        const unk4 = reader.readByte();
+        const unk4 = reader.readInt32();
         if (unk4 !== 0) {
             struct.unk4 = unk4;
         }
@@ -255,12 +256,12 @@ export class StructProperty extends AbstractBaseProperty {
 
     public static Serialize(writer: ByteWriter, property: StructProperty): void {
         writer.writeString(property.subtype);
-        writer.writeInt32(property.guid);
+        GUIDInfo.write(writer, property.guidInfo);
 
         writer.writeInt32(property.unk1 ?? 0);
         writer.writeInt32(property.unk2 ?? 0);
         writer.writeInt32(property.unk3 ?? 0);
-        writer.writeByte(property.unk4 ?? 0);
+        writer.writeInt32(property.unk4 ?? 0);
 
         StructProperty.SerializeValue(writer, property.subtype, property.value);
     }

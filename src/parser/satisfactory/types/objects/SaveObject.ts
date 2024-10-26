@@ -1,7 +1,7 @@
 import { BinaryReadable } from "../../../byte/binary-readable.interface";
 import { ByteWriter } from "../../../byte/byte-writer.class";
 import { ParserError } from '../../../error/parser.error';
-import { PropertiesMap } from "../property/generic/BasicProperty";
+import { PropertiesMap } from "../property/generic/AbstractBaseProperty";
 import { PropertiesList } from '../property/PropertiesList';
 import { SpecialProperties } from '../property/special/SpecialProperties';
 

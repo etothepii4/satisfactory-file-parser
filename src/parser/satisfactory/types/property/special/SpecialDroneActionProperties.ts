@@ -1,6 +1,6 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
-import { PropertiesMap } from '../generic/BasicProperty';
+import { PropertiesMap } from '../generic/AbstractBaseProperty';
 import { PropertiesList } from '../PropertiesList';
 
 

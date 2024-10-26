@@ -1,11 +1,11 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isEnumProperty = (property: BasicProperty): property is EnumProperty => property.type === 'EnumProperty';
+export const isEnumProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is EnumProperty => !Array.isArray(property) && property.type === 'EnumProperty';
 
-export class EnumProperty extends BasicProperty {
+export class EnumProperty extends AbstractBaseProperty {
 
     constructor(public value: { name: string; value: string; }, ueType: string = 'EnumProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
         super({ type: 'EnumProperty', ueType, guidInfo, index });

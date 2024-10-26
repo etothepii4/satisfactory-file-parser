@@ -1,8 +1,8 @@
 import { BinaryReadable } from '../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../byte/byte-writer.class';
 import { ParserError } from '../../../error/parser.error';
+import { AbstractBaseProperty, PropertiesMap } from './generic/AbstractBaseProperty';
 import { ArrayProperty } from './generic/ArrayProperty';
-import { AbstractBaseProperty, PropertiesMap } from './generic/BasicProperty';
 import { BoolProperty } from './generic/BoolProperty';
 import { ByteProperty } from './generic/ByteProperty';
 import { DoubleProperty } from './generic/DoubleProperty';
@@ -51,7 +51,7 @@ export namespace PropertiesList {
 	export const SerializeList = (properties: PropertiesMap, writer: ByteWriter, buildVersion: number): void => {
 		for (const property of Object.values(properties).flatMap(val => Array.isArray(val) ? val : [val])) {
 			writer.writeString(property.name);
-			PropertiesList.SerializeSingleProperty(writer, property, property.name, buildVersion);
+			PropertiesList.SerializeSingleProperty(writer, property, buildVersion);
 		}
 		writer.writeString('None');
 	}
@@ -148,7 +148,7 @@ export namespace PropertiesList {
 				break;
 
 			case 'ArrayProperty':
-				currentProperty = ArrayProperty.Parse(reader, propertyType, index, propertyName);
+				currentProperty = ArrayProperty.Parse(reader, propertyType, index, binarySize);
 				overhead = ArrayProperty.CalcOverhead(currentProperty);
 				break;
 
@@ -182,7 +182,7 @@ export namespace PropertiesList {
 		return currentProperty;
 	}
 
-	export const SerializeSingleProperty = (writer: ByteWriter, property: AbstractBaseProperty, propertyName: string, buildVersion: number): void => {
+	export const SerializeSingleProperty = (writer: ByteWriter, property: AbstractBaseProperty, buildVersion: number): void => {
 
 		writer.writeString(property.ueType);
 
@@ -282,7 +282,7 @@ export namespace PropertiesList {
 
 			case 'ArrayProperty':
 				overhead = ArrayProperty.CalcOverhead(property as ArrayProperty<any>);
-				ArrayProperty.Serialize(writer, property as ArrayProperty<any>, propertyName);
+				ArrayProperty.Serialize(writer, property as ArrayProperty<any>);
 				break;
 
 			case 'MapProperty':

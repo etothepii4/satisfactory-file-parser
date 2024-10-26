@@ -2,11 +2,11 @@ import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isSoftObjectProperty = (property: BasicProperty): property is SoftObjectProperty => property.type === 'SoftObjectProperty';
+export const isSoftObjectProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is SoftObjectProperty => !Array.isArray(property) && property.type === 'SoftObjectProperty';
 
-export class SoftObjectProperty extends BasicProperty {
+export class SoftObjectProperty extends AbstractBaseProperty {
 
     constructor(public value: SoftObjectReference, ueType: string = 'SoftObjectProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
         super({ type: 'SoftObjectProperty', ueType, guidInfo, index });

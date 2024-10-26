@@ -1,12 +1,12 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isBoolProperty = (property: BasicProperty): property is BoolProperty => property.type === 'BoolProperty';
+export const isBoolProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is BoolProperty => !Array.isArray(property) && property.type === 'BoolProperty';
 
-export class BoolProperty extends BasicProperty {
+export class BoolProperty extends AbstractBaseProperty {
 
     constructor(public value: boolean, ueType: string = 'BoolProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
         super({ type: 'BoolProperty', ueType, guidInfo, index });

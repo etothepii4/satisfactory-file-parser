@@ -6,8 +6,8 @@ export * from './parser/satisfactory/save/save.types';
 export * from './parser/satisfactory/types/objects/SaveComponent';
 export * from './parser/satisfactory/types/objects/SaveEntity';
 export * from './parser/satisfactory/types/objects/SaveObject';
+export * from './parser/satisfactory/types/property/generic/AbstractBaseProperty';
 export * from './parser/satisfactory/types/property/generic/ArrayProperty';
-export * from './parser/satisfactory/types/property/generic/BasicProperty';
 export * from './parser/satisfactory/types/property/generic/BoolProperty';
 export * from './parser/satisfactory/types/property/generic/ByteProperty';
 export * from './parser/satisfactory/types/property/generic/DoubleProperty';
@@ -67,3 +67,4 @@ export { ReadableStreamParser } from './parser/stream/reworked/readable-stream-p
 
 // edit
 export * from './parser/satisfactory/edit/edit-constants';
+
