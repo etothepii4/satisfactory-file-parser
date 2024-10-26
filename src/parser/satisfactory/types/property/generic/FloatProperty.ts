@@ -1,11 +1,11 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isFloatProperty = (property: BasicProperty): property is FloatProperty => property.type === 'FloatProperty';
+export const isFloatProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is FloatProperty => !Array.isArray(property) && property.type === 'FloatProperty';
 
-export class FloatProperty extends BasicProperty {
+export class FloatProperty extends AbstractBaseProperty {
 
     constructor(public value: number, ueType: string = 'FloatProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
         super({ type: 'FloatProperty', ueType, guidInfo, index });

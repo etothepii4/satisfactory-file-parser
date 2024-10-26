@@ -1,7 +1,7 @@
 import { BinaryReadable } from '../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../byte/byte-writer.class';
 import { PropertiesList } from '../property/PropertiesList';
-import { PropertiesMap } from '../property/generic/BasicProperty';
+import { PropertiesMap } from '../property/generic/AbstractBaseProperty';
 
 export type DynamicStructPropertyValue = {
     type: string;

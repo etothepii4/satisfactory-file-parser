@@ -1,11 +1,12 @@
 import { BinaryReadable } from '../../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isUint32Property = (property: BasicProperty): property is Uint32Property => property.type === 'UInt32Property';
 
-export class Uint32Property extends BasicProperty {
+export const isUint32Property = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is Uint32Property => !Array.isArray(property) && property.type === 'UInt32Property';
+
+export class Uint32Property extends AbstractBaseProperty {
 
     constructor(public value: number, ueType: string = 'UInt32Property', guidInfo: GUIDInfo = undefined, index: number = 0) {
         super({ type: 'UInt32Property', ueType, guidInfo, index });

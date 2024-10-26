@@ -3,15 +3,15 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUID } from '../../structs/GUID';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
-import { BasicProperty } from './BasicProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 import { Int32Property } from './Int32Property';
 import { ObjectProperty } from './ObjectProperty';
 import { StrProperty } from './StrProperty';
 import { Uint32Property } from './Uint32Property';
 
-export const isSetProperty = (property: BasicProperty): property is SetProperty<any> => property.type === 'SetProperty';
+export const isSetProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is SetProperty<any> => !Array.isArray(property) && property.type === 'SetProperty';
 
-export class SetProperty<T> extends BasicProperty {
+export class SetProperty<T> extends AbstractBaseProperty {
 
     constructor(public subtype: string, public values: T[], ueType: string, index: number) {
         super({ type: 'SetProperty', ueType, index });
