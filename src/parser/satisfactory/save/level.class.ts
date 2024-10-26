@@ -71,8 +71,10 @@ export namespace Level {
 
 		SerializeAllObjectHeaders(writer, level.objects);
 
-		// <--- destroyed actors is the same as collectables list.
-		ObjectReferencesList.SerializeList(writer, level.collectables);
+		// <--- destroyed actors is the same as collectables list. Seems like its not there if count 0.
+		if (level.collectables.length > 0) {
+			ObjectReferencesList.SerializeList(writer, level.collectables);
+		}
 
 		// replace binary size from earlier for - object headers + collectables
 		writer.writeBinarySizeFromPosition(lenIndicatorHeaderAndDestroyedEntitiesSize, lenIndicatorHeaderAndDestroyedEntitiesSize + 8);
