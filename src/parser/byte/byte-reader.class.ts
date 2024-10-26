@@ -44,11 +44,11 @@ export abstract class ByteReader implements BinaryReadable {
 	public readBytes(count: number): Uint8Array {
 		return new Uint8Array(new Array(count).fill(0).map(pl => this.bufferView.getUint8(this.currentByte++)));
 	}
-	private uint8ToHexRepresentation(byte: number): string {
-		return ('0' + byte.toString(16)).slice(-2);
+	public bytesToHexRepresentation(bytes: number[]): string[] {
+		return bytes.map(byte => ('0' + byte.toString(16)).slice(-2));
 	}
-	public readHex(byteLength: number, hexSeparator: string = ''): string {
-		return Array.from(this.readBytes(byteLength)).map(byte => this.uint8ToHexRepresentation(byte)).join(hexSeparator);
+	public readHex(byteLength: number, hexSeparator: string = ' '): string {
+		return this.bytesToHexRepresentation(Array.from(this.readBytes(byteLength))).join(hexSeparator);
 	}
 	public readInt8(): number {
 		let data = this.bufferView.getInt8(this.currentByte++);
