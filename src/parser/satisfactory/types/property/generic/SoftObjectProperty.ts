@@ -4,7 +4,7 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isSoftObjectProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is SoftObjectProperty => !Array.isArray(property) && property.type === 'SoftObjectProperty';
+export const isSoftObjectProperty = (property: any): property is SoftObjectProperty => !Array.isArray(property) && property.type === 'SoftObjectProperty';
 
 export class SoftObjectProperty extends AbstractBaseProperty {
 

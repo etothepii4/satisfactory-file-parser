@@ -3,7 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isInt64Property = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is Int64Property => !Array.isArray(property) && property.type === 'Int64Property';
+export const isInt64Property = (property: any): property is Int64Property => !Array.isArray(property) && property.type === 'Int64Property';
 
 export class Int64Property extends AbstractBaseProperty {
 

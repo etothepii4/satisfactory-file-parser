@@ -4,7 +4,7 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isUint32Property = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is Uint32Property => !Array.isArray(property) && property.type === 'UInt32Property';
+export const isUint32Property = (property: any): property is Uint32Property => !Array.isArray(property) && property.type === 'UInt32Property';
 
 export class Uint32Property extends AbstractBaseProperty {
 
