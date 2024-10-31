@@ -3,7 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isEnumProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is EnumProperty => !Array.isArray(property) && property.type === 'EnumProperty';
+export const isEnumProperty = (property: any): property is EnumProperty => !Array.isArray(property) && property.type === 'EnumProperty';
 
 export class EnumProperty extends AbstractBaseProperty {
 

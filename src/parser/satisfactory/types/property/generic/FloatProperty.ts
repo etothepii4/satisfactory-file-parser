@@ -3,7 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isFloatProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is FloatProperty => !Array.isArray(property) && property.type === 'FloatProperty';
+export const isFloatProperty = (property: any): property is FloatProperty => !Array.isArray(property) && property.type === 'FloatProperty';
 
 export class FloatProperty extends AbstractBaseProperty {
 

@@ -4,7 +4,7 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isBoolProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is BoolProperty => !Array.isArray(property) && property.type === 'BoolProperty';
+export const isBoolProperty = (property: any): property is BoolProperty => !Array.isArray(property) && property.type === 'BoolProperty';
 
 export class BoolProperty extends AbstractBaseProperty {
 

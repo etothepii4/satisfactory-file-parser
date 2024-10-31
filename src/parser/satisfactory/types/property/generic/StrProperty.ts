@@ -3,7 +3,7 @@ import { ByteWriter } from '../../../../byte/byte-writer.class';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isStrProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is StrProperty => !Array.isArray(property) && property.type === 'StrProperty';
+export const isStrProperty = (property: any): property is StrProperty => !Array.isArray(property) && property.type === 'StrProperty';
 
 export class StrProperty extends AbstractBaseProperty {
 

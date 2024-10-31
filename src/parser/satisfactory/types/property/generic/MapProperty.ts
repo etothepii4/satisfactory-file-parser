@@ -16,7 +16,7 @@ export type MAP_STRUCT_KEY_PROXY = [number, number, number, number, number, numb
 export type GENERIC_MAP_KEY_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | MAP_STRUCT_KEY_PROXY;
 export type GENERIC_MAP_VALUE_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE;
 
-export const isMapProperty = (property: AbstractBaseProperty | AbstractBaseProperty[]): property is MapProperty => !Array.isArray(property) && property.type === 'MapProperty';
+export const isMapProperty = (property: any): property is MapProperty => !Array.isArray(property) && property.type === 'MapProperty';
 
 export class MapProperty extends AbstractBaseProperty {
 
