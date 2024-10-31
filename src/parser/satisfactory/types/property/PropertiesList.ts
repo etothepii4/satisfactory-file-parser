@@ -2,7 +2,7 @@ import { BinaryReadable } from '../../../byte/binary-readable.interface';
 import { ByteWriter } from '../../../byte/byte-writer.class';
 import { ParserError } from '../../../error/parser.error';
 import { AbstractBaseProperty, PropertiesMap } from './generic/AbstractBaseProperty';
-import { ArrayProperty } from './generic/ArrayProperty';
+import { ArrayProperty } from './generic/ArrayProperty/ArrayProperty';
 import { BoolProperty } from './generic/BoolProperty';
 import { ByteProperty } from './generic/ByteProperty';
 import { DoubleProperty } from './generic/DoubleProperty';
@@ -13,7 +13,7 @@ import { Int64Property } from './generic/Int64Property';
 import { Int8Property } from './generic/Int8Property';
 import { MapProperty } from './generic/MapProperty';
 import { ObjectProperty } from './generic/ObjectProperty';
-import { SetProperty } from './generic/SetProperty';
+import { SetProperty } from './generic/SetProperty/SetProperty';
 import { SoftObjectProperty } from './generic/SoftObjectProperty';
 import { StrProperty } from './generic/StrProperty';
 import { StructProperty } from './generic/StructProperty';
@@ -281,8 +281,8 @@ export namespace PropertiesList {
 				break;
 
 			case 'ArrayProperty':
-				overhead = ArrayProperty.CalcOverhead(property as ArrayProperty<any>);
-				ArrayProperty.Serialize(writer, property as ArrayProperty<any>);
+				overhead = ArrayProperty.CalcOverhead(property as ArrayProperty.AvailableArrayPropertyTypes);
+				ArrayProperty.Serialize(writer, property as ArrayProperty.AvailableArrayPropertyTypes);
 				break;
 
 			case 'MapProperty':
@@ -296,8 +296,8 @@ export namespace PropertiesList {
 				break;
 
 			case 'SetProperty':
-				overhead = SetProperty.CalcOverhead(property as SetProperty<any>);
-				SetProperty.Serialize(writer, property as SetProperty<any>);
+				overhead = SetProperty.CalcOverhead(property as SetProperty.AvailableSetPropertyTypes);
+				SetProperty.Serialize(writer, property as SetProperty.AvailableSetPropertyTypes);
 				break;
 
 			default:
