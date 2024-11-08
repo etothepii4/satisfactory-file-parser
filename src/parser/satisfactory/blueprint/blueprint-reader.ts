@@ -10,6 +10,7 @@ import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { SaveObject } from "../types/objects/SaveObject";
 import { col4 } from '../types/structs/col4';
+import { ObjectReference } from '../types/structs/ObjectReference';
 import { vec3 } from '../types/structs/vec3';
 import { BlueprintConfig, BlueprintHeader } from "./blueprint.types";
 
@@ -33,10 +34,9 @@ export class BlueprintReader extends ByteReader {
 
 		// list of item costs.
 		let itemTypeCount = reader.readInt32();
-		const itemCosts = new Array<[string, number]>(itemTypeCount).fill(['', 0]);
+		const itemCosts = new Array<[ObjectReference, number]>(itemTypeCount).fill([{ levelName: '', pathName: '' }, 0]);
 		for (let i = 0; i < itemTypeCount; i++) {
-			reader.readInt32();	// 0
-			let itemPathName = reader.readString();
+			let itemPathName = ObjectReference.read(reader);
 			let itemCount = reader.readInt32();
 
 			itemCosts[i] = [itemPathName, itemCount];
@@ -44,10 +44,9 @@ export class BlueprintReader extends ByteReader {
 
 		// list of recipes
 		let recipeCount = reader.readInt32();
-		const recipeRefs = new Array<string>(recipeCount).fill('');
+		const recipeRefs = new Array<ObjectReference>(recipeCount).fill({ levelName: '', pathName: '' });
 		for (let i = 0; i < recipeCount; i++) {
-			reader.readInt32();	// 0
-			const recipeName = reader.readString();
+			const recipeName = ObjectReference.read(reader);
 			recipeRefs[i] = recipeName;
 		}
 

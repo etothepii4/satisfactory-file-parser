@@ -7,6 +7,7 @@ import { SaveWriter } from "../save/save-writer";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { col4 } from '../types/structs/col4';
+import { ObjectReference } from '../types/structs/ObjectReference';
 import { BlueprintConfig, BlueprintHeader } from "./blueprint.types";
 
 
@@ -36,16 +37,14 @@ export class BlueprintWriter extends ByteWriter {
 		// list of item costs.
 		writer.writeInt32(header.itemCosts.length);
 		for (const itemCost of header.itemCosts) {
-			writer.writeInt32(0);
-			writer.writeString(itemCost[0]);
+			ObjectReference.write(writer, itemCost[0])
 			writer.writeInt32(itemCost[1]);
 		}
 
 		// list of recipes.
 		writer.writeInt32(header.recipeReferences.length);
 		for (const recipeReference of header.recipeReferences) {
-			writer.writeInt32(0);
-			writer.writeString(recipeReference);
+			ObjectReference.write(writer, recipeReference);
 		}
 	}
 
