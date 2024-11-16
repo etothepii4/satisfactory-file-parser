@@ -18,11 +18,15 @@ Game Version Files of U5 and below are NOT supported.
 | U8             |  ✅ 0.1.20 - 0.3.7           |
 | U1.0           |  ✅ >= 0.4.20                |
 
+
 # Installation
 #### npm
 `npm install @etothepii/satisfactory-file-parser`
 #### yarn
 `yarn add @etothepii/satisfactory-file-parser`
+
+# Bug Reports or Feedback
+You can always raise an issue on the linked [github project](https://github.com/etothepii4/satisfactory-file-parser) or hit me up on the satisfactory discord `etothepii`.
 
 # Mod Support ✅
 By Default, most Mods just reuse Properties and Structs of the base game.
@@ -67,7 +71,7 @@ jsonFileStream.on('close', () => {
 startStreaming();
 ```
 
-
+# Writing a Save
 Consequently, writing a parsed save file back is just as easy.
 The SaveParser has callbacks to assist during syncing on different occasions during the process.
 For example, when writing the header or when writing a chunk of the save body.
@@ -106,7 +110,7 @@ for (const player of players) {
 ```
 
 
-# Usage of Blueprint Parsing
+# Reading Blueprints
 Note, that blueprints consist of 2 files. The `.sbp` main file and the config file `.sbpcfg`.
 
 ```js
@@ -118,6 +122,7 @@ const configFile = fs.readFileSync('./MyBlueprint.sbpcfg');
 const blueprint = Parser.ParseBlueprintFiles('Myblueprint', mainFile, configFile);
 ```
 
+# Writing Blueprints
 Consequently, writing a blueprint into binary data works the same way with getting callbacks in the same style as the save parsing.
 ```js
 import * as fs from 'fs';
@@ -143,7 +148,7 @@ fs.writeFileSync('./MyBlueprint.sbp', Buffer.concat([mainFileHeader!, ...mainFil
 fs.writeFileSync('./MyBlueprint.sbpcfg', Buffer.from(summary.configFileBinary));
 ```
 
-# Additional Infos
+# Additional Options on the Parser Methods
 For every parser call, you can pass optional callbacks to receive additional info.
 Like a callback on the decompressed save body. Parsing saves provides a callback for reporting progress [0,1] and an occasional message.
 ```js
@@ -162,31 +167,14 @@ const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
     onDecompressedBlueprintBody: (body) => console.log('on decompressed body', body.byteLength),
 });
 ```
+# Auto-Generated TSDoc Reference
+The TSDoc is auto generated [here](https://github.com/etothepii4/satisfactory-file-parser/blob/main/docs/index.html).
 
-# Bug Reports or Feedback
-You can always raise an issue on the linked [github project](https://github.com/etothepii4/satisfactory-file-parser) or hit me up on the satisfactory discord `etothepii`.
+# Guide
+A quick guide on the most important properties is [here](https://github.com/etothepii4/satisfactory-file-parser/blob/main/GUIDE.md).
 
-# [Changelog](https://github.com/etothepii4/satisfactory-file-parser/blob/main/CHANGELOG.md).
+# Changelog
+See [Changelog](https://github.com/etothepii4/satisfactory-file-parser/blob/main/CHANGELOG.md).
 
-# License 
-MIT License
-
-Copyright (c) 2021-2024 etothepii
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+# Licence
+See [Licence](https://github.com/etothepii4/satisfactory-file-parser/blob/main/LICENCE.md).
