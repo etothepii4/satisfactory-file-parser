@@ -1,10 +1,14 @@
 # Satisfactory File Parser
-This is an NPM TypeScript Module to parse Satisfactory Files. Satisfactory is a game released by Coffee Stain Studios.
-The reporitory is written entirely in TypeScript and comes with Type Definitions.
+This is a TypeScript [github project](https://github.com/etothepii4/satisfactory-file-parser) to parse Satisfactory Saves/Blueprints. Satisfactory is a game released by Coffee Stain Studios.
+The reporitory is written entirely in TypeScript and is bundled on [NPM](https://www.npmjs.com/package/@etothepii/satisfactory-file-parser).
 
 This parser can read, modify and write:
 - Save Files `.sav`
 - Blueprint Files `.sbp`, `.sbpcfg`
+
+The parser is for deep save editing, since it just parses to JSON and back.
+The purpose to have an editable structure, game logic is not known.
+It is recommended that you look at the parsed save/blueprint to get an idea what you want to edit.
 
 # Supported Versions
 The version support of the packages is indicated below. Some bugs might still be present, see Bug Reporting further down.
@@ -95,21 +99,6 @@ fs.writeFileSync('./MyModifiedSave.sav', Buffer.concat([fileHeader!, ...bodyChun
 ```
 
 
-## Inspecting Save Objects
-You can for example loop through players and print their cached names and positions.
-
-```js
-import { isSaveEntity, SatisfactorySave, SaveEntity, StrProperty } from '@etothepii/satisfactory-file-parser';
-
-const objects = save.levels.flatMap(level => level.objects);
-const players = objects.filter(obj => isSaveEntity(obj) && obj.typePath === '/Game/FactoryGame/Character/Player/Char_Player.Char_Player_C') as SaveEntity[];
-for (const player of players) {
-    const name = (player.properties.mCachedPlayerName as StrProperty).value;
-    console.log(name, player.transform.translation);
-}
-```
-
-
 # Reading Blueprints
 Note, that blueprints consist of 2 files. The `.sbp` main file and the config file `.sbpcfg`.
 
@@ -148,7 +137,7 @@ fs.writeFileSync('./MyBlueprint.sbp', Buffer.concat([mainFileHeader!, ...mainFil
 fs.writeFileSync('./MyBlueprint.sbpcfg', Buffer.from(summary.configFileBinary));
 ```
 
-# Additional Options on the Parser Methods
+## Additional Options on the Parser Methods
 For every parser call, you can pass optional callbacks to receive additional info.
 Like a callback on the decompressed save body. Parsing saves provides a callback for reporting progress [0,1] and an occasional message.
 ```js
@@ -167,14 +156,82 @@ const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
     onDecompressedBlueprintBody: (body) => console.log('on decompressed body', body.byteLength),
 });
 ```
-# Auto-Generated TSDoc Reference
-The TSDoc is auto generated [here](https://github.com/etothepii4/satisfactory-file-parser/blob/main/docs/index.html).
 
-# Guide
-A quick guide on the most important properties is [here](https://github.com/etothepii4/satisfactory-file-parser/blob/main/GUIDE.md).
+# Save Editing Examples (in JS/TS)
+```js
+import { SaveComponent, SaveEntity, StructArrayProperty, Int32Property, ObjectProperty, StrProperty, StructProperty, InventoryItemStructPropertyValue, DynamicStructPropertyValue } from '@etothepii/satisfactory-file-parser';
 
-# Changelog
-See [Changelog](https://github.com/etothepii4/satisfactory-file-parser/blob/main/CHANGELOG.md).
+// method to overwrite save objects
+// currently quite inefficient to loop through everything, so theres room to improve in a future version. Feel free to raise an issue.
+const modifyObjects = (...modifiedObjects: (SaveEntity | SaveComponent)[]) => {
+    for (const modifiedObject of modifiedObjects) {
+        for (const level of save.levels) {
+            for (let i = 0; i < level.objects.length; i++) {
+                if (level.objects[i].instanceName === modifiedObject.instanceName) {
+                    level.objects[i] = modifiedObject;
+                }
+            }
+        }
+    }
+}
 
-# Licence
-See [Licence](https://github.com/etothepii4/satisfactory-file-parser/blob/main/LICENCE.md).
+const objects = save.levels.flatMap(level => level.objects);
+const collectables = save.levels.flatMap(level => level.collectables);
+```
+
+## Example Print Hub Terminal Location
+```js
+// get hub terminals. Beware that filter returns a COPIED array and not the original objects.
+const hubTerminals = objects.filter(obj => obj.typePath === '/Game/FactoryGame/Buildable/Factory/HubTerminal/Build_HubTerminal.Build_HubTerminal_C') as SaveEntity[];
+const firstHubPosition = hubTerminals[0].transform.translation;
+console.log(`Hub terminal is located at ${firstHubPosition.x}, ${firstHubPosition.y}, ${firstHubPosition.z}`);
+```
+
+## Example Modify Player Locations
+```js
+const players = objects.filter(obj => obj.typePath === '/Game/FactoryGame/Character/Player/Char_Player.Char_Player_C') as SaveEntity[];
+for (const player of players) {
+    const name = (player.properties.mCachedPlayerName as StrProperty).value;
+    player.transform.translation = {
+        x: player.transform.translation.x + 5000,
+        y: player.transform.translation.y + 5000,
+        z: player.transform.translation.z,
+    }
+    console.log(`Player ${name} is now located at ${player.transform.translation.x}, ${player.transform.translation.y}, ${player.transform.translation.z}`);
+}
+
+// modify original save objects
+modifyObjects(...players);
+```
+
+## Example Overwrite Item Stack in a Storage Container
+```js
+// get the first storage container, either mk1 or mk2.
+const storageContainers = objects.filter(obj =>
+    obj.typePath === '/Game/FactoryGame/Buildable/Factory/StorageContainerMk1/Build_StorageContainerMk1.Build_StorageContainerMk1_C'
+    || obj.typePath === '/Game/FactoryGame/Buildable/Factory/StorageContainerMk2/Build_StorageContainerMk2.Build_StorageContainerMk2_C'
+);
+const firstContainer = storageContainers[0];
+
+// the container has a reference name to an inventory component.
+const inventoryReference = firstContainer.properties.mStorageInventory as ObjectProperty;
+const inventory = objects.find(obj => obj.instanceName === inventoryReference.value.pathName) as SaveComponent;
+const inventoryStacks = inventory.properties.mInventoryStacks as StructArrayProperty;
+const firstStack = inventoryStacks.values[0];
+
+// Items within ItemStacks are quite nested. And StructProperties can basically be anything.
+// overwrite first item stack with 5 Rotors.
+(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemName = '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C';
+((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
+
+// modify original save object
+modifyObjects(firstContainer);
+```
+# [Auto-Generated TypeDoc Reference](https://rawcdn.githack.com/etothepii4/satisfactory-file-parser/experimental/minor-improvements-draft/docs/index.html).
+
+# [Basic Guide](https://github.com/etothepii4/satisfactory-file-parser/blob/main/GUIDE.md).
+More detailed explanation of some basic things in the parser.
+
+# [Changelog](https://github.com/etothepii4/satisfactory-file-parser/blob/main/CHANGELOG.md)
+
+# [Licence](https://github.com/etothepii4/satisfactory-file-parser/blob/main/LICENCE.md)

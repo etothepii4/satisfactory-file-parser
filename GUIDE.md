@@ -21,25 +21,61 @@ Level {
 }
 ```
 
-### SaveEntity
-A `SaveEntity` has a little more than `SaveComponent`. But both have "normal" generic `properties` and some objects have actually `specialProperties`, that are very specific to this type of object and get serialized extra in the save.
+### SaveObjects
+All `SaveObjects` are either a `SaveEntity` or `SaveComponent`. Whereas a `SaveEntity` references child components. This would refer in Unreal Engine to Component and Actor if i am not mistaken.
+
+But both have "normal" generic `properties` and some objects have actually `specialProperties`, that are very specific to this type of object and get serialized extra in the save.
 ```js
-Level {
-    objects: (SaveEntity | SaveComponent)[];
-    collectables: ObjectReference[];
+
+SaveObject {
+    typePath: string;
+	rootObject: string;
+	instanceName: string;
+    properties: PropertiesMap;
+	specialProperties: SpecialProperties.AvailableSpecialPropertiesTypes;
+	trailingData: number[] = [];
+	objectVersion: number;
+	unknownType2: number;
+}
+
+SaveComponent = SaveObject & {
+    parentEntityName: string;
+}
+
+SaveEntity = SaveObject & {
+    needTransform: boolean;
+	transform: Transform;
+	wasPlacedInLevel: boolean;
+	parentObjectRoot: string;
+	parentObjectName: string;
+	components: ObjectReference[];
 }
 ```
 
-## Inspecting Save Objects
-You can for example loop through players and print their cached names and positions.
-
+### Generic Properties
+All generic properties inherit from [AbstractBaseProperty](https://github.com/etothepii4/satisfactory-file-parser/blob/main/src/parser/satisfactory/types/property/generic/AbstractBaseProperty.ts).
+For a given name, an object has property of type `AbstractBaseProperty | AbstractBaseProperty[]`. Which just means, that the game on rare occasions serializes multiple properties with the same name, just different `index` as number. Often this `index` is just not relevant, but as mentioned on rare occasions, the game tries to represent an array (Not to be confused with ArrayProperty).
+Other properties such as `FloatProperty` inherit from the `AbstractBAseProperty`.
 ```js
-import { isSaveEntity, SatisfactorySave, SaveEntity, StrProperty } from '@etothepii/satisfactory-file-parser';
+type AbstractBaseProperty = {
+	type: string;
+	ueType: string;
+	name?: string;
+	guidInfo?: GUIDInfo;
+	index?: number;
+};
 
-const objects = save.levels.flatMap(level => level.objects);
-const players = objects.filter(obj => isSaveEntity(obj) && obj.typePath === '/Game/FactoryGame/Character/Player/Char_Player.Char_Player_C') as SaveEntity[];
-for (const player of players) {
-    const name = (player.properties.mCachedPlayerName as StrProperty).value;
-    console.log(name, player.transform.translation);
-}
+type FloatProperty = AbstractBaseProperty & {
+    type: 'FloatProperty';
+    value: number;
+};
 ```
+
+### Special Properties
+They are specific to the type of object they are. For example objects of type `/Script/FactoryGame.FGLightweightBuildableSubsystem` always have some special properties, the parser calls this one `BuildableSubsystemSpecialProperties`. There you will find a specific structure.
+Objects without any special properties, will always have `EmptySpecialProperties`. this is just the type for the parser to know.
+
+## Collectibles (Slugs, Mercer Spheres, Somersloops, ...)
+Collectibles in Satisfactory are only stored as objects in the save file, once they are visible to you.
+If you collected them, they are instead in the `collectibles` array of a level.
+So therefore you CAN NOT know the total list of collectibles alone from the save file, unless you uncovered everything in your save.
