@@ -1706,6 +1706,10 @@ export const EDIT = {
 				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/DroneStation/BP_DroneTransport.BP_DroneTransport_C'
 			},
 		},
+		DROP_POD: {
+			TYPE_PATH: '/Game/FactoryGame/World/Benefit/DropPod/BP_DropPod.BP_DropPod_C',
+			CLASS_NAME: 'BP_DropPod_C'
+		},
 		VEHICLE: {
 			DRIVING_TARGET_LIST: {
 				TYPE_PATH: '/Script/FactoryGame.FGDrivingTargetList'
