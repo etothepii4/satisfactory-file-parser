@@ -6,32 +6,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isBoolProperty = (property: any): property is BoolProperty => !Array.isArray(property) && property.type === 'BoolProperty';
 
-export class BoolProperty extends AbstractBaseProperty {
+export type BoolProperty = AbstractBaseProperty & {
+    type: 'BoolProperty';
+    value: boolean;
+};
 
-    constructor(public value: boolean, ueType: string = 'BoolProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'BoolProperty', ueType, guidInfo, index });
-    }
+export namespace BoolProperty {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): BoolProperty {
-        const value = BoolProperty.ReadValue(reader);
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): BoolProperty => {
+        const value = ReadValue(reader);
         const guidInfo = GUIDInfo.read(reader);
-        return new BoolProperty(value, ueType, guidInfo, index);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'BoolProperty',
+            value
+        } satisfies BoolProperty;
     }
 
-    public static ReadValue(reader: BinaryReadable): boolean {
+    export const ReadValue = (reader: BinaryReadable): boolean => {
         return reader.readByte() > 0;
     }
 
-    public static CalcOverhead(property: BoolProperty): number {
+    export const CalcOverhead = (property: BoolProperty): number => {
         return 1 + 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: BoolProperty): void {
-        BoolProperty.SerializeValue(writer, property.value);
+    export const Serialize = (writer: ByteWriter, property: BoolProperty): void => {
+        SerializeValue(writer, property.value);
         GUIDInfo.write(writer, property.guidInfo);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: boolean): void {
+    export const SerializeValue = (writer: ByteWriter, value: boolean): void => {
         writer.writeByte(value ? 1 : 0);
     }
 }

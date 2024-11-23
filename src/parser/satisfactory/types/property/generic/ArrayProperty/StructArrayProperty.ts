@@ -49,7 +49,12 @@ export namespace StructArrayProperty {
         const before = reader.getBufferPosition();
         const values = new Array(elementCount).fill(0).map(() => {
 
-            const struct = new StructProperty(allStructType, allUEType, allIndex, allGuid);
+            const struct: StructProperty = {
+                ...AbstractBaseProperty.Create({ index: allIndex, ueType: allUEType, guidInfo: allGuid, type: '' }),
+                type: 'StructProperty',
+                subtype: allStructType,
+                value: { values: [] }
+            };
 
             // we do NOT assign individual unk's here. Since they are only serialized always on ArrayProperty's Level once for all elements.
             struct.value = StructProperty.ParseValue(reader, allStructType, binarySize);
@@ -61,14 +66,11 @@ export namespace StructArrayProperty {
         }
 
         return {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'StructArrayProperty',
-            index,
-            ueType,
-            subtype,
-            values,
             structValueFields,
-            guidInfo: undefined,
-            name: ''
+            subtype,
+            values
         } satisfies StructArrayProperty;
     }
 

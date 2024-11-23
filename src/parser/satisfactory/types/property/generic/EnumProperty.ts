@@ -5,36 +5,40 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isEnumProperty = (property: any): property is EnumProperty => !Array.isArray(property) && property.type === 'EnumProperty';
 
-export class EnumProperty extends AbstractBaseProperty {
+export type EnumProperty = AbstractBaseProperty & {
+    type: 'EnumProperty';
+    value: { name: string; value: string; };
+};
 
-    constructor(public value: { name: string; value: string; }, ueType: string = 'EnumProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'EnumProperty', ueType, guidInfo, index });
-    }
+export namespace EnumProperty {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): EnumProperty {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): EnumProperty => {
         let name = reader.readString();
         const guidInfo = GUIDInfo.read(reader);
-        const value = EnumProperty.ReadValue(reader);
+        const value = ReadValue(reader);
 
-        const property = new EnumProperty({ name, value }, ueType, guidInfo, index);
-        return property;
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'EnumProperty',
+            value: { name, value },
+        } satisfies EnumProperty;
     }
 
-    public static ReadValue(reader: BinaryReadable): string {
+    export const ReadValue = (reader: BinaryReadable): string => {
         return reader.readString();
     }
 
-    public static CalcOverhead(property: EnumProperty): number {
+    export const CalcOverhead = (property: EnumProperty): number => {
         return property.value.name.length + 5 + 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: EnumProperty): void {
+    export const Serialize = (writer: ByteWriter, property: EnumProperty): void => {
         writer.writeString(property.value.name);
         GUIDInfo.write(writer, property.guidInfo);
-        EnumProperty.SerializeValue(writer, property.value.value);
+        SerializeValue(writer, property.value.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: string): void {
+    export const SerializeValue = (writer: ByteWriter, value: string): void => {
         writer.writeString(value);
     }
 }

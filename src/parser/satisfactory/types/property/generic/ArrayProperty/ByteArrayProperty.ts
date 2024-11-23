@@ -17,13 +17,10 @@ export namespace ByteArrayProperty {
         const values = new Array(elementCount).fill(0).map(() => ByteProperty.ReadValue(reader));
 
         return {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'ByteArrayProperty',
-            index,
-            ueType,
             subtype,
-            values,
-            guidInfo: undefined,
-            name: ''
+            values
         } satisfies ByteArrayProperty;
     }
 

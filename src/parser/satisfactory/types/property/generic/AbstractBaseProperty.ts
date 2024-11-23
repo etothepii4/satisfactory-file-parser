@@ -7,8 +7,8 @@ export type PropertiesMap = {
 
 
 /**
- * @type denotes our internal type.
- * @ueType denotes the type like Unreal Engine calls it, like IntProperty
+ * @type denotes the parser's internal type.
+ * @ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
  * @name property name
  * @guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
  * @index index of a property, in case it is part of an array.
@@ -21,25 +21,23 @@ type AbstractBasePropertyOptions = {
 	index?: number;
 };
 
-export abstract class AbstractBaseProperty {
+export type AbstractBaseProperty = {
+	type: string;
+	ueType: string;
+	name: string;
+	index?: number;
+	guidInfo?: GUIDInfo;
+}
 
-	public type: string;
-	public ueType: string;
-	public name: string = '';
-	public index: number | undefined = undefined;
-	public guidInfo: GUIDInfo = undefined;
+export namespace AbstractBaseProperty {
+	export const Create = (options: AbstractBasePropertyOptions): AbstractBaseProperty => (
+		{
+			type: options.type,
+			ueType: options.ueType,
+			name: (options.name !== undefined && options.name !== null) ? options.name : '',
+			...((options.index !== undefined && options.index !== null && options.index !== 0) ? { index: options.index } : {}),
+			...((options.guidInfo !== undefined) ? { guidInfo: options.guidInfo } : {})
 
-	constructor(options: AbstractBasePropertyOptions) {
-		this.type = options.type;
-		this.ueType = options.ueType;
-		if (options.name !== undefined && options.name !== null) {
-			this.name = options.name;
-		}
-		if (options.index !== undefined && options.index !== null && options.index !== 0) {
-			this.index = options.index;
-		}
-		if (options.guidInfo !== undefined) {
-			this.guidInfo = options.guidInfo;
-		}
-	}
+		} satisfies AbstractBaseProperty
+	);
 }

@@ -5,32 +5,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isUInt64Property = (property: any): property is Uint64Property => !Array.isArray(property) && property.type === 'UInt64Property';
 
-export class Uint64Property extends AbstractBaseProperty {
+export type Uint64Property = AbstractBaseProperty & {
+    type: 'Uint64Property';
+    value: string;
+};
 
-    constructor(public value: string, ueType: string = 'UInt64Property', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'UInt64Property', ueType, guidInfo, index });
-    }
+export namespace Uint64Property {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): Uint64Property {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Uint64Property => {
         const guidInfo = GUIDInfo.read(reader);
         const value = Uint64Property.ReadValue(reader);
-        return new Uint64Property(value, ueType, guidInfo, index);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'Uint64Property',
+            value,
+        } satisfies Uint64Property;
     }
 
-    public static ReadValue(reader: BinaryReadable): string {
+    export const ReadValue = (reader: BinaryReadable): string => {
         return reader.readUint64().toString();
     }
 
-    public static CalcOverhead(property: Uint64Property): number {
+    export const CalcOverhead = (property: Uint64Property): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: Uint64Property): void {
+    export const Serialize = (writer: ByteWriter, property: Uint64Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
         Uint64Property.SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: string): void {
+    export const SerializeValue = (writer: ByteWriter, value: string): void => {
         writer.writeUint64(BigInt(value));
     }
 }

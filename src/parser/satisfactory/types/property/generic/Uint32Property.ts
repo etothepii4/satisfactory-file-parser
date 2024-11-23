@@ -6,32 +6,39 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isUint32Property = (property: any): property is Uint32Property => !Array.isArray(property) && property.type === 'UInt32Property';
 
-export class Uint32Property extends AbstractBaseProperty {
+export type Uint32Property = AbstractBaseProperty & {
+    type: 'Uint32Property';
+    value: number;
+};
 
-    constructor(public value: number, ueType: string = 'UInt32Property', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'UInt32Property', ueType, guidInfo, index });
-    }
+export namespace Uint32Property {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): Uint32Property {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Uint32Property => {
         const guidInfo = GUIDInfo.read(reader);
-        const value = Uint32Property.ReadValue(reader);
-        return new Uint32Property(value, ueType, guidInfo, index);
+        const value = ReadValue(reader);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'Uint32Property',
+            value,
+        } satisfies Uint32Property;
     }
 
-    public static ReadValue(reader: BinaryReadable): number {
+
+    export const ReadValue = (reader: BinaryReadable): number => {
         return reader.readUint32();
     }
 
-    public static CalcOverhead(property: Uint32Property): number {
+    export const CalcOverhead = (property: Uint32Property): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: Uint32Property): void {
+    export const Serialize = (writer: ByteWriter, property: Uint32Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        Uint32Property.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: number): void {
+    export const SerializeValue = (writer: ByteWriter, value: number): void => {
         writer.writeUint32(value);
     }
 }

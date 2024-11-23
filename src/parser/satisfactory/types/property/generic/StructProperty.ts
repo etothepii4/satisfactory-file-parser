@@ -58,26 +58,28 @@ export type GENERIC_STRUCT_PROPERTY_VALUE = BasicMultipleStructPropertyValue | B
 
 export const isStructProperty = (property: any): property is StructProperty => !Array.isArray(property) && property.type === 'StructProperty';
 
-export class StructProperty extends AbstractBaseProperty {
+export type StructProperty = AbstractBaseProperty & {
+    type: 'StructProperty';
+    subtype: string;
+    value: GENERIC_STRUCT_PROPERTY_VALUE;
+    unk1?: number;
+    unk2?: number;
+    unk3?: number;
+    unk4?: number;
+};
 
-    public value: GENERIC_STRUCT_PROPERTY_VALUE = { values: {} };
+export namespace StructProperty {
 
-    public unk1?: number;
-    public unk2?: number;
-    public unk3?: number;
-    public unk4?: number;
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number, size: number): StructProperty => {
+        const subtype = reader.readString();
+        const guidInfo = GUIDInfo.read(reader);
 
-    constructor(public subtype: string, ueType: string = 'StructProperty', index: number = 0, guidInfo: GUIDInfo = undefined) {
-        super({ type: 'StructProperty', ueType, index, guidInfo });
-    }
-
-    public static Parse(reader: BinaryReadable, ueType: string, index: number, size: number): StructProperty {
-        const struct = new StructProperty(
-            reader.readString(),
-            ueType,
-            index,
-            GUIDInfo.read(reader)
-        );
+        const struct: StructProperty = {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'StructProperty',
+            value: { values: [] },
+            subtype
+        };
 
         const unk1 = reader.readInt32();
         if (unk1 !== 0) {
@@ -100,7 +102,7 @@ export class StructProperty extends AbstractBaseProperty {
         }
 
         const before = reader.getBufferPosition();
-        struct.value = StructProperty.ParseValue(reader, struct.subtype, size);
+        struct.value = ParseValue(reader, struct.subtype, size);
         const readBytes = reader.getBufferPosition() - before;
         if (readBytes !== size) {
             if (size - readBytes === 4) {
@@ -114,7 +116,7 @@ export class StructProperty extends AbstractBaseProperty {
         return struct;
     }
 
-    public static ParseValue(reader: BinaryReadable, subtype: string, size: number): GENERIC_STRUCT_PROPERTY_VALUE {
+    export const ParseValue = (reader: BinaryReadable, subtype: string, size: number): GENERIC_STRUCT_PROPERTY_VALUE => {
 
         let value: GENERIC_STRUCT_PROPERTY_VALUE;
 
@@ -250,11 +252,11 @@ export class StructProperty extends AbstractBaseProperty {
         return value;
     }
 
-    public static CalcOverhead(property: StructProperty): number {
+    export const CalcOverhead = (property: StructProperty): number => {
         return property.subtype.length + 5 + 4 + 4 + 4 + 4 + 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: StructProperty): void {
+    export const Serialize = (writer: ByteWriter, property: StructProperty): void => {
         writer.writeString(property.subtype);
         GUIDInfo.write(writer, property.guidInfo);
 
@@ -266,7 +268,7 @@ export class StructProperty extends AbstractBaseProperty {
         StructProperty.SerializeValue(writer, property.subtype, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, subtype: string, value: GENERIC_STRUCT_PROPERTY_VALUE): void {
+    export const SerializeValue = (writer: ByteWriter, subtype: string, value: GENERIC_STRUCT_PROPERTY_VALUE): void => {
 
         switch (subtype) {
             case 'Color':

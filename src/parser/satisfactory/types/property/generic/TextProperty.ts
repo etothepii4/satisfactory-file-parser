@@ -5,19 +5,25 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isTextProperty = (property: any): property is TextProperty => !Array.isArray(property) && property.type === 'TextProperty';
 
-export class TextProperty extends AbstractBaseProperty {
+export type TextProperty = AbstractBaseProperty & {
+    type: 'TextProperty';
+    value: TextPropertyValue;
+};
 
-    constructor(public value: TextPropertyValue, ueType: string = 'TextProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'TextProperty', ueType, guidInfo, index });
-    }
+export namespace TextProperty {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): TextProperty {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): TextProperty => {
         const guidInfo = GUIDInfo.read(reader);
         const value = TextProperty.ReadValue(reader);
-        return new TextProperty(value, ueType, guidInfo, index);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'TextProperty',
+            value,
+        } satisfies TextProperty;
     }
 
-    public static ReadValue(reader: BinaryReadable): TextPropertyValue {
+    export const ReadValue = (reader: BinaryReadable): TextPropertyValue => {
         const prop: TextPropertyValue = {
             flags: reader.readInt32(),
             historyType: reader.readByte()
@@ -34,7 +40,7 @@ export class TextProperty extends AbstractBaseProperty {
             case 1:
             // HISTORYTYPE_ARGUMENTFORMAT
             case 3:
-                prop.sourceFmt = TextProperty.ReadValue(reader);
+                prop.sourceFmt = ReadValue(reader);
 
                 const argumentsCount = reader.readInt32();
                 prop.arguments = [];
@@ -46,7 +52,7 @@ export class TextProperty extends AbstractBaseProperty {
 
                     switch (currentArgumentsData.valueType) {
                         case 4:
-                            currentArgumentsData.argumentValue = TextProperty.ReadValue(reader);
+                            currentArgumentsData.argumentValue = ReadValue(reader);
                             break;
                         default:
 
@@ -59,7 +65,7 @@ export class TextProperty extends AbstractBaseProperty {
             // see https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/TextHistory.cpp#L2268
             // HISTORYTYPE_TRANSFORM
             case 10:
-                prop.sourceText = TextProperty.ReadValue(reader);
+                prop.sourceText = ReadValue(reader);
                 prop.transformType = reader.readByte();
                 break;
             // HISTORYTYPE_NONE
@@ -80,16 +86,16 @@ export class TextProperty extends AbstractBaseProperty {
         return prop;
     }
 
-    public static CalcOverhead(property: TextProperty): number {
+    export const CalcOverhead = (property: TextProperty): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: TextProperty): void {
+    export const Serialize = (writer: ByteWriter, property: TextProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        TextProperty.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: TextPropertyValue): void {
+    export const SerializeValue = (writer: ByteWriter, value: TextPropertyValue): void => {
         writer.writeInt32(value.flags);
         writer.writeByte(value.historyType);
 
@@ -105,7 +111,7 @@ export class TextProperty extends AbstractBaseProperty {
             case 1:
             // HISTORYTYPE_ARGUMENTFORMAT
             case 3:
-                TextProperty.SerializeValue(writer, value.sourceFmt!);
+                SerializeValue(writer, value.sourceFmt!);
 
                 writer.writeInt32(value.arguments!.length);
 
@@ -116,7 +122,7 @@ export class TextProperty extends AbstractBaseProperty {
 
                     switch (arg.valueType) {
                         case 4:
-                            TextProperty.SerializeValue(writer, arg.argumentValue!);
+                            SerializeValue(writer, arg.argumentValue!);
                             break;
                         default:
 
@@ -127,7 +133,7 @@ export class TextProperty extends AbstractBaseProperty {
             // see https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/TextHistory.cpp#L2268
             // HISTORYTYPE_TRANSFORM
             case 10:
-                TextProperty.SerializeValue(writer, value.sourceText!);
+                SerializeValue(writer, value.sourceText!);
                 writer.writeByte(value.transformType!);
                 break;
             // HISTORYTYPE_NONE
@@ -145,6 +151,7 @@ export class TextProperty extends AbstractBaseProperty {
         }
     }
 }
+
 export type TextPropertyValue = {
     flags: number;
     historyType: number;

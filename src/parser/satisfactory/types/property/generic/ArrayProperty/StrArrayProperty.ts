@@ -15,14 +15,12 @@ export namespace StrArrayProperty {
 
     export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): StrArrayProperty => {
         const values = new Array(elementCount).fill(0).map(() => StrProperty.ReadValue(reader));
+
         return {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'StrArrayProperty',
-            index,
-            ueType,
             subtype,
-            values,
-            guidInfo: undefined,
-            name: ''
+            values
         } satisfies StrArrayProperty;
     }
 

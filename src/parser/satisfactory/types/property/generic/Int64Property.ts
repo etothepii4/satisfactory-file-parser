@@ -5,32 +5,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isInt64Property = (property: any): property is Int64Property => !Array.isArray(property) && property.type === 'Int64Property';
 
-export class Int64Property extends AbstractBaseProperty {
+export type Int64Property = AbstractBaseProperty & {
+    type: 'Int64Property';
+    value: string;
+};
 
-    constructor(public value: string, ueType: string = 'Int64Property', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'Int64Property', ueType, guidInfo, index });
-    }
+export namespace Int64Property {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): Int64Property {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Int64Property => {
         const guidInfo = GUIDInfo.read(reader);
-        const value = Int64Property.ReadValue(reader);
-        return new Int64Property(value, ueType, guidInfo, index);
+        const value = ReadValue(reader);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'Int64Property',
+            value,
+        } satisfies Int64Property;
     }
 
-    public static ReadValue(reader: BinaryReadable): string {
+    export const ReadValue = (reader: BinaryReadable): string => {
         return reader.readInt64().toString();
     }
 
-    public static CalcOverhead(property: Int64Property): number {
+    export const CalcOverhead = (property: Int64Property): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: Int64Property): void {
+    export const Serialize = (writer: ByteWriter, property: Int64Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        Int64Property.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: string): void {
+    export const SerializeValue = (writer: ByteWriter, value: string): void => {
         writer.writeInt64(BigInt(value));
     }
 }

@@ -18,37 +18,46 @@ export type GENERIC_MAP_VALUE_TYPE = number | ObjectReference | boolean | GENERI
 
 export const isMapProperty = (property: any): property is MapProperty => !Array.isArray(property) && property.type === 'MapProperty';
 
-export class MapProperty extends AbstractBaseProperty {
+export type MapProperty = AbstractBaseProperty & {
+    type: 'MapProperty';
+    keyType: string;
+    valueType: string;
+    modeType: number;
+    modeUnk1: string | undefined;
+    modeUnk2: string;
+    modeUnk3: string;
+    values: [key: GENERIC_MAP_KEY_TYPE, value: GENERIC_MAP_VALUE_TYPE][];
+};
 
-    public modeType: number = 0;
-    public modeUnk1: string | undefined;
-    public modeUnk2: string = '';
-    public modeUnk3: string = '';
 
-    public values: [key: GENERIC_MAP_KEY_TYPE, value: GENERIC_MAP_VALUE_TYPE][] = [];
+export namespace MapProperty {
 
-    constructor(public keyType: string, public valueType: string, ueType: string, index: number) {
-        super({ type: 'MapProperty', ueType, index });
-    }
-
-    public static Parse(reader: BinaryReadable, propertyName: string, buildVersion: number, size: number, ueType: string = 'MapProperty', index: number = 0): MapProperty {
+    export const Parse = (reader: BinaryReadable, propertyName: string, buildVersion: number, size: number, ueType: string = 'MapProperty', index: number = 0): MapProperty => {
         const start = reader.getBufferPosition();
-        const property = new MapProperty(
-            reader.readString(), reader.readString(), ueType, index
-        );
+        const property: MapProperty = {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
+            type: 'MapProperty',
+            keyType: reader.readString(),
+            valueType: reader.readString(),
+            guidInfo: undefined,
+            modeType: 0,
+            values: [],
+            modeUnk1: undefined,
+            modeUnk2: '',
+            modeUnk3: ''
+        };
 
-        const unk = reader.readByte(); //0
+        reader.readByte(); //0
         property.modeType = reader.readInt32(); //0
 
         const elementCount = reader.readInt32();
         for (let i = 0; i < elementCount; i++) {
             let key: GENERIC_MAP_KEY_TYPE;
             let value: GENERIC_MAP_VALUE_TYPE;
-            // buffer position 698975
             switch (property.keyType) {
                 case 'StructProperty':
 
-                    // TODO: extra for the savedata, the structure is specific here
+                    // TODO: extra for properties like mSaveData, the structure is specific here
                     // don'T ask me why this has this weird form. But maybe it is for maps in general that have Struct as key? So far we only see this in those 2 properties.
                     // F4 FF FF FF 26 00 00 00 FF FF FF FF - Save in Release 1.0
                     // F5 FF FF FF 27 00 00 00 FF FF FF FF - Save started in U8
@@ -119,11 +128,11 @@ export class MapProperty extends AbstractBaseProperty {
         return property;
     }
 
-    public static CalcOverhead(property: MapProperty): number {
+    export const CalcOverhead = (property: MapProperty): number => {
         return property.keyType.length + 5 + property.valueType.length + 5 + 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: MapProperty): void {
+    export const Serialize = (writer: ByteWriter, property: MapProperty): void => {
 
         writer.writeString(property.keyType);
         writer.writeString(property.valueType);

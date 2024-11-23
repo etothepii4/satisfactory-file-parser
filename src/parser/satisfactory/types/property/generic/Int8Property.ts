@@ -5,32 +5,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isInt8Property = (property: any): property is Int8Property => !Array.isArray(property) && property.type === 'Int8Property';
 
-export class Int8Property extends AbstractBaseProperty {
+export type Int8Property = AbstractBaseProperty & {
+    type: 'Int8Property';
+    value: number;
+};
 
-    constructor(public value: number, ueType: string = 'Int8Property', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'Int8Property', ueType, guidInfo, index });
-    }
+export namespace Int8Property {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): Int8Property {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Int8Property => {
         const guidInfo = GUIDInfo.read(reader);
-        const value = Int8Property.ReadValue(reader);
-        return new Int8Property(value, ueType, guidInfo, index);
+        const value = ReadValue(reader);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'Int8Property',
+            value,
+        } satisfies Int8Property;
     }
 
-    public static ReadValue(reader: BinaryReadable): number {
+    export const ReadValue = (reader: BinaryReadable): number => {
         return reader.readInt8();
     }
 
-    public static CalcOverhead(property: Int8Property): number {
+    export const CalcOverhead = (property: Int8Property): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: Int8Property): void {
+    export const Serialize = (writer: ByteWriter, property: Int8Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        Int8Property.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: number): void {
+    export const SerializeValue = (writer: ByteWriter, value: number): void => {
         writer.writeInt8(value);
     }
 }

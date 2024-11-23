@@ -5,32 +5,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isInt32Property = (property: any): property is Int32Property => !Array.isArray(property) && property.type === 'Int32Property';
 
-export class Int32Property extends AbstractBaseProperty {
+export type Int32Property = AbstractBaseProperty & {
+    type: 'Int32Property';
+    value: number;
+};
 
-    constructor(public value: number, ueType: string = 'IntProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'Int32Property', ueType, guidInfo, index });
-    }
+export namespace Int32Property {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): Int32Property {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Int32Property => {
         const guidInfo = GUIDInfo.read(reader);
-        const value = Int32Property.ReadValue(reader);
-        return new Int32Property(value, ueType, guidInfo, index);
+        const value = ReadValue(reader);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'Int32Property',
+            value,
+        } satisfies Int32Property;
     }
 
-    public static ReadValue(reader: BinaryReadable): number {
+    export const ReadValue = (reader: BinaryReadable): number => {
         return reader.readInt32();
     }
 
-    public static CalcOverhead(property: Int32Property): number {
+    export const CalcOverhead = (property: Int32Property): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: Int32Property): void {
+    export const Serialize = (writer: ByteWriter, property: Int32Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        Int32Property.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: number): void {
+    export const SerializeValue = (writer: ByteWriter, value: number): void => {
         writer.writeInt32(value);
     }
 }

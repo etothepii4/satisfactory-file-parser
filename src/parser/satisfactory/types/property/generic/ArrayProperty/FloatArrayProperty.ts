@@ -17,13 +17,10 @@ export namespace FloatArrayProperty {
         const values = new Array(elementCount).fill(0).map(() => FloatProperty.ReadValue(reader));
 
         return {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'FloatArrayProperty',
-            index,
-            ueType,
             subtype,
-            values,
-            guidInfo: undefined,
-            name: ''
+            values
         } satisfies FloatArrayProperty;
     }
 

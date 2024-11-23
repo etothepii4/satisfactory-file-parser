@@ -6,32 +6,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isDoubleProperty = (property: any): property is DoubleProperty => !Array.isArray(property) && property.type === 'DoubleProperty';
 
-export class DoubleProperty extends AbstractBaseProperty {
+export type DoubleProperty = AbstractBaseProperty & {
+    type: 'DoubleProperty';
+    value: number;
+};
 
-    constructor(public value: number, ueType: string = 'DoubleProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'DoubleProperty', ueType, guidInfo, index });
-    }
+export namespace DoubleProperty {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): DoubleProperty {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): DoubleProperty => {
         const guidInfo = GUIDInfo.read(reader);
-        const value = DoubleProperty.ReadValue(reader);
-        return new DoubleProperty(value, ueType, guidInfo, index);
+        const value = ReadValue(reader);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'DoubleProperty',
+            value
+        } satisfies DoubleProperty;
     }
 
-    public static ReadValue(reader: BinaryReadable): number {
+    export const ReadValue = (reader: BinaryReadable): number => {
         return reader.readDouble();
     }
 
-    public static CalcOverhead(property: DoubleProperty): number {
+    export const CalcOverhead = (property: DoubleProperty): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: DoubleProperty): void {
+    export const Serialize = (writer: ByteWriter, property: DoubleProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        DoubleProperty.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: number): void {
+    export const SerializeValue = (writer: ByteWriter, value: number): void => {
         writer.writeDouble(value);
     }
 }

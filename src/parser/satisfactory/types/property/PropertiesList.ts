@@ -233,8 +233,8 @@ export namespace PropertiesList {
 				break;
 
 			case 'UInt64PRoperty':
-				overhead = Uint64Property.CalcOverhead(property as Int64Property);
-				Uint64Property.Serialize(writer, property as Int64Property);
+				overhead = Uint64Property.CalcOverhead(property as Uint64Property);
+				Uint64Property.Serialize(writer, property as Uint64Property);
 				break;
 
 			case 'SingleProperty':

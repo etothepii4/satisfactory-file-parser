@@ -5,32 +5,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isUint8Property = (property: any): property is Uint8Property => !Array.isArray(property) && property.type === 'UInt8Property';
 
-export class Uint8Property extends AbstractBaseProperty {
+export type Uint8Property = AbstractBaseProperty & {
+    type: 'Uint8Property';
+    value: number;
+};
 
-    constructor(public value: number, ueType: string = 'UInt8Property', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'UInt8Property', ueType, guidInfo, index });
-    }
+export namespace Uint8Property {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): Uint8Property {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Uint8Property => {
         const guidInfo = GUIDInfo.read(reader);
         const value = Uint8Property.ReadValue(reader);
-        return new Uint8Property(value, ueType, guidInfo, index);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'Uint8Property',
+            value,
+        } satisfies Uint8Property;
     }
 
-    public static ReadValue(reader: BinaryReadable): number {
+    export const ReadValue = (reader: BinaryReadable): number => {
         return reader.readUint8();
     }
 
-    public static CalcOverhead(property: Uint8Property): number {
+    export const CalcOverhead = (property: Uint8Property): number => {
         return 1;
     }
 
-    public static Serialize(writer: ByteWriter, property: Uint8Property): void {
+    export const Serialize = (writer: ByteWriter, property: Uint8Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
         Uint8Property.SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: number): void {
+    export const SerializeValue = (writer: ByteWriter, value: number): void => {
         writer.writeUint8(value);
     }
 }

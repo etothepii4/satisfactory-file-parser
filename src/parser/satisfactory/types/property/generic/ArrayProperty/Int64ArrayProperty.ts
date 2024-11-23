@@ -15,14 +15,12 @@ export namespace Int64ArrayProperty {
 
     export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): Int64ArrayProperty => {
         const values = new Array(elementCount).fill(0).map(() => Int64Property.ReadValue(reader));
+
         return {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'Int64ArrayProperty',
-            index,
-            ueType,
             subtype,
-            values,
-            guidInfo: undefined,
-            name: ''
+            values
         } satisfies Int64ArrayProperty;
     }
 

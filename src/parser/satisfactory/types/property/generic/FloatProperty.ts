@@ -5,32 +5,38 @@ import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 export const isFloatProperty = (property: any): property is FloatProperty => !Array.isArray(property) && property.type === 'FloatProperty';
 
-export class FloatProperty extends AbstractBaseProperty {
+export type FloatProperty = AbstractBaseProperty & {
+    type: 'FloatProperty';
+    value: number;
+};
 
-    constructor(public value: number, ueType: string = 'FloatProperty', guidInfo: GUIDInfo = undefined, index: number = 0) {
-        super({ type: 'FloatProperty', ueType, guidInfo, index });
-    }
+export namespace FloatProperty {
 
-    public static Parse(reader: BinaryReadable, ueType: string, index: number = 0): FloatProperty {
+    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): FloatProperty => {
         const guidInfo = GUIDInfo.read(reader);
-        const value = FloatProperty.ReadValue(reader);
-        return new FloatProperty(value, ueType, guidInfo, index);
+        const value = ReadValue(reader);
+
+        return {
+            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
+            type: 'FloatProperty',
+            value,
+        } satisfies FloatProperty;
     }
 
-    public static CalcOverhead(property: FloatProperty): number {
+    export const CalcOverhead = (property: FloatProperty): number => {
         return 1;
     }
 
-    public static ReadValue(reader: BinaryReadable): number {
+    export const ReadValue = (reader: BinaryReadable): number => {
         return reader.readFloat32();
     }
 
-    public static Serialize(writer: ByteWriter, property: FloatProperty): void {
+    export const Serialize = (writer: ByteWriter, property: FloatProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
-        FloatProperty.SerializeValue(writer, property.value);
+        SerializeValue(writer, property.value);
     }
 
-    public static SerializeValue(writer: ByteWriter, value: number): void {
+    export const SerializeValue = (writer: ByteWriter, value: number): void => {
         writer.writeFloat32(value);
     }
 }

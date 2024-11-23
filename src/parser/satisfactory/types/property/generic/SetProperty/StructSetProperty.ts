@@ -29,13 +29,10 @@ export namespace StructSetProperty {
         }
 
         return {
+            ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'StructSetProperty',
-            index,
-            ueType,
             subtype,
-            values,
-            guidInfo: undefined,
-            name: ''
+            values
         } satisfies StructSetProperty;
     }
 
