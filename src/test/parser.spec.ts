@@ -24,7 +24,7 @@ afterAll(() => {
 	}
 });
 
-const ParseSaveSync = (savename: string, file: ArrayBuffer, onDecompressedSaveBody: (body: ArrayBuffer) => void): SatisfactorySave => {
+const ParseSaveSync = (savename: string, file: ArrayBuffer, onDecompressedSaveBody?: (body: ArrayBuffer) => void): SatisfactorySave => {
 	const save = Parser.ParseSave(savename, file, {
 		onDecompressedSaveBody,
 		onProgressCallback: (progress, msg) => {
@@ -54,7 +54,7 @@ const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing: (binar
 const saveList = [
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
-	'264_ohne_Mods',		// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
+	'265',					// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
 
 	// Mods
 	'ficsitcam-1',
