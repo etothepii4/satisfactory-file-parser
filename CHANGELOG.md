@@ -1,5 +1,9 @@
 
 # Changelog
+### [2.1.2] (2024-11-24)
+#### Update README
+* fixed link to auto-generated typedoc.
+
 ### [2.1.1] (2024-11-24)
 #### Blueprint structure
 * Item costs and recipes in a blueprint are now correctly treated as ObjectReference, instead a single path string.
