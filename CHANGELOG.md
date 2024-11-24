@@ -1,5 +1,9 @@
 
 # Changelog
+### [2.1.3] (2024-11-24)
+#### Update README
+* fixed link to auto-generated typedoc.
+
 ### [2.1.2] (2024-11-24)
 #### Update README
 * fixed link to auto-generated typedoc.

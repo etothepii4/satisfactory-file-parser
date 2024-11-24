@@ -227,7 +227,7 @@ const firstStack = inventoryStacks.values[0];
 // modify original save object
 modifyObjects(firstContainer);
 ```
-# [Auto-Generated TypeDoc Reference](https://rawcdn.githack.com/etothepii4/satisfactory-file-parser/tree/main/docs/index.html).
+# [Auto-Generated TypeDoc Reference](https://raw.githack.com/etothepii4/satisfactory-file-parser/main/docs/index.html).
 
 # [Basic Guide](https://github.com/etothepii4/satisfactory-file-parser/blob/main/GUIDE.md).
 More detailed explanation of some basic things in the parser.
