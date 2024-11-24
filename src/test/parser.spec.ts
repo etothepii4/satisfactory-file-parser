@@ -2,8 +2,18 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Writable } from 'stream';
 import { WritableStream } from 'stream/web';
+import { isDeepStrictEqual } from 'util';
 import { Parser } from '../parser/parser';
+import { Level } from '../parser/satisfactory/save/level.class';
 import { SatisfactorySave } from '../parser/satisfactory/save/satisfactory-save';
+import { SaveComponent } from '../parser/satisfactory/types/objects/SaveComponent';
+import { SaveEntity } from '../parser/satisfactory/types/objects/SaveEntity';
+import { SaveObject } from '../parser/satisfactory/types/objects/SaveObject';
+import { StructArrayProperty } from '../parser/satisfactory/types/property/generic/ArrayProperty/StructArrayProperty';
+import { Int32Property } from '../parser/satisfactory/types/property/generic/Int32Property';
+import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
+import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
+import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
 import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
@@ -25,16 +35,17 @@ afterAll(() => {
 });
 
 const ParseSaveSync = (savename: string, file: ArrayBuffer, onDecompressedSaveBody?: (body: ArrayBuffer) => void): SatisfactorySave => {
+	console.log(`## parsing save ${savename}`);
 	const save = Parser.ParseSave(savename, file, {
 		onDecompressedSaveBody,
 		onProgressCallback: (progress, msg) => {
-			console.log(`progress`, progress, msg);
+			console.log(`${savename} parsing progress`, progress, msg);
 		}
 	});
 	return save;
 };
 
-const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing: (binary: ArrayBuffer) => void) => {
+const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing?: (binary: ArrayBuffer) => void) => {
 	let mainFileHeader: Uint8Array;
 	const mainFileBodyChunks: Uint8Array[] = [];
 	Parser.WriteSave(save,
@@ -51,6 +62,31 @@ const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing: (binar
 };
 
 
+const FindFirst = (save: SatisfactorySave, condition: (obj: SaveObject) => boolean): { object: SaveEntity | SaveComponent, level: Level } | undefined => {
+	for (let i = 0; i < save.levels.length; i++) {
+		const potentialHub = save.levels[i].objects.find(condition);
+		if (potentialHub) {
+			return {
+				level: save.levels[i],
+				object: potentialHub
+			};
+		}
+	}
+}
+
+const ModifyObjects = (save: SatisfactorySave, ...modifiedObjects: (SaveEntity | SaveComponent)[]) => {
+	for (const modifiedObject of modifiedObjects) {
+		for (const level of save.levels) {
+			for (let i = 0; i < level.objects.length; i++) {
+				if (level.objects[i].instanceName === modifiedObject.instanceName) {
+					level.objects[i] = modifiedObject;
+				}
+			}
+		}
+	}
+}
+
+
 const saveList = [
 	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
@@ -61,6 +97,57 @@ const saveList = [
 	'structuralsolutions-1',
 	'x3-roads-signs'
 ];
+
+const ModifyPlayer = (save: SatisfactorySave): { object: SaveEntity | SaveComponent, level: Level }[] => {
+	const firstPlayer = FindFirst(save, obj => obj.typePath === '/Game/FactoryGame/Character/Player/Char_Player.Char_Player_C')!;
+	(firstPlayer.object as SaveEntity).transform.translation = {
+		x: (firstPlayer.object as SaveEntity).transform.translation.x + 5000,
+		y: (firstPlayer.object as SaveEntity).transform.translation.y + 5000,
+		z: (firstPlayer.object as SaveEntity).transform.translation.z,
+	}
+	return [firstPlayer];
+};
+
+const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | SaveComponent, level: Level }[] => {
+	const firstContainer = FindFirst(save, obj => obj.typePath === '/Game/FactoryGame/Buildable/Factory/StorageContainerMk1/Build_StorageContainerMk1.Build_StorageContainerMk1_C')!;
+
+	const inventoryReference = firstContainer.object.properties.mStorageInventory as ObjectProperty;
+	const inventory = save.levels.flatMap(level => level.objects).find(obj => obj.instanceName === inventoryReference.value.pathName) as SaveComponent;
+	const inventoryStacks = inventory.properties.mInventoryStacks as StructArrayProperty;
+	const firstStack = inventoryStacks.values[0];
+
+	// modify first item stack
+	(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemName = '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C';
+	((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
+
+	return [firstContainer];
+};
+
+/**
+ * this test iterates throug ha list of "modificationMethods", which each modify one or multiple objects. The test then checks whether the update persists through serialization and de-serialization.
+ */
+it.each([
+	['modifies position of first player', ModifyPlayer],
+	['modifies an item stack in a storage container', ModifyStorageContainer]
+])('example %s correctly', (_, modificationMethod: (save: SatisfactorySave) => { object: SaveEntity | SaveComponent, level: Level }[]) => {
+	const savename = '265';
+	const file = fs.readFileSync(path.join(__dirname, savename + '.sav')).buffer;
+	const save = ParseSaveSync(savename, file);
+
+	// modify, write save, read save again
+	const modifiedObjects = modificationMethod(save);
+	ModifyObjects(save, ...modifiedObjects.map(wrapper => wrapper.object));
+	WriteSaveSync(save);
+	const modifiedFile = fs.readFileSync(path.join(__dirname, save.name + '_on-writing.sav')).buffer;
+	const modifiedSave = ParseSaveSync(savename, modifiedFile);
+
+	// for each modified object, check that modified save file has the equal object.
+	for (const modifiedObject of modifiedObjects) {
+		const relevantLevel = modifiedSave.levels.find(level => level.name === modifiedObject.level.name) as Level;
+		const objectToCheck = relevantLevel.objects.find(obj => obj.instanceName === modifiedObject.object.instanceName) as SaveEntity | SaveComponent;
+		expect(isDeepStrictEqual(objectToCheck, modifiedObject.object)).toEqual(true);
+	}
+});
 
 it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
 	const filepath = path.join(__dirname, savename + '.sav');
