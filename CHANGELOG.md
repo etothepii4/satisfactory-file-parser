@@ -1,5 +1,13 @@
 
 # Changelog
+### [2.1.1] (2024-11-24)
+#### Blueprint structure
+* Item costs and recipes in a blueprint are now correctly treated as ObjectReference, instead a single path string.
+#### Internal Updates
+* Migrated the rest of the generic properties towards namespaces
+#### Updated README examples
+#### Provided auto-generated typedoc
+
 ### [2.0.1] (2024-10-31)
 #### Normal Properties Update
 * Most Normal Properties classes got refactored to namespaces as well. More will come. Please refrain from using instances of them. Background being, that its anyway only static methods and types.
@@ -8,7 +16,6 @@
 * Since ArrayProperties and SetProperties in the save format dont necessarily always have the same structure as their subtype, I introduced own types like `StrArrayProperty` and `Int32SetProperty` with corresponding type guards (e.g. `isStrArrayProperty()`). Means more overhead in code, but hence its more correct in usage.
 #### Bugfix
 * The total conveyor length in the special properties of a ConveyorChainActor got serialized as int32, but correctly now serialize as float32.
-
 
 ### [1.1.1] (2024-10-21)
 #### Improved Special Properties
