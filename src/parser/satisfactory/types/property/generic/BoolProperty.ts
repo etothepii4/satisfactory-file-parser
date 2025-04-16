@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
@@ -13,7 +13,7 @@ export type BoolProperty = AbstractBaseProperty & {
 
 export namespace BoolProperty {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): BoolProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): BoolProperty => {
         const value = ReadValue(reader);
         const guidInfo = GUIDInfo.read(reader);
 
@@ -24,7 +24,7 @@ export namespace BoolProperty {
         } satisfies BoolProperty;
     }
 
-    export const ReadValue = (reader: BinaryReadable): boolean => {
+    export const ReadValue = (reader: ContextReader): boolean => {
         return reader.readByte() > 0;
     }
 
@@ -32,12 +32,12 @@ export namespace BoolProperty {
         return 1 + 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: BoolProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: BoolProperty): void => {
         SerializeValue(writer, property.value);
         GUIDInfo.write(writer, property.guidInfo);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: boolean): void => {
+    export const SerializeValue = (writer: ContextWriter, value: boolean): void => {
         writer.writeByte(value ? 1 : 0);
     }
 }

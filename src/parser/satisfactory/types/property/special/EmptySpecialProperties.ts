@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 
 
 
@@ -10,11 +10,11 @@ export type EmptySpecialProperties = {
 };
 
 export namespace EmptySpecialProperties {
-    export const Parse = (reader: BinaryReadable): EmptySpecialProperties => {
+    export const Parse = (reader: ContextReader): EmptySpecialProperties => {
         return {
             type: 'EmptySpecialProperties',
         };
     };
 
-    export const Serialize = (writer: ByteWriter, property: EmptySpecialProperties) => { };
+    export const Serialize = (writer: ContextWriter, property: EmptySpecialProperties) => { };
 }

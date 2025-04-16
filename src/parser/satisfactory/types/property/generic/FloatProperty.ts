@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
@@ -12,7 +12,7 @@ export type FloatProperty = AbstractBaseProperty & {
 
 export namespace FloatProperty {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): FloatProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): FloatProperty => {
         const guidInfo = GUIDInfo.read(reader);
         const value = ReadValue(reader);
 
@@ -27,16 +27,16 @@ export namespace FloatProperty {
         return 1;
     }
 
-    export const ReadValue = (reader: BinaryReadable): number => {
+    export const ReadValue = (reader: ContextReader): number => {
         return reader.readFloat32();
     }
 
-    export const Serialize = (writer: ByteWriter, property: FloatProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: FloatProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: number): void => {
+    export const SerializeValue = (writer: ContextWriter, value: number): void => {
         writer.writeFloat32(value);
     }
 }

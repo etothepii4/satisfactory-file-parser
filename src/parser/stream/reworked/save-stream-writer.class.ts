@@ -1,7 +1,7 @@
 import { WritableStreamDefaultWriter } from "stream/web";
 import { ChunkCompressionInfo } from '../../file.types';
+import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
 import { Grids, SaveBodyValidation } from '../../satisfactory/save/save-reader';
-import { SatisfactorySaveHeader } from '../../satisfactory/save/save.types';
 import { SaveObject } from "../../satisfactory/types/objects/SaveObject";
 import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
 

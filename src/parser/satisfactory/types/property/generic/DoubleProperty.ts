@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
@@ -13,7 +13,7 @@ export type DoubleProperty = AbstractBaseProperty & {
 
 export namespace DoubleProperty {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): DoubleProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): DoubleProperty => {
         const guidInfo = GUIDInfo.read(reader);
         const value = ReadValue(reader);
 
@@ -24,7 +24,7 @@ export namespace DoubleProperty {
         } satisfies DoubleProperty;
     }
 
-    export const ReadValue = (reader: BinaryReadable): number => {
+    export const ReadValue = (reader: ContextReader): number => {
         return reader.readDouble();
     }
 
@@ -32,12 +32,12 @@ export namespace DoubleProperty {
         return 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: DoubleProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: DoubleProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: number): void => {
+    export const SerializeValue = (writer: ContextWriter, value: number): void => {
         writer.writeDouble(value);
     }
 }

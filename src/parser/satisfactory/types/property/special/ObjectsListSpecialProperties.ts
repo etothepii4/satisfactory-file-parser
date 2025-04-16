@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { ObjectReferencesList } from '../../../save/object-references-list';
 import { ObjectReference } from '../../structs/ObjectReference';
 
@@ -13,7 +13,7 @@ export type ObjectsListSpecialProperties = {
 };
 
 export namespace ObjectsListSpecialProperties {
-    export const Parse = (reader: BinaryReadable): ObjectsListSpecialProperties => {
+    export const Parse = (reader: ContextReader): ObjectsListSpecialProperties => {
         const objectsList = ObjectReferencesList.ReadList(reader);
         return {
             type: 'ObjectsListSpecialProperties',
@@ -21,7 +21,7 @@ export namespace ObjectsListSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ByteWriter, property: ObjectsListSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: ObjectsListSpecialProperties) => {
         ObjectReferencesList.SerializeList(writer, property.objects);
     };
 }

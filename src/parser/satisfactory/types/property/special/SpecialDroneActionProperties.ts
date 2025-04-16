@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { PropertiesMap } from '../generic/AbstractBaseProperty';
 import { PropertiesList } from '../PropertiesList';
 
@@ -18,7 +18,7 @@ export type SpecialDroneActionProperties = {
 };
 
 export namespace SpecialDroneActionProperties {
-    export const Parse = (reader: BinaryReadable): SpecialDroneActionProperties => {
+    export const Parse = (reader: ContextReader): SpecialDroneActionProperties => {
         reader.readInt32(); //0
 
         const countActiveActions = reader.readInt32();
@@ -26,7 +26,7 @@ export namespace SpecialDroneActionProperties {
         for (let i = 0; i < countActiveActions; i++) {
             activeActions.push({
                 actionName: reader.readString(),
-                properties: PropertiesList.ParseList(reader, 0)
+                properties: PropertiesList.ParseList(reader)
             } satisfies SpecialDroneAction);
         }
 
@@ -35,7 +35,7 @@ export namespace SpecialDroneActionProperties {
         for (let i = 0; i < countQueuedActions; i++) {
             queuedActions.push({
                 actionName: reader.readString(),
-                properties: PropertiesList.ParseList(reader, 0)
+                properties: PropertiesList.ParseList(reader,)
             } satisfies SpecialDroneAction);
         }
 
@@ -46,19 +46,19 @@ export namespace SpecialDroneActionProperties {
         };
     };
 
-    export const Serialize = (writer: ByteWriter, property: SpecialDroneActionProperties) => {
+    export const Serialize = (writer: ContextWriter, property: SpecialDroneActionProperties) => {
         writer.writeInt32(0);
 
         writer.writeInt32((property as SpecialDroneActionProperties).activeActions.length);
         for (const action of (property as SpecialDroneActionProperties).activeActions) {
             writer.writeString(action.actionName);
-            PropertiesList.SerializeList(action.properties, writer, 0);
+            PropertiesList.SerializeList(action.properties, writer);
         }
 
         writer.writeInt32((property as SpecialDroneActionProperties).queuedActions.length);
         for (const action of (property as SpecialDroneActionProperties).queuedActions) {
             writer.writeString(action.actionName);
-            PropertiesList.SerializeList(action.properties, writer, 0);
+            PropertiesList.SerializeList(action.properties, writer);
         }
     };
 }

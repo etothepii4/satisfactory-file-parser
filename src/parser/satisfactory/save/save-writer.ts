@@ -1,70 +1,20 @@
 import Pako from "pako";
 import { Alignment } from "../../byte/alignment.enum";
-import { ByteWriter } from "../../byte/byte-writer.class";
-import { CompressionLibraryError, ParserError, UnsupportedVersionError } from "../../error/parser.error";
+import { ContextWriter } from '../../context/context-writer';
+import { CompressionLibraryError, ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo, ChunkSummary, CompressionAlgorithmCode } from "../../file.types";
-import { MD5Hash } from '../types/structs/MD5Hash';
 import { Level } from './level.class';
 import { SatisfactorySave } from "./satisfactory-save";
-import { Grids, SaveBodyValidation, SaveReader } from "./save-reader";
-import { SatisfactorySaveHeader } from "./save.types";
+import { Grids, SaveBodyValidation } from './save-reader';
 
 
-export class SaveWriter extends ByteWriter {
+export class SaveWriter extends ContextWriter {
 
 	constructor() {
 		super(Alignment.LITTLE_ENDIAN);
 	}
 
-	public static WriteHeader(writer: ByteWriter, header: SatisfactorySaveHeader): void {
-
-		writer.writeInt32(header.saveHeaderType);
-		writer.writeInt32(header.saveVersion);
-		writer.writeInt32(header.buildVersion);
-		writer.writeString(header.mapName);
-		writer.writeString(header.mapOptions);
-		writer.writeString(header.sessionName);
-		writer.writeInt32(header.playDurationSeconds);
-		writer.writeInt64(BigInt(header.saveDateTime) * 10000n + SaveReader.EPOCH_TICKS);
-		writer.writeByte(header.sessionVisibility);
-
-		if (header.saveHeaderType >= 7) {
-			writer.writeInt32(header.fEditorObjectVersion!);
-		}
-		if (header.saveHeaderType >= 8) {
-			if (header.modMetadata) {
-				writer.writeString(JSON.stringify(header.modMetadata));
-			} else {
-				writer.writeString(header.rawModMetadataString!);
-			}
-			writer.writeInt32(header.isModdedSave!);
-		}
-		if (header.saveHeaderType >= 10) {
-			writer.writeString(header.saveIdentifier!);
-		}
-
-		// U8 jumped directly to 13.
-		if (header.saveHeaderType >= 11) {
-			writer.writeInt32(header.partitionEnabledFlag ? 1 : 0);
-		}
-
-		if (header.saveHeaderType >= 12) {
-			MD5Hash.write(writer, header.consistencyHashBytes!);
-		}
-
-		// 13 is U8 Experimental First Release
-		if (header.saveHeaderType >= 13) {
-			writer.writeInt32(header.creativeModeEnabled ? 1 : 0);
-		}
-
-		if (header.saveVersion >= 21) {
-			// ready to write levels now.
-		} else {
-			throw new UnsupportedVersionError("The save version is too old to be supported currently.");
-		}
-	}
-
-	public static WriteSaveBodyHash = (writer: ByteWriter, saveBodyValidation: SaveBodyValidation): void => {
+	public static WriteSaveBodyHash = (writer: ContextWriter, saveBodyValidation: SaveBodyValidation): void => {
 		writer.writeInt32(0);
 		writer.writeInt32(saveBodyValidation.version);
 		writer.writeString('None');
@@ -75,7 +25,7 @@ export class SaveWriter extends ByteWriter {
 		writer.writeBytesArray(saveBodyValidation.hash2);
 	}
 
-	public static WriteGrids = (writer: ByteWriter, grids: Grids): void => {
+	public static WriteGrids = (writer: ContextWriter, grids: Grids): void => {
 		for (const gridEntry of Object.entries(grids)) {
 			writer.writeString(gridEntry[0]);
 			writer.writeInt32(gridEntry[1].cellSize);
@@ -89,13 +39,13 @@ export class SaveWriter extends ByteWriter {
 		}
 	};
 
-	public static WriteLevels(writer: ByteWriter, save: SatisfactorySave, buildVersion: number): void {
-		writer.writeInt32(save.levels.length - 1);
-		for (const level of save.levels) {
+	public static WriteLevels(writer: ContextWriter, save: SatisfactorySave): void {
+		writer.writeInt32(Object.keys(save.levels).length - 1);
+		for (const level of Object.values(save.levels)) {
 			if (level.name !== save.header.mapName) {
 				writer.writeString(level.name);
 			}
-			Level.SerializeLevel(writer, level, buildVersion);
+			Level.SerializeLevel(writer, level);
 		}
 	}
 

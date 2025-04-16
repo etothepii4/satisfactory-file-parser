@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 
 
 
@@ -13,7 +13,7 @@ export type PlayerSpecialProperties = {
 };
 
 export namespace PlayerSpecialProperties {
-    export const Parse = (reader: BinaryReadable): PlayerSpecialProperties => {
+    export const Parse = (reader: ContextReader): PlayerSpecialProperties => {
 
         const flag = reader.readByte(); // 241?
 
@@ -39,7 +39,7 @@ export namespace PlayerSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ByteWriter, property: PlayerSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: PlayerSpecialProperties) => {
         writer.writeByte((property as PlayerSpecialProperties).flag);
         switch ((property as PlayerSpecialProperties).flag) {
             case 248: // default EOS

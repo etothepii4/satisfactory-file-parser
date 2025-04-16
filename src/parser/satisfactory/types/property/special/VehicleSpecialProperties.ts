@@ -1,32 +1,25 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { ObjectReference } from '../../structs/ObjectReference';
+import { VehiclePhysicsData } from '../../structs/VehiclePhysicsData';
 
 export const isVehicleSpecialProperties = (obj: any): obj is VehicleSpecialProperties => obj.type === 'VehicleSpecialProperties';
 
 export type VehicleSpecialProperties = {
     type: 'VehicleSpecialProperties';
-    objects: {
-        name: string;
-        unknownBytes: number[];
-        unknownFlag: number;
-    }[];
+    objects: VehiclePhysicsData[];
     vehicleInFront?: ObjectReference;
     vehicleBehind?: ObjectReference;
 };
 
 export namespace VehicleSpecialProperties {
-    export const Parse = (reader: BinaryReadable, remainingLen: number, typePath: string): VehicleSpecialProperties => {
+    export const Parse = (reader: ContextReader, remainingLen: number, typePath: string): VehicleSpecialProperties => {
         const start = reader.getBufferPosition();
 
         const objects = [];
         const countObjects = reader.readInt32();
         for (let i = 0; i < countObjects; i++) {
-            objects.push({
-                name: reader.readString(),
-                unknownBytes: Array.from(reader.readBytes(104)),
-                unknownFlag: reader.readByte() // 1
-            });
+            objects.push(VehiclePhysicsData.Parse(reader));
         }
 
         const property: VehicleSpecialProperties = {
@@ -47,12 +40,10 @@ export namespace VehicleSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ByteWriter, property: VehicleSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: VehicleSpecialProperties) => {
         writer.writeInt32(property.objects.length);
         for (const object of property.objects) {
-            writer.writeString(object.name);
-            writer.writeBytesArray(object.unknownBytes);
-            writer.writeByte(object.unknownFlag);
+            VehiclePhysicsData.Serialize(writer, object);
         }
 
         if (property.vehicleInFront !== undefined

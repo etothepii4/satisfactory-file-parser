@@ -1,20 +1,18 @@
 import Pako from "pako";
 import { Alignment } from "../../byte/alignment.enum";
-import { BinaryReadable } from "../../byte/binary-readable.interface";
-import { ByteReader } from "../../byte/byte-reader.class";
+import { ContextReader } from '../../context/context-reader';
 import { CorruptSaveError, ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo } from "../../file.types";
 import { Level } from '../save/level.class';
+import { SaveCustomVersion } from '../save/save-custom-version';
 import { DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE } from "../save/save-reader";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { SaveObject } from "../types/objects/SaveObject";
 import { col4 } from '../types/structs/col4';
-import { ObjectReference } from '../types/structs/ObjectReference';
-import { vec3 } from '../types/structs/vec3';
-import { BlueprintConfig, BlueprintHeader } from "./blueprint.types";
+import { BlueprintConfig } from "./blueprint.types";
 
-export class BlueprintReader extends ByteReader {
+export class BlueprintReader extends ContextReader {
 
 	public compressionInfo: ChunkCompressionInfo = {
 		packageFileTag: 0,
@@ -22,39 +20,8 @@ export class BlueprintReader extends ByteReader {
 		chunkHeaderSize: DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE
 	};
 
-	constructor(bluePrintBuffer: ArrayBuffer) {
+	constructor(bluePrintBuffer: ArrayBufferLike) {
 		super(bluePrintBuffer, Alignment.LITTLE_ENDIAN);
-	}
-
-	public static ReadHeader(reader: BinaryReadable): BlueprintHeader {
-		const alwaysTwo = reader.readBytes(4);  // 02 00 00 00 - always
-		const objectVersion = reader.readBytes(2 * 4);  // 24 00 00 00, 7F 3B 03 00 - varies over updates - in 1.0 it's 46 and 0x7A960500.
-		const dimensions = vec3.ParseInt(reader); // 04 00 00 00, 04 00 00 00, 04 00 00 00 - dimensions in foundation size
-
-
-		// list of item costs.
-		let itemTypeCount = reader.readInt32();
-		const itemCosts = new Array<[ObjectReference, number]>(itemTypeCount).fill([{ levelName: '', pathName: '' }, 0]);
-		for (let i = 0; i < itemTypeCount; i++) {
-			let itemPathName = ObjectReference.read(reader);
-			let itemCount = reader.readInt32();
-
-			itemCosts[i] = [itemPathName, itemCount];
-		}
-
-		// list of recipes
-		let recipeCount = reader.readInt32();
-		const recipeRefs = new Array<ObjectReference>(recipeCount).fill({ levelName: '', pathName: '' });
-		for (let i = 0; i < recipeCount; i++) {
-			const recipeName = ObjectReference.read(reader);
-			recipeRefs[i] = recipeName;
-		}
-
-		return {
-			designerDimension: dimensions,
-			recipeReferences: recipeRefs,
-			itemCosts
-		};
 	}
 
 	public inflateChunks(): any {
@@ -102,7 +69,7 @@ export class BlueprintReader extends ByteReader {
 			try {
 				// Inflate current chunk
 				let currentInflatedChunk = null;
-				currentInflatedChunk = Pako.inflate(currentChunk);
+				currentInflatedChunk = Pako.inflate(new Uint8Array(currentChunk));
 				currentChunks.push(currentInflatedChunk);
 			}
 			catch (err) {
@@ -134,7 +101,7 @@ export class BlueprintReader extends ByteReader {
 		};
 	}
 
-	public static ParseObjects(reader: ByteReader): (SaveEntity | SaveComponent)[] {
+	public static ParseObjects(reader: ContextReader): (SaveEntity | SaveComponent)[] {
 
 		const totalBodyRestSize = reader.readInt32();
 
@@ -153,7 +120,7 @@ export class BlueprintReader extends ByteReader {
 		return objects;
 	}
 
-	private static ReadBlueprintObjectContents(reader: BinaryReadable, objectsList: SaveObject[], buildVersion: number): void {
+	private static ReadBlueprintObjectContents(reader: ContextReader, objectsList: SaveObject[], buildVersion: number): void {
 		const countEntities = reader.readInt32();
 		for (let i = 0; i < countEntities; i++) {
 
@@ -165,40 +132,42 @@ export class BlueprintReader extends ByteReader {
 
 			const obj = objectsList[i];
 			if (isSaveEntity(obj)) {
-				SaveEntity.ParseData(obj, len, reader, buildVersion, obj.typePath);
+				SaveEntity.ParseData(obj, len, reader, obj.typePath);
 			} else if (isSaveComponent(obj)) {
-				SaveComponent.ParseData(obj, len, reader, buildVersion, obj.typePath);
+				SaveComponent.ParseData(obj, len, reader, obj.typePath);
 			}
 		}
 	}
 
 }
 
-export class BlueprintConfigReader extends ByteReader {
+export class BlueprintConfigReader extends ContextReader {
 
-	constructor(public bluePrintConfigBuffer: ArrayBuffer) {
+	constructor(public bluePrintConfigBuffer: ArrayBufferLike) {
 		super(bluePrintConfigBuffer, Alignment.LITTLE_ENDIAN);
 	}
 
 	public parse = (): BlueprintConfig => BlueprintConfigReader.ParseConfig(this);
 
-	public static ParseConfig(reader: BinaryReadable): BlueprintConfig {
-		const alwaysTwo = reader.readInt32();
+	public static ParseConfig(reader: ContextReader): BlueprintConfig {
+		const configVersion = reader.readInt32();
 		const description = reader.readString();
 		const iconID = reader.readInt32();
 		const color = col4.ParseRGBA(reader);
 
 		const config: BlueprintConfig = {
+			configVersion,
 			description,
 			color,
 			iconID,
 		};
 
 		// since 1.0, created blueprints have those two strings
-		if (reader.getBufferPosition() < reader.getBufferLength()) {
-			config.referencedIconLibrary = reader.readString();
-			config.iconLibraryType = reader.readString();
-		}
+		if (reader.context.saveVersion >= SaveCustomVersion.Version1)
+			if (reader.getBufferPosition() < reader.getBufferLength()) {
+				config.referencedIconLibrary = reader.readString();
+				config.iconLibraryType = reader.readString();
+			}
 
 		return config;
 	}

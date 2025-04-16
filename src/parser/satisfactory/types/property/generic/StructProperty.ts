@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { CorruptSaveError } from '../../../../error/parser.error';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
@@ -70,7 +70,7 @@ export type StructProperty = AbstractBaseProperty & {
 
 export namespace StructProperty {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number, size: number): StructProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number): StructProperty => {
         const subtype = reader.readString();
         const guidInfo = GUIDInfo.read(reader);
 
@@ -116,7 +116,7 @@ export namespace StructProperty {
         return struct;
     }
 
-    export const ParseValue = (reader: BinaryReadable, subtype: string, size: number): GENERIC_STRUCT_PROPERTY_VALUE => {
+    export const ParseValue = (reader: ContextReader, subtype: string, size: number): GENERIC_STRUCT_PROPERTY_VALUE => {
 
         let value: GENERIC_STRUCT_PROPERTY_VALUE;
 
@@ -246,7 +246,7 @@ export namespace StructProperty {
 
             default:
                 //TODO: use buildversion
-                value = DynamicStructPropertyValue.read(reader, 0, subtype);
+                value = DynamicStructPropertyValue.read(reader, subtype);
         }
 
         return value;
@@ -256,7 +256,7 @@ export namespace StructProperty {
         return property.subtype.length + 5 + 4 + 4 + 4 + 4 + 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: StructProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: StructProperty): void => {
         writer.writeString(property.subtype);
         GUIDInfo.write(writer, property.guidInfo);
 
@@ -268,7 +268,7 @@ export namespace StructProperty {
         StructProperty.SerializeValue(writer, property.subtype, property.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, subtype: string, value: GENERIC_STRUCT_PROPERTY_VALUE): void => {
+    export const SerializeValue = (writer: ContextWriter, subtype: string, value: GENERIC_STRUCT_PROPERTY_VALUE): void => {
 
         switch (subtype) {
             case 'Color':
@@ -374,7 +374,7 @@ export namespace StructProperty {
             default:
                 //TODO: use buildversion
                 value = value as DynamicStructPropertyValue;
-                DynamicStructPropertyValue.write(writer, 0, value);
+                DynamicStructPropertyValue.write(writer, value);
         }
     }
 }

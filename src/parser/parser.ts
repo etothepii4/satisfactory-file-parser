@@ -1,9 +1,11 @@
 import { UnsupportedVersionError } from './error/parser.error';
 import { ChunkSummary } from "./file.types";
+import { BlueprintHeader } from './satisfactory/blueprint/blueprint-header';
 import { BlueprintConfigReader, BlueprintReader } from "./satisfactory/blueprint/blueprint-reader";
 import { BlueprintConfigWriter, BlueprintWriter } from "./satisfactory/blueprint/blueprint-writer";
 import { Blueprint } from "./satisfactory/blueprint/blueprint.types";
 import { SatisfactorySave } from "./satisfactory/save/satisfactory-save";
+import { SatisfactorySaveHeader } from './satisfactory/save/satisfactory-save-header';
 import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
 
@@ -20,16 +22,16 @@ export class Parser {
 	 */
 	public static ParseSave(
 		name: string,
-		bytes: ArrayBuffer,
+		bytes: ArrayBufferLike,
 		options?: Partial<{
-			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
+			onDecompressedSaveBody: (buffer: ArrayBufferLike) => void,
 			onProgressCallback: (progress: number, msg?: string) => void
 		}>
 	): SatisfactorySave {
 
 		const reader = new SaveReader(bytes, options?.onProgressCallback);
 
-		const header = reader.readHeader();
+		const header = SatisfactorySaveHeader.Parse(reader);
 		const save = new SatisfactorySave(name, header);
 
 		// guard save version
@@ -81,12 +83,12 @@ export class Parser {
 
 		const writer = new SaveWriter();
 
-		SaveWriter.WriteHeader(writer, save.header);
+		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
 
 		SaveWriter.WriteSaveBodyHash(writer, save.gridHash);
 		SaveWriter.WriteGrids(writer, save.grids);
-		SaveWriter.WriteLevels(writer, save, save.header.buildVersion);
+		SaveWriter.WriteLevels(writer, save);
 
 		writer.endWriting();
 		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options?.onBinaryBeforeCompressing ?? (() => { }), onHeader, onChunk);
@@ -114,7 +116,7 @@ export class Parser {
 
 		// write main blueprint file
 		const blueprintWriter = new BlueprintWriter();
-		BlueprintWriter.SerializeHeader(blueprintWriter, blueprint.header);
+		BlueprintHeader.Serialize(blueprintWriter, blueprint.header);
 		const saveBodyPos = blueprintWriter.getBufferPosition();
 		BlueprintWriter.SerializeObjects(blueprintWriter, blueprint.objects);
 		blueprintWriter.endWriting();
@@ -151,20 +153,20 @@ export class Parser {
 	 */
 	public static ParseBlueprintFiles(
 		name: string,
-		blueprintFile: Buffer,
-		blueprintConfigFile: Buffer,
+		blueprintFile: ArrayBufferLike,
+		blueprintConfigFile: ArrayBufferLike,
 		options?: Partial<{
 			onDecompressedBlueprintBody: (buffer: ArrayBuffer) => void
 		}>
 	): Blueprint {
 
 		// read config file
-		const blueprintConfigReader = new BlueprintConfigReader(new Uint8Array(blueprintConfigFile).buffer);
+		const blueprintConfigReader = new BlueprintConfigReader(blueprintConfigFile);
 		const config = BlueprintConfigReader.ParseConfig(blueprintConfigReader);
 
 		// read actual blueprint file
-		const blueprintReader = new BlueprintReader(new Uint8Array(blueprintFile).buffer);
-		const header = BlueprintReader.ReadHeader(blueprintReader);
+		const blueprintReader = new BlueprintReader(blueprintFile);
+		const header = BlueprintHeader.Parse(blueprintReader);
 		const inflateResult = blueprintReader.inflateChunks();
 
 		// call back on decompressed body.

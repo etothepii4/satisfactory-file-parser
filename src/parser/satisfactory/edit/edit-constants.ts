@@ -1621,6 +1621,14 @@ export const EDIT = {
 			SUPPORT: {
 				TYPE_PATH: '/Game/FactoryGame/Prototype/Buildable/Beams/Build_Beam_Support.Build_Beam_Support_C',
 				CLASS_NAME: 'Build_Beam_Support_C'
+			},
+			CABLE: {
+				TYPE_PATH: '/Game/FactoryGame/Prototype/Buildable/Beams/Build_Beam_Cable.Build_Beam_Cable_C',
+				CLASS_NAME: 'Build_Beam_Cable_C',
+				RECIPE: '/Game/FactoryGame/Prototype/Buildable/Beams/Recipe_Beam_Cable.Recipe_Beam_Cable_C'
+			},
+			BUILDABLE_BEAM_LIGHTWEIGHT_DATA: {
+				TYPE_PATH: '/Script/FactoryGame.BuildableBeamLightweightData'
 			}
 		},
 		POWER_POLE: {
@@ -1745,6 +1753,16 @@ export const EDIT = {
 				FREIGHT_WAGON: {
 					TYPE_PATH: '/Game/FactoryGame/Buildable/Vehicle/Train/Wagon/BP_FreightWagon.BP_FreightWagon_C'
 				}
+			}
+		},
+		VENT: {
+			LARGE_FAN: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Building/Vent/Build_LargeFan.Build_LargeFan_C',
+				CLASS_NAME: 'Build_LargeFan_C'
+			},
+			LARGE_VENT: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Building/Vent/Build_LargeVent.Build_LargeVent_C',
+				CLASS_NAME: 'Build_LargeVent_C'
 			}
 		},
 		CONVEYOR: {

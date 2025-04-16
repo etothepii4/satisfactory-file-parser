@@ -1,5 +1,27 @@
 
 # Changelog
+### [3.0.0] (2025-04-13)
+#### Breaking Changes in Save Structure for 1.1
+* The save header in 1.1 has now the save file name. Which gets used over the passed name when the file is from 1.1.
+* Save objects have a new property as int32. No idea about the meaning.
+* `BuildableSubsystemSpecialProperties` have now a slightly different structure. Their buildables are an object with the typepaths as key now, instead of an array. It just makes it easier to group them.
+* `BuildableSubsystemSpecialProperties` for `BuildableBeamLightweightData` is different from the others in 1.1. Noone knows why.
+* SaveObject's field `unknownType2` is now called `shouldMigrateObjectRefsToPersistent`.
+* SaveObject's field `objectVersion` is now called `saveCustomVersion`.
+* Levels have a new field `saveCustomVersion`.
+* `BuildableSubsystemSpecialProperties` have one more field (`currentLightweightVersion`) and their buildables can now be also a different type.
+* The `parentObjectRoot` and `parentObjectName` got merged to `parentObject` as a Reference struct, instead of two strings.
+* The `objects` of `VehicleSpecialProperties` are now of type `VehiclePhysicsData` instead of just listing `unknownBytes`.
+* Levels within a Save are not an array, but an object with level name as key now.
+
+* Blueprint Configs have now a `configVersion`
+
+#### Internal Updates
+* Some internal changes like making Reader and Writer have context. To support different save versions.
+* `SatisfactorySaveHeader` and `BlueprintHeader` have their own namespace now.
+
+
+# Changelog
 ### [2.1.3] (2024-11-24)
 #### Update README
 * fixed link to auto-generated typedoc.
@@ -23,7 +45,7 @@
 * type guards of "normal" properties like `isObjectProperty()` accept now `any` as parameter and should work now as expected
 * Since ArrayProperties and SetProperties in the save format dont necessarily always have the same structure as their subtype, I introduced own types like `StrArrayProperty` and `Int32SetProperty` with corresponding type guards (e.g. `isStrArrayProperty()`). Means more overhead in code, but hence its more correct in usage.
 #### Bugfix
-* The total conveyor length in the special properties of a ConveyorChainActor got serialized as int32, but correctly now serialize as float32.
+* The total conveyor length in the special properties of a ConveyorChainActor got serialized as int32, but correctly now serializes as float32.
 
 ### [1.1.1] (2024-10-21)
 #### Improved Special Properties

@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
@@ -14,7 +14,7 @@ export type SoftObjectProperty = AbstractBaseProperty & {
 export namespace SoftObjectProperty {
 
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): SoftObjectProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): SoftObjectProperty => {
         const guidInfo = GUIDInfo.read(reader);
         const value = ReadValue(reader);
 
@@ -25,7 +25,7 @@ export namespace SoftObjectProperty {
         } satisfies SoftObjectProperty;
     }
 
-    export const ReadValue = (reader: BinaryReadable): SoftObjectReference => {
+    export const ReadValue = (reader: ContextReader): SoftObjectReference => {
         return SoftObjectReference.read(reader);
     }
 
@@ -33,12 +33,12 @@ export namespace SoftObjectProperty {
         return 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: SoftObjectProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: SoftObjectProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: SoftObjectReference): void => {
+    export const SerializeValue = (writer: ContextWriter, value: SoftObjectReference): void => {
         SoftObjectReference.write(writer, value);
     }
 }

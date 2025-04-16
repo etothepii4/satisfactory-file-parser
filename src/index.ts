@@ -1,7 +1,13 @@
 // types & classes for convenience
+export * from './parser/satisfactory/blueprint/blueprint-header';
 export * from './parser/satisfactory/blueprint/blueprint.types';
+export * from './parser/satisfactory/save/factory-game-custom-version';
 export * from './parser/satisfactory/save/level.class';
+//export * from './parser/satisfactory/save/save-custom-version';
+//export * from './parser/satisfactory/save/factory-game-custom-version';
+//export * from './parser/satisfactory/save/save-header-type';
 export * from './parser/satisfactory/save/satisfactory-save';
+export * from './parser/satisfactory/save/satisfactory-save-header';
 export * from './parser/satisfactory/save/save.types';
 export * from './parser/satisfactory/types/objects/SaveComponent';
 export * from './parser/satisfactory/types/objects/SaveEntity';
@@ -66,6 +72,7 @@ export * from './parser/satisfactory/types/structs/Transform';
 export * from './parser/satisfactory/types/structs/vec2';
 export * from './parser/satisfactory/types/structs/vec3';
 export * from './parser/satisfactory/types/structs/vec4';
+export * from './parser/satisfactory/types/structs/VehiclePhysicsData';
 
 // should better be removed in a future update to prevent shenanigans.
 export { BlueprintConfigReader, BlueprintReader } from './parser/satisfactory/blueprint/blueprint-reader';

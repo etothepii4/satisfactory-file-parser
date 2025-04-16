@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { UnimplementedError } from '../../../../../error/parser.error';
 import { Int32SetProperty, isInt32SetProperty } from './Int32SetProperty';
 import { isObjectSetProperty, ObjectSetProperty } from './ObjectSetProperty';
@@ -18,7 +18,7 @@ export namespace SetProperty {
 
     export type AvailableSetPropertyTypes = ReturnType<typeof Parse>;
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number, propertyName: string) => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number, propertyName: string) => {
 
         const subtype = reader.readString();
         reader.skipBytes(1); // 0
@@ -59,7 +59,7 @@ export namespace SetProperty {
         return property.subtype.length + 5 + 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: SetProperty.AvailableSetPropertyTypes): void => {
+    export const Serialize = (writer: ContextWriter, property: SetProperty.AvailableSetPropertyTypes): void => {
         writer.writeString(property.subtype);
         writer.writeByte(0);
         writer.writeInt32(0);

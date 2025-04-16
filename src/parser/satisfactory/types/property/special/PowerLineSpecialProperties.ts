@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
 
@@ -16,7 +16,7 @@ export type PowerLineSpecialProperties = {
 };
 
 export namespace PowerLineSpecialProperties {
-    export const Parse = (reader: BinaryReadable, remainingLen: number): PowerLineSpecialProperties => {
+    export const Parse = (reader: ContextReader, remainingLen: number): PowerLineSpecialProperties => {
         const start = reader.getBufferPosition();
         const property: PowerLineSpecialProperties = {
             type: 'PowerLineSpecialProperties',
@@ -32,7 +32,7 @@ export namespace PowerLineSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ByteWriter, property: PowerLineSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: PowerLineSpecialProperties) => {
         ObjectReference.write(writer, property.source);
         ObjectReference.write(writer, property.target);
     };

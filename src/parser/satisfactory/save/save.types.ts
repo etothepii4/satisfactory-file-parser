@@ -1,39 +1,17 @@
-import { MD5Hash } from '../types/structs/MD5Hash';
 
 /** @public */
-export interface ModData {
+export type ModData = {
     Reference: string;
     Name: string;
     Version: string;
 }
 
 /** @public */
-export interface SatisfactoryModMetadata {
+export type SatisfactoryModMetadata = {
     Version: number;
     FullMapName: string;
     Mods: ModData[];
 }
 
 /** @public */
-export interface SatisfactorySaveHeader {
-    saveHeaderType: number;
-    saveVersion: number;
-    buildVersion: number;
-    mapName: string;
-    mapOptions: string;
-    sessionName: string;
-    playDurationSeconds: number;
-    saveDateTime: string;
-    sessionVisibility: number;
-    rawModMetadataString?: string;
-    modMetadata?: SatisfactoryModMetadata;
-    isModdedSave?: number;
-    saveIdentifier?: string;
-    fEditorObjectVersion?: number;
-    partitionEnabledFlag?: boolean;
-    consistencyHashBytes?: MD5Hash;
-    creativeModeEnabled?: boolean;
-}
-
-/** @public */
-export type RoughSaveVersion = '<U6' | 'U6/U7' | 'U8' | 'U1.0+';
+export type RoughSaveVersion = '<U6' | 'U6/U7' | 'U8' | 'U1.0' | 'U1.1+';

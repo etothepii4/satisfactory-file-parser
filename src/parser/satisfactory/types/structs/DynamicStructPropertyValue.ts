@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../byte/byte-writer.class';
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { PropertiesList } from '../property/PropertiesList';
 import { PropertiesMap } from '../property/generic/AbstractBaseProperty';
 
@@ -10,17 +10,17 @@ export type DynamicStructPropertyValue = {
 
 export namespace DynamicStructPropertyValue {
 
-    export const read = (reader: BinaryReadable, buildVersion: number, type: string): DynamicStructPropertyValue => {
+    export const read = (reader: ContextReader, type: string): DynamicStructPropertyValue => {
         const data: DynamicStructPropertyValue = {
             type, properties: {}
         };
 
-        data.properties = PropertiesList.ParseList(reader, buildVersion);
+        data.properties = PropertiesList.ParseList(reader);
 
         return data;
     };
 
-    export const write = (writer: ByteWriter, buildVersion: number, data: DynamicStructPropertyValue): void => {
-        PropertiesList.SerializeList(data.properties, writer, buildVersion);
+    export const write = (writer: ContextWriter, data: DynamicStructPropertyValue): void => {
+        PropertiesList.SerializeList(data.properties, writer);
     };
 };

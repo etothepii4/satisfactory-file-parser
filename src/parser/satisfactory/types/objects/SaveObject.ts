@@ -1,6 +1,7 @@
-import { BinaryReadable } from "../../../byte/binary-readable.interface";
-import { ByteWriter } from "../../../byte/byte-writer.class";
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { ParserError } from '../../../error/parser.error';
+import { SaveCustomVersion } from '../../save/save-custom-version';
 import { PropertiesMap } from "../property/generic/AbstractBaseProperty";
 import { PropertiesList } from '../property/PropertiesList';
 import { SpecialProperties } from '../property/special/SpecialProperties';
@@ -9,6 +10,7 @@ export interface SaveObjectHeader {
 	typePath: string;
 	rootObject: string;
 	instanceName: string;
+	potentialFlags?: number;
 }
 
 export abstract class SaveObject implements SaveObjectHeader {
@@ -17,31 +19,39 @@ export abstract class SaveObject implements SaveObjectHeader {
 	public specialProperties: SpecialProperties.AvailableSpecialPropertiesTypes = { type: 'EmptySpecialProperties' };
 	public trailingData: number[] = [];
 
-	public objectVersion: number = 0;
-	public unknownType2: number = 0;
+	public saveCustomVersion: number = 0;
+	public shouldMigrateObjectRefsToPersistent: number = 0;
 
-	constructor(public typePath: string, public rootObject: string, public instanceName: string) {
+	constructor(public typePath: string, public rootObject: string, public instanceName: string, public potentialFlags?: number) {
 
 	}
 
-	protected static ParseHeader(reader: BinaryReadable, obj: SaveObject): void {
+	protected static ParseHeader(reader: ContextReader, obj: SaveObject): void {
 		obj.typePath = reader.readString();
 		obj.rootObject = reader.readString();
 		obj.instanceName = reader.readString();
+
+		if (reader.context.saveVersion >= SaveCustomVersion.SerializeObjectFlags) {
+			obj.potentialFlags = reader.readInt32();
+		}
 	}
 
-	protected static SerializeHeader(writer: ByteWriter, obj: SaveObject): void {
+	protected static SerializeHeader(writer: ContextWriter, obj: SaveObject): void {
 		writer.writeString(obj.typePath);
 		writer.writeString(obj.rootObject);
 		writer.writeString(obj.instanceName);
+
+		if (writer.context.saveVersion >= SaveCustomVersion.SerializeObjectFlags) {
+			writer.writeInt32(obj.potentialFlags ?? 0);
+		}
 	}
 
-	public static ParseData(obj: SaveObject, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void {
+	public static ParseData(obj: SaveObject, length: number, reader: ContextReader, typePath: string): void {
 		const start = reader.getBufferPosition();
 
-		obj.properties = PropertiesList.ParseList(reader, buildVersion);
+		obj.properties = PropertiesList.ParseList(reader);
 
-		reader.readInt32(); // 0
+		reader.readInt32Zero();
 
 		let remainingSize = length - (reader.getBufferPosition() - start);
 		obj.specialProperties = SpecialProperties.ParseClassSpecificSpecialProperties(reader, typePath, remainingSize);
@@ -54,9 +64,9 @@ export abstract class SaveObject implements SaveObjectHeader {
 		}
 	}
 
-	public static SerializeData(writer: any, obj: SaveObject, buildVersion: number): void {
-		PropertiesList.SerializeList(obj.properties, writer, buildVersion);
-		writer.writeInt32(0);
+	public static SerializeData(writer: any, obj: SaveObject): void {
+		PropertiesList.SerializeList(obj.properties, writer);
+		writer.writeInt32Zero();
 		SpecialProperties.SerializeClassSpecificSpecialProperties(writer, obj.typePath, obj.specialProperties);
 		writer.writeBytesArray(obj.trailingData);
 	}

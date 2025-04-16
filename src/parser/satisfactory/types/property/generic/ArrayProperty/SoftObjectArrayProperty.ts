@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { SoftObjectReference } from '../../../structs/SoftObjectReference';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 import { SoftObjectProperty } from '../SoftObjectProperty';
@@ -14,7 +14,7 @@ export type SoftObjectArrayProperty = AbstractBaseProperty & {
 
 export namespace SoftObjectArrayProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): SoftObjectArrayProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0): SoftObjectArrayProperty => {
         const values = new Array(elementCount).fill(0).map(() => SoftObjectProperty.ReadValue(reader));
 
         return {
@@ -25,7 +25,7 @@ export namespace SoftObjectArrayProperty {
         } satisfies SoftObjectArrayProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: SoftObjectArrayProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: SoftObjectArrayProperty): void => {
         property.values.forEach(value => SoftObjectProperty.SerializeValue(writer, value));
     }
 }

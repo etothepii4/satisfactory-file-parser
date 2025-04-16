@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
@@ -32,7 +32,7 @@ export type MapProperty = AbstractBaseProperty & {
 
 export namespace MapProperty {
 
-    export const Parse = (reader: BinaryReadable, propertyName: string, buildVersion: number, size: number, ueType: string = 'MapProperty', index: number = 0): MapProperty => {
+    export const Parse = (reader: ContextReader, propertyName: string, size: number, ueType: string = 'MapProperty', index: number = 0): MapProperty => {
         const start = reader.getBufferPosition();
         const property: MapProperty = {
             ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
@@ -57,6 +57,8 @@ export namespace MapProperty {
             switch (property.keyType) {
                 case 'StructProperty':
 
+                    // TODO use buildversion or saveversion to differentiate
+
                     // TODO: extra for properties like mSaveData, the structure is specific here
                     // don'T ask me why this has this weird form. But maybe it is for maps in general that have Struct as key? So far we only see this in those 2 properties.
                     // F4 FF FF FF 26 00 00 00 FF FF FF FF - Save in Release 1.0
@@ -66,7 +68,7 @@ export namespace MapProperty {
                     if (propertyName === 'mSaveData' || propertyName === 'mUnresolvedSaveData') {
                         key = Array.from(reader.readBytes(12)) as MAP_STRUCT_KEY_PROXY;
                     } else {
-                        key = DynamicStructPropertyValue.read(reader, 0, property.keyType);
+                        key = DynamicStructPropertyValue.read(reader, property.keyType);
                     }
 
                     break;
@@ -96,7 +98,7 @@ export namespace MapProperty {
 
             switch (property.valueType) {
                 case 'StructProperty':
-                    value = DynamicStructPropertyValue.read(reader, 0, property.valueType);
+                    value = DynamicStructPropertyValue.read(reader, property.valueType);
                     break;
                 case 'ObjectProperty':
                     value = ObjectProperty.ReadValue(reader);
@@ -132,7 +134,7 @@ export namespace MapProperty {
         return property.keyType.length + 5 + property.valueType.length + 5 + 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: MapProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: MapProperty): void => {
 
         writer.writeString(property.keyType);
         writer.writeString(property.valueType);
@@ -149,7 +151,7 @@ export namespace MapProperty {
                     if (property.name === 'mSaveData' || property.name === 'mUnresolvedSaveData') {
                         writer.writeBytesArray(entry[0] as MAP_STRUCT_KEY_PROXY);
                     } else {
-                        DynamicStructPropertyValue.write(writer, 0, entry[0] as DynamicStructPropertyValue);
+                        DynamicStructPropertyValue.write(writer, entry[0] as DynamicStructPropertyValue);
                     }
 
                     break;
@@ -179,7 +181,7 @@ export namespace MapProperty {
 
             switch (property.valueType) {
                 case 'StructProperty':
-                    DynamicStructPropertyValue.write(writer, 0, entry[1] as DynamicStructPropertyValue);
+                    DynamicStructPropertyValue.write(writer, entry[1] as DynamicStructPropertyValue);
                     break;
                 case 'ObjectProperty':
                     ObjectProperty.SerializeValue(writer, entry[1] as ObjectReference);

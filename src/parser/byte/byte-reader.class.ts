@@ -6,14 +6,15 @@ import { BinaryReadable } from "./binary-readable.interface";
 export abstract class ByteReader implements BinaryReadable {
 
 	protected bufferView!: DataView;
-	protected fileBuffer!: ArrayBuffer;
+	protected fileBuffer!: ArrayBufferLike;
 	public alignment: Alignment;
+	public context: any;
 
 	protected currentByte: number = 0;
 	protected handledByte: number = 0;
 	protected maxByte: number = 0;
 
-	constructor(fileBuffer: ArrayBuffer, alignment: Alignment) {
+	constructor(fileBuffer: ArrayBufferLike, alignment: Alignment) {
 		this.alignment = alignment;
 		this.reset(fileBuffer);
 	}
@@ -22,9 +23,9 @@ export abstract class ByteReader implements BinaryReadable {
 	 * Resets the reader on the given arraybuffer to start from the beginning.
 	 * @param newFileBuffer the new array buffer to be read.
 	 */
-	public reset(newFileBuffer: ArrayBuffer) {
+	public reset(newFileBuffer: ArrayBufferLike) {
 		this.fileBuffer = newFileBuffer;
-		this.bufferView = new DataView(newFileBuffer, 0, this.fileBuffer.byteLength);
+		this.bufferView = new DataView(this.fileBuffer, 0, this.fileBuffer.byteLength);
 		this.maxByte = newFileBuffer.byteLength;
 		this.currentByte = 0;
 		this.handledByte = 0;
@@ -38,11 +39,10 @@ export abstract class ByteReader implements BinaryReadable {
 		return;
 	}
 	public readByte(): number {
-		// TODO can i not just readByte() ??
-		return parseInt(this.bufferView.getUint8(this.currentByte++).toString());
+		return this.readUint8();
 	}
 	public readBytes(count: number): Uint8Array {
-		return new Uint8Array(new Array(count).fill(0).map(pl => this.bufferView.getUint8(this.currentByte++)));
+		return new Uint8Array(new Array(count).fill(0).map(pl => this.readByte()));
 	}
 	public bytesToHexRepresentation(bytes: number[]): string[] {
 		return bytes.map(byte => ('0' + byte.toString(16)).slice(-2));
@@ -72,6 +72,12 @@ export abstract class ByteReader implements BinaryReadable {
 		let data = this.bufferView.getInt32(this.currentByte, this.alignment === Alignment.LITTLE_ENDIAN);
 		this.currentByte += 4;
 		return data;
+	}
+	/**
+	 * Reads an int32 and we dismiss it, because its always 0.
+	 */
+	public readInt32Zero(): void {
+		this.readInt32();
 	}
 	public readUint32(): number {
 		let data = this.bufferView.getUint32(this.currentByte, this.alignment === Alignment.LITTLE_ENDIAN);
@@ -104,7 +110,6 @@ export abstract class ByteReader implements BinaryReadable {
 	}
 	public readString(): string {
 		let strLength = this.readInt32();
-		let startBytes = this.currentByte;
 
 		if (strLength === 0) {
 			return '';
@@ -136,11 +141,11 @@ export abstract class ByteReader implements BinaryReadable {
 
 	public getBufferPosition = (): number => this.currentByte;
 
-	public getBufferSlice = (begin: number, end: number | undefined): ArrayBuffer => this.bufferView.buffer.slice(begin, end);
+	public getBufferSlice = (begin: number, end: number | undefined): ArrayBufferLike => this.bufferView.buffer.slice(begin, end);
 
 	public getBufferProgress = (): number => this.currentByte / this.bufferView.buffer.byteLength;
 
 	public getBufferLength = (): number => this.bufferView.buffer.byteLength;
 
-	public getBuffer = (): ArrayBuffer => this.bufferView.buffer;
+	public getBuffer = (): ArrayBufferLike => this.bufferView.buffer;
 }

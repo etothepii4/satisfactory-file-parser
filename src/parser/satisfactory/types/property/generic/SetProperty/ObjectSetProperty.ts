@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { ObjectReference } from '../../../structs/ObjectReference';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 import { ObjectProperty } from '../ObjectProperty';
@@ -14,7 +14,7 @@ export type ObjectSetProperty = AbstractBaseProperty & {
 
 export namespace ObjectSetProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): ObjectSetProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0): ObjectSetProperty => {
         const values = new Array(elementCount).fill(0).map(() => ObjectProperty.ReadValue(reader));
 
         return {
@@ -25,7 +25,7 @@ export namespace ObjectSetProperty {
         } satisfies ObjectSetProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: ObjectSetProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: ObjectSetProperty): void => {
         property.values.forEach(value => ObjectProperty.SerializeValue(writer, value));
     }
 }

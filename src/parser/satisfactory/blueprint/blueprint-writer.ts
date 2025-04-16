@@ -1,5 +1,5 @@
 import { Alignment } from "../../byte/alignment.enum";
-import { ByteWriter } from "../../byte/byte-writer.class";
+import { ContextWriter } from '../../context/context-writer';
 import { ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo, ChunkSummary } from "../../file.types";
 import { Level } from '../save/level.class';
@@ -7,45 +7,14 @@ import { SaveWriter } from "../save/save-writer";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { col4 } from '../types/structs/col4';
-import { ObjectReference } from '../types/structs/ObjectReference';
-import { BlueprintConfig, BlueprintHeader } from "./blueprint.types";
+import { BlueprintConfig } from "./blueprint.types";
 
 
 
-export class BlueprintWriter extends ByteWriter {
+export class BlueprintWriter extends ContextWriter {
 
 	constructor() {
 		super(Alignment.LITTLE_ENDIAN);
-	}
-
-	public static SerializeHeader(writer: ByteWriter, header: BlueprintHeader): void {
-		writer.writeInt32(2);   // 2
-		writer.writeInt32(46);   // TODO - changes with game updates. object version. - 46 in 1.0
-		writer.writeInt32(366202);   // TODO - some header build version? changes with game updates.   // 0xECCF0300 // 0xE6060400 //0x7A960500 in 1.0
-
-		let dimensions = [
-			header.designerDimension?.x ?? 4,
-			header.designerDimension?.y ?? 4,
-			header.designerDimension?.z ?? 4,
-		].map(dim => dim < 4 ? 4 : dim);   // dont let smaller values than 4 slip through.
-
-		// designer dimensions in foundations.
-		writer.writeInt32(dimensions[0]);
-		writer.writeInt32(dimensions[1]);
-		writer.writeInt32(dimensions[2]);
-
-		// list of item costs.
-		writer.writeInt32(header.itemCosts.length);
-		for (const itemCost of header.itemCosts) {
-			ObjectReference.write(writer, itemCost[0])
-			writer.writeInt32(itemCost[1]);
-		}
-
-		// list of recipes.
-		writer.writeInt32(header.recipeReferences.length);
-		for (const recipeReference of header.recipeReferences) {
-			ObjectReference.write(writer, recipeReference);
-		}
 	}
 
 	public generateChunks(
@@ -75,7 +44,7 @@ export class BlueprintWriter extends ByteWriter {
 		return chunkSummary;
 	}
 
-	public static SerializeObjects(writer: ByteWriter, objects: (SaveEntity | SaveComponent)[]): void {
+	public static SerializeObjects(writer: ContextWriter, objects: (SaveEntity | SaveComponent)[]): void {
 
 		// object headers
 		const headersLenIndicator = writer.getBufferPosition();
@@ -87,7 +56,7 @@ export class BlueprintWriter extends ByteWriter {
 		BlueprintWriter.SerializeObjectContents(writer, objects, 0, '');
 	}
 
-	public static SerializeObjectContents(writer: ByteWriter, objects: (SaveEntity | SaveComponent)[], buildVersion: number, levelName: string): void {
+	public static SerializeObjectContents(writer: ContextWriter, objects: (SaveEntity | SaveComponent)[], buildVersion: number, levelName: string): void {
 		const lenIndicatorEntities = writer.getBufferPosition();
 		writer.writeInt32(0);
 
@@ -98,9 +67,9 @@ export class BlueprintWriter extends ByteWriter {
 			writer.writeInt32(0);
 
 			if (isSaveEntity(obj)) {
-				SaveEntity.SerializeData(writer, obj, buildVersion);
+				SaveEntity.SerializeData(writer, obj);
 			} else if (isSaveComponent(obj)) {
-				SaveComponent.SerializeData(writer, obj, buildVersion);
+				SaveComponent.SerializeData(writer, obj);
 			}
 
 			writer.writeBinarySizeFromPosition(lenReplacementPosition, lenReplacementPosition + 4);
@@ -109,13 +78,13 @@ export class BlueprintWriter extends ByteWriter {
 	}
 }
 
-export class BlueprintConfigWriter extends ByteWriter {
+export class BlueprintConfigWriter extends ContextWriter {
 
 	constructor() {
 		super(Alignment.LITTLE_ENDIAN);
 	}
 
-	public static SerializeConfig(writer: ByteWriter, config: BlueprintConfig): void {
+	public static SerializeConfig(writer: ContextWriter, config: BlueprintConfig): void {
 		writer.writeInt32(2);   // unknown, seems to always be 02.
 		writer.writeString(config.description);
 		writer.writeInt32(config.iconID);
