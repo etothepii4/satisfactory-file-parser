@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { UnimplementedError } from '../../../../../error/parser.error';
 import { BoolArrayProperty, isBoolArrayProperty } from './BoolArrayProperty';
 import { ByteArrayProperty, isByteArrayProperty } from './ByteArrayProperty';
@@ -32,7 +32,7 @@ export namespace ArrayProperty {
 
     export type AvailableArrayPropertyTypes = ReturnType<typeof Parse>;
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number, size: number) => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number) => {
         const subtype = reader.readString();
         reader.skipBytes(1); // 0
 
@@ -101,7 +101,7 @@ export namespace ArrayProperty {
         return property.subtype.length + 5 + 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: AvailableArrayPropertyTypes): void => {
+    export const Serialize = (writer: ContextWriter, property: AvailableArrayPropertyTypes): void => {
 
         writer.writeString(property.subtype);
         writer.writeByte(0);

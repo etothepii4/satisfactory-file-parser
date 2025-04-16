@@ -1,11 +1,11 @@
-import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { BinaryWritable } from '../../../byte/binary-writable.interface';
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { GUID } from './GUID';
 
 export type GUIDInfo = undefined | GUID;
 
 export namespace GUIDInfo {
-    export const read = (reader: BinaryReadable): GUIDInfo => {
+    export const read = (reader: ContextReader): GUIDInfo => {
         // means whether it has guid.
         if (reader.readByte() === 1) {
             return GUID.read(reader);
@@ -14,7 +14,7 @@ export namespace GUIDInfo {
         }
     }
 
-    export const write = (writer: BinaryWritable, guid: GUIDInfo): void => {
+    export const write = (writer: ContextWriter, guid: GUIDInfo): void => {
         if (guid === undefined) {
             writer.writeByte(0);
             return;

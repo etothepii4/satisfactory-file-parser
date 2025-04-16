@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { BinaryWritable } from '../../../byte/binary-writable.interface';
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { vec2 } from './vec2';
 
 
@@ -8,19 +8,19 @@ export type vec3 = vec2 & {
 };
 
 export namespace vec3 {
-    export const Parse = (reader: BinaryReadable): vec3 => {
+    export const Parse = (reader: ContextReader): vec3 => {
         return {
             ...(vec2.Parse(reader)),
             z: reader.readDouble()
         };
     };
 
-    export const Serialize = (writer: BinaryWritable, vec: vec3): void => {
+    export const Serialize = (writer: ContextWriter, vec: vec3): void => {
         vec2.Serialize(writer, vec as vec2);
         writer.writeDouble(vec.z);
     };
 
-    export const ParseInt = (reader: BinaryReadable): vec3 => {
+    export const ParseInt = (reader: ContextReader): vec3 => {
         return {
             x: reader.readInt32(),
             y: reader.readInt32(),
@@ -28,20 +28,20 @@ export namespace vec3 {
         };
     };
 
-    export const SerializeInt = (writer: BinaryWritable, vec: vec3): void => {
+    export const SerializeInt = (writer: ContextWriter, vec: vec3): void => {
         writer.writeInt32(vec.x);
         writer.writeInt32(vec.y);
         writer.writeInt32(vec.z);
     };
 
-    export const ParseF = (reader: BinaryReadable): vec3 => {
+    export const ParseF = (reader: ContextReader): vec3 => {
         return {
             ...(vec2.ParseF(reader)),
             z: reader.readFloat32()
         };
     };
 
-    export const SerializeF = (writer: BinaryWritable, vec: vec3): void => {
+    export const SerializeF = (writer: ContextWriter, vec: vec3): void => {
         vec2.SerializeF(writer, vec as vec2);
         writer.writeFloat32(vec.z);
     };

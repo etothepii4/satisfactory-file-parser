@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { BuildableSubsystemSpecialProperties, isBuildableSubsystemSpecialProperties } from './BuildableSubsystemSpecialProperties';
 import { CircuitSpecialProperties, isCircuitSpecialProperties } from './CircuitSpecialProperties';
 import { ConveyorChainActorSpecialProperties, isConveyorChainActorSpecialProperties } from './ConveyorChainActorSpecialProperties';
@@ -17,7 +17,7 @@ export namespace SpecialProperties {
 
     export type AvailableSpecialPropertiesTypes = ReturnType<typeof ParseClassSpecificSpecialProperties>;
 
-    export const ParseClassSpecificSpecialProperties = (reader: BinaryReadable, typePath: string, remainingLen: number) => {
+    export const ParseClassSpecificSpecialProperties = (reader: ContextReader, typePath: string, remainingLen: number) => {
         let property;
 
         switch (typePath) {
@@ -92,7 +92,7 @@ export namespace SpecialProperties {
         return property;
     }
 
-    export const SerializeClassSpecificSpecialProperties = (writer: ByteWriter, typePath: string, property: AvailableSpecialPropertiesTypes): void => {
+    export const SerializeClassSpecificSpecialProperties = (writer: ContextWriter, typePath: string, property: AvailableSpecialPropertiesTypes): void => {
         if (isConveyorSpecialProperties(property)) {
             ConveyorSpecialProperties.Serialize(writer, property);
         } else if (isCircuitSpecialProperties(property)) {

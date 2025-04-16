@@ -1,5 +1,5 @@
-import { BinaryReadable } from "../../../byte/binary-readable.interface";
-import { ByteWriter } from "../../../byte/byte-writer.class";
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 
 export type SoftObjectReference = {
 	instanceName: string;
@@ -8,7 +8,7 @@ export type SoftObjectReference = {
 };
 
 export namespace SoftObjectReference {
-	export const read = (reader: BinaryReadable): SoftObjectReference => {
+	export const read = (reader: ContextReader): SoftObjectReference => {
 		return {
 			pathName: reader.readString(),
 			instanceName: reader.readString(),
@@ -16,7 +16,7 @@ export namespace SoftObjectReference {
 		};
 	};
 
-	export const write = (writer: ByteWriter, ref: SoftObjectReference): void => {
+	export const write = (writer: ContextWriter, ref: SoftObjectReference): void => {
 		writer.writeString(ref.pathName);
 		writer.writeString(ref.instanceName);
 		writer.writeInt32(ref.unk);

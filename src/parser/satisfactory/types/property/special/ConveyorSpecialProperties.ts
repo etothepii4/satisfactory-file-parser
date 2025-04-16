@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 
 
 
@@ -10,14 +10,14 @@ export type ConveyorSpecialProperties = {
 };
 
 export namespace ConveyorSpecialProperties {
-    export const Parse = (reader: BinaryReadable): ConveyorSpecialProperties => {
-        reader.readInt32(); // 0
+    export const Parse = (reader: ContextReader): ConveyorSpecialProperties => {
+        reader.readInt32Zero();
         return {
             type: 'ConveyorSpecialProperties',
         };
     };
 
-    export const Serialize = (writer: ByteWriter, property: ConveyorSpecialProperties) => {
-        writer.writeInt32(0);
+    export const Serialize = (writer: ContextWriter, property: ConveyorSpecialProperties) => {
+        writer.writeInt32Zero();
     };
 }

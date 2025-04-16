@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { ObjectReference } from '../../structs/ObjectReference';
 
 
@@ -15,7 +15,7 @@ export type CircuitSpecialProperties = {
 };
 
 export namespace CircuitSpecialProperties {
-    export const Parse = (reader: BinaryReadable): CircuitSpecialProperties => {
+    export const Parse = (reader: ContextReader): CircuitSpecialProperties => {
         const count = reader.readInt32();
         const circuits = [];
         for (let i = 0; i < count; i++) {
@@ -31,7 +31,7 @@ export namespace CircuitSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ByteWriter, property: CircuitSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: CircuitSpecialProperties) => {
         writer.writeInt32((property as CircuitSpecialProperties).circuits.length);
         for (const circuit of (property as CircuitSpecialProperties).circuits) {
             writer.writeInt32(circuit.id);

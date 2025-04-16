@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { GUIDInfo } from '../../../structs/GUIDInfo';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 import { StructProperty } from '../StructProperty';
@@ -15,7 +15,7 @@ export type StructArrayProperty = AbstractBaseProperty & {
 
 export namespace StructArrayProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): StructArrayProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0): StructArrayProperty => {
 
         const name = reader.readString(); // Same as currentProperty.name
         const allUEType = reader.readString(); // StructProperty
@@ -74,7 +74,7 @@ export namespace StructArrayProperty {
         } satisfies StructArrayProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: StructArrayProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: StructArrayProperty): void => {
         writer.writeString(property.name);
         writer.writeString(property.subtype);
 

@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 import { StrProperty } from '../StrProperty';
 
@@ -13,7 +13,7 @@ export type StrSetProperty = AbstractBaseProperty & {
 
 export namespace StrSetProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): StrSetProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0): StrSetProperty => {
         const values = new Array(elementCount).fill(0).map(() => StrProperty.ReadValue(reader));
 
         return {
@@ -24,7 +24,7 @@ export namespace StrSetProperty {
         } satisfies StrSetProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: StrSetProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: StrSetProperty): void => {
         property.values.forEach(value => StrProperty.SerializeValue(writer, value));
     }
 }

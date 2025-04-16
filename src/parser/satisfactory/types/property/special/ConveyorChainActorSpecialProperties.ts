@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
 
@@ -20,7 +20,7 @@ export type ConveyorChainActorSpecialProperties = {
 };
 
 export namespace ConveyorChainActorSpecialProperties {
-    export const Parse = (reader: BinaryReadable): ConveyorChainActorSpecialProperties => {
+    export const Parse = (reader: ContextReader): ConveyorChainActorSpecialProperties => {
 
         const lastBelt = ObjectReference.read(reader);
         const firstBelt = ObjectReference.read(reader);
@@ -90,7 +90,7 @@ export namespace ConveyorChainActorSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ByteWriter, property: ConveyorChainActorSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: ConveyorChainActorSpecialProperties) => {
 
         ObjectReference.write(writer, property.lastBelt);
         ObjectReference.write(writer, property.firstBelt);

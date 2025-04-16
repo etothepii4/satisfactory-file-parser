@@ -1,6 +1,6 @@
 
-import { BinaryReadable } from "../../../byte/binary-readable.interface";
-import { ByteWriter } from "../../../byte/byte-writer.class";
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { ObjectReference } from "../structs/ObjectReference";
 import { Transform } from '../structs/Transform';
 import { SaveObject, SaveObjectHeader } from "./SaveObject";
@@ -23,16 +23,14 @@ export class SaveEntity extends SaveObject {
 	public needTransform: boolean;
 	public transform: Transform;
 	public wasPlacedInLevel: boolean;
-	public parentObjectRoot: string;
-	public parentObjectName: string;
+	public parentObject: ObjectReference;
 	public components: ObjectReference[];
 
 	constructor(public typePath: string, public rootObject: string, public instanceName: string, public parentEntityName = '', needsTransform: boolean = false) {
 		super(typePath, rootObject, instanceName);
 		this.needTransform = needsTransform;
 		this.wasPlacedInLevel = false;
-		this.parentObjectRoot = '';
-		this.parentObjectName = '';
+		this.parentObject = { levelName: '', pathName: '' };
 		this.transform = {
 			rotation: { x: 0, y: 0, z: 0, w: 1 },
 			translation: { x: 0, y: 0, z: 0 },
@@ -41,19 +39,18 @@ export class SaveEntity extends SaveObject {
 		this.components = [];
 	}
 
-	public static ParseHeader(reader: BinaryReadable, obj: SaveEntity): void {
+	public static ParseHeader(reader: ContextReader, obj: SaveEntity): void {
 		SaveObject.ParseHeader(reader, obj);
 		obj.needTransform = reader.readInt32() == 1;
 		obj.transform = Transform.ParseF(reader);
 		obj.wasPlacedInLevel = reader.readInt32() == 1;
 	}
 
-	public static ParseData(entity: SaveEntity, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void {
+	public static ParseData(entity: SaveEntity, length: number, reader: ContextReader, typePath: string): void {
 
 		const start = reader.getBufferPosition();
 
-		entity.parentObjectRoot = reader.readString();
-		entity.parentObjectName = reader.readString();
+		entity.parentObject = ObjectReference.read(reader);
 
 		var componentCount = reader.readInt32();
 		for (let i = 0; i < componentCount; i++) {
@@ -62,10 +59,10 @@ export class SaveEntity extends SaveObject {
 		}
 
 		const remainingSize = length - (reader.getBufferPosition() - start);
-		return SaveObject.ParseData(entity, remainingSize, reader, buildVersion, typePath);
+		return SaveObject.ParseData(entity, remainingSize, reader, typePath);
 	}
 
-	public static SerializeHeader(writer: ByteWriter, entity: SaveEntity): void {
+	public static SerializeHeader(writer: ContextWriter, entity: SaveEntity): void {
 		SaveObject.SerializeHeader(writer, entity);
 
 		writer.writeInt32(entity.needTransform ? 1 : 0);
@@ -73,9 +70,8 @@ export class SaveEntity extends SaveObject {
 		writer.writeInt32(entity.wasPlacedInLevel ? 1 : 0);
 	}
 
-	public static SerializeData(writer: ByteWriter, entity: SaveEntity, buildVersion: number): void {
-		writer.writeString(entity.parentObjectRoot);
-		writer.writeString(entity.parentObjectName);
+	public static SerializeData(writer: ContextWriter, entity: SaveEntity): void {
+		ObjectReference.write(writer, entity.parentObject);
 
 		writer.writeInt32(entity.components.length);
 		for (const component of entity.components) {
@@ -83,6 +79,6 @@ export class SaveEntity extends SaveObject {
 			writer.writeString(component.pathName);
 		}
 
-		SaveObject.SerializeData(writer, entity, buildVersion);
+		SaveObject.SerializeData(writer, entity);
 	}
 }

@@ -64,6 +64,12 @@ export abstract class ByteWriter implements BinaryWritable {
 		this.bufferView.setInt32(this.currentByte, value, this.alignment === Alignment.LITTLE_ENDIAN);
 		this.currentByte += 4;
 	}
+	/**
+	 * Writes an int32 and we dismiss it, because its always 0.
+	 */
+	public writeInt32Zero(): void {
+		this.writeInt32(0);
+	}
 	public writeUint32(value: number): void {
 		this.extendBufferIfNeeded(4);
 		this.bufferView.setUint32(this.currentByte, value, this.alignment === Alignment.LITTLE_ENDIAN);

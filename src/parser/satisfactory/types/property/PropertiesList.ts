@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../byte/byte-writer.class';
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { ParserError } from '../../../error/parser.error';
 import { AbstractBaseProperty, PropertiesMap } from './generic/AbstractBaseProperty';
 import { ArrayProperty } from './generic/ArrayProperty/ArrayProperty';
@@ -25,12 +25,12 @@ import { Uint8Property } from './generic/Uint8Property';
 
 export namespace PropertiesList {
 
-	export const ParseList = (reader: BinaryReadable, buildVersion: number): PropertiesMap => {
+	export const ParseList = (reader: ContextReader): PropertiesMap => {
 
 		const properties: PropertiesMap = {};
 		let propertyName: string = reader.readString();
 		while (propertyName !== 'None') {
-			const parsedProperty = PropertiesList.ParseSingleProperty(reader, buildVersion, propertyName);
+			const parsedProperty = PropertiesList.ParseSingleProperty(reader, propertyName);
 
 			// if it already exists, make it an array.
 			if (properties[propertyName]) {
@@ -48,15 +48,15 @@ export namespace PropertiesList {
 		return properties;
 	}
 
-	export const SerializeList = (properties: PropertiesMap, writer: ByteWriter, buildVersion: number): void => {
+	export const SerializeList = (properties: PropertiesMap, writer: ContextWriter): void => {
 		for (const property of Object.values(properties).flatMap(val => Array.isArray(val) ? val : [val])) {
 			writer.writeString(property.name);
-			PropertiesList.SerializeSingleProperty(writer, property, buildVersion);
+			PropertiesList.SerializeSingleProperty(writer, property);
 		}
 		writer.writeString('None');
 	}
 
-	export const ParseSingleProperty = (reader: BinaryReadable, buildVersion: number, propertyName: string): AbstractBaseProperty => {
+	export const ParseSingleProperty = (reader: ContextReader, propertyName: string): AbstractBaseProperty => {
 		let currentProperty: any = {};
 
 		//TODO assign type and index after parsing.
@@ -153,7 +153,7 @@ export namespace PropertiesList {
 				break;
 
 			case 'MapProperty':
-				currentProperty = MapProperty.Parse(reader, propertyName, buildVersion, binarySize);
+				currentProperty = MapProperty.Parse(reader, propertyName, binarySize);
 				overhead = MapProperty.CalcOverhead(currentProperty);
 				break;
 
@@ -182,7 +182,7 @@ export namespace PropertiesList {
 		return currentProperty;
 	}
 
-	export const SerializeSingleProperty = (writer: ByteWriter, property: AbstractBaseProperty, buildVersion: number): void => {
+	export const SerializeSingleProperty = (writer: ContextWriter, property: AbstractBaseProperty): void => {
 
 		writer.writeString(property.ueType);
 

@@ -1,5 +1,6 @@
-import { BinaryReadable } from "../../../byte/binary-readable.interface";
-import { ByteWriter } from "../../../byte/byte-writer.class";
+import { ByteReader } from '../../../byte/byte-reader.class';
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 import { SaveObject, SaveObjectHeader } from "./SaveObject";
 
 export const isSaveComponent = (obj: any): obj is SaveComponent => {
@@ -19,17 +20,17 @@ export class SaveComponent extends SaveObject implements SaveComponentHeader {
 		super(typePath, rootObject, instanceName);
 	}
 
-	public static ParseHeader(reader: BinaryReadable, obj: SaveComponent): void {
+	public static ParseHeader(reader: ByteReader, obj: SaveComponent): void {
 		SaveObject.ParseHeader(reader, obj);
 		obj.parentEntityName = reader.readString();
 	}
 
-	public static SerializeHeader(writer: ByteWriter, component: SaveComponent) {
+	public static SerializeHeader(writer: ContextWriter, component: SaveComponent) {
 		SaveObject.SerializeHeader(writer, component);
 		writer.writeString(component.parentEntityName);
 	}
 
-	public static ParseData(component: SaveComponent, length: number, reader: BinaryReadable, buildVersion: number, typePath: string): void {
-		SaveObject.ParseData(component, length, reader, buildVersion, typePath);
+	public static ParseData(component: SaveComponent, length: number, reader: ContextReader, typePath: string): void {
+		SaveObject.ParseData(component, length, reader, typePath);
 	}
 }

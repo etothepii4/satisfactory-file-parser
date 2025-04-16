@@ -11,7 +11,7 @@ export type PropertiesMap = {
  * @ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
  * @name property name
  * @guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
- * @index index of a property, in case it is part of an array.
+ * @index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
  */
 type AbstractBasePropertyOptions = {
 	type: string;

@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 import { Int32Property } from '../Int32Property';
 
@@ -13,7 +13,7 @@ export type Int32ArrayProperty = AbstractBaseProperty & {
 
 export namespace Int32ArrayProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): Int32ArrayProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0): Int32ArrayProperty => {
         const values = new Array(elementCount).fill(0).map(() => Int32Property.ReadValue(reader));
 
         return {
@@ -24,7 +24,7 @@ export namespace Int32ArrayProperty {
         } satisfies Int32ArrayProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: Int32ArrayProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: Int32ArrayProperty): void => {
         property.values.forEach(value => Int32Property.SerializeValue(writer, value));
     }
 }

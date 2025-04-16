@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
@@ -12,7 +12,7 @@ export type TextProperty = AbstractBaseProperty & {
 
 export namespace TextProperty {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): TextProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): TextProperty => {
         const guidInfo = GUIDInfo.read(reader);
         const value = TextProperty.ReadValue(reader);
 
@@ -23,7 +23,7 @@ export namespace TextProperty {
         } satisfies TextProperty;
     }
 
-    export const ReadValue = (reader: BinaryReadable): TextPropertyValue => {
+    export const ReadValue = (reader: ContextReader): TextPropertyValue => {
         const prop: TextPropertyValue = {
             flags: reader.readInt32(),
             historyType: reader.readByte()
@@ -90,12 +90,12 @@ export namespace TextProperty {
         return 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: TextProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: TextProperty): void => {
         GUIDInfo.write(writer, property.guidInfo);
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: TextPropertyValue): void => {
+    export const SerializeValue = (writer: ContextWriter, value: TextPropertyValue): void => {
         writer.writeInt32(value.flags);
         writer.writeByte(value.historyType);
 

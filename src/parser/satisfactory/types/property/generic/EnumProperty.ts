@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
@@ -12,7 +12,7 @@ export type EnumProperty = AbstractBaseProperty & {
 
 export namespace EnumProperty {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): EnumProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): EnumProperty => {
         let name = reader.readString();
         const guidInfo = GUIDInfo.read(reader);
         const value = ReadValue(reader);
@@ -24,7 +24,7 @@ export namespace EnumProperty {
         } satisfies EnumProperty;
     }
 
-    export const ReadValue = (reader: BinaryReadable): string => {
+    export const ReadValue = (reader: ContextReader): string => {
         return reader.readString();
     }
 
@@ -32,13 +32,13 @@ export namespace EnumProperty {
         return property.value.name.length + 5 + 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: EnumProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: EnumProperty): void => {
         writer.writeString(property.value.name);
         GUIDInfo.write(writer, property.guidInfo);
         SerializeValue(writer, property.value.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: string): void => {
+    export const SerializeValue = (writer: ContextWriter, value: string): void => {
         writer.writeString(value);
     }
 }

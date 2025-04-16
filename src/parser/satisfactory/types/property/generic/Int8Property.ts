@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../context/context-reader';
+import { ContextWriter } from '../../../../context/context-writer';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
@@ -12,7 +12,7 @@ export type Int8Property = AbstractBaseProperty & {
 
 export namespace Int8Property {
 
-    export const Parse = (reader: BinaryReadable, ueType: string, index: number = 0): Int8Property => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): Int8Property => {
         const guidInfo = GUIDInfo.read(reader);
         const value = ReadValue(reader);
 
@@ -23,7 +23,7 @@ export namespace Int8Property {
         } satisfies Int8Property;
     }
 
-    export const ReadValue = (reader: BinaryReadable): number => {
+    export const ReadValue = (reader: ContextReader): number => {
         return reader.readInt8();
     }
 
@@ -31,12 +31,12 @@ export namespace Int8Property {
         return 1;
     }
 
-    export const Serialize = (writer: ByteWriter, property: Int8Property): void => {
+    export const Serialize = (writer: ContextWriter, property: Int8Property): void => {
         GUIDInfo.write(writer, property.guidInfo);
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ByteWriter, value: number): void => {
+    export const SerializeValue = (writer: ContextWriter, value: number): void => {
         writer.writeInt8(value);
     }
 }

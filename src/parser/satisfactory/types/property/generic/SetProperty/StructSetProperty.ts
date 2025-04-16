@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { UnimplementedError } from '../../../../../error/parser.error';
 import { GUID } from '../../../structs/GUID';
 import { vec3 } from '../../../structs/vec3';
@@ -15,7 +15,7 @@ export type StructSetProperty = AbstractBaseProperty & {
 
 export namespace StructSetProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0, propertyName: string): StructSetProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0, propertyName: string): StructSetProperty => {
 
         let values: unknown[];
         if (propertyName === 'mRemovalLocations') {
@@ -36,7 +36,7 @@ export namespace StructSetProperty {
         } satisfies StructSetProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: StructSetProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: StructSetProperty): void => {
 
         // mRemovalLocations is outdated i guess
         if (property.name === 'mRemovalLocations') {

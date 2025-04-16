@@ -1,10 +1,10 @@
-import { BinaryReadable } from '../../../byte/binary-readable.interface';
-import { BinaryWritable } from '../../../byte/binary-writable.interface';
+import { ContextReader } from '../../../context/context-reader';
+import { ContextWriter } from '../../../context/context-writer';
 
 export type GUID = [number, number, number, number];
 
 export namespace GUID {
-    export const read = (reader: BinaryReadable): GUID => {
+    export const read = (reader: ContextReader): GUID => {
         return [
             reader.readUint32(),
             reader.readUint32(),
@@ -13,7 +13,7 @@ export namespace GUID {
         ];
     }
 
-    export const write = (writer: BinaryWritable, guid: GUID): void => {
+    export const write = (writer: ContextWriter, guid: GUID): void => {
         writer.writeUint32(guid[0]);
         writer.writeUint32(guid[1]);
         writer.writeUint32(guid[2]);

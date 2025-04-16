@@ -4,8 +4,8 @@ import { ChunkCompressionInfo } from "../../file.types";
 import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
-import { Grids, SaveBodyValidation, SaveReader } from "../../satisfactory/save/save-reader";
-import { SatisfactorySaveHeader } from "../../satisfactory/save/save.types";
+import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
+import { Grids, SaveBodyValidation, SaveReader } from '../../satisfactory/save/save-reader';
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
 const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): QueuingStrategy<string> => ({
@@ -97,9 +97,9 @@ export class ReadableStreamParser {
 	 */
 	public static CreateReadableStreamFromSaveToJson = (
 		name: string,
-		bytes: ArrayBuffer,
+		bytes: ArrayBufferLike,
 		options?: Partial<{
-			onDecompressedSaveBody: (buffer: ArrayBuffer) => void,
+			onDecompressedSaveBody: (buffer: ArrayBufferLike) => void,
 			onProgress: (progress: number, message?: string) => void
 		}>
 	) => {
@@ -140,7 +140,7 @@ export class ReadableStreamParser {
 			const reader = new SaveReader(bytes, options?.onProgress);
 
 			// read header
-			const header = reader.readHeader();
+			const header = SatisfactorySaveHeader.Parse(reader);
 			const save = new SatisfactorySave(name, header);
 
 			// guard save version
@@ -193,7 +193,7 @@ export class ReadableStreamParser {
 		grids: Grids,
 		gridHash: SaveBodyValidation
 	) => {
-		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", "compressionInfo": ${JSON.stringify(compressionInfo)}, "gridHash": ${JSON.stringify(gridHash)}, "grids": ${JSON.stringify(grids)}, "levels": [`, false);
+		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", "compressionInfo": ${JSON.stringify(compressionInfo)}, "gridHash": ${JSON.stringify(gridHash)}, "grids": ${JSON.stringify(grids)}, "levels": {`, false);
 	}
 
 	private static async ReadWriteLevels(
@@ -218,12 +218,12 @@ export class ReadableStreamParser {
 			}
 
 			// we will intentionally NOT wait for next pull request, since these few characters don't make waiting useful.
-			await write(`${j > 0 ? ', ' : ''}{"name": "${levelName}", "objects": [`, false);
+			await write(`${j > 0 ? ', ' : ''}["${levelName}"]: {"name": "${levelName}", "objects": [`, false);
 
 
 			// object headers
 			const headersBinLen = reader.readInt32(); // object headers + destroyed colelctables
-			reader.readInt32();	// 0
+			reader.readInt32Zero();
 			const posBeforeHeaders = reader.getBufferPosition();
 			const afterAllHeaders = posBeforeHeaders + headersBinLen;
 			let countObjectHeaders = reader.readInt32();
@@ -261,7 +261,7 @@ export class ReadableStreamParser {
 					reader.skipBytes(afterAllHeaders - reader.getBufferPosition());
 
 					const objectContentsBinLen = reader.readInt32();
-					reader.readInt32();	// 0
+					reader.readInt32Zero();
 					const posBeforeContents = reader.getBufferPosition();
 					const countEntities = reader.readInt32();
 					afterObjectsOfBatch = reader.getBufferPosition();	// at first no batch is read.
@@ -290,7 +290,7 @@ export class ReadableStreamParser {
 
 			} while (totalReadObjectsInLevel < countObjectHeaders)
 
-			await write('], "collectables": [', false);
+			await write('}, "collectables": [', false);
 
 			const collectables = ObjectReferencesList.ReadList(reader);
 

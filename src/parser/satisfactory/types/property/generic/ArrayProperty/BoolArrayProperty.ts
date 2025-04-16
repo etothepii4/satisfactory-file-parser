@@ -1,5 +1,5 @@
-import { BinaryReadable } from '../../../../../byte/binary-readable.interface';
-import { ByteWriter } from '../../../../../byte/byte-writer.class';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 import { BoolProperty } from '../BoolProperty';
 
@@ -13,7 +13,7 @@ export type BoolArrayProperty = AbstractBaseProperty & {
 
 export namespace BoolArrayProperty {
 
-    export const Parse = (reader: BinaryReadable, elementCount: number, subtype: string, ueType: string, index: number = 0): BoolArrayProperty => {
+    export const Parse = (reader: ContextReader, elementCount: number, subtype: string, ueType: string, index: number = 0): BoolArrayProperty => {
         const values = new Array(elementCount).fill(0).map(() => BoolProperty.ReadValue(reader));
 
         return {
@@ -24,7 +24,7 @@ export namespace BoolArrayProperty {
         } satisfies BoolArrayProperty;
     }
 
-    export const Serialize = (writer: ByteWriter, property: BoolArrayProperty): void => {
+    export const Serialize = (writer: ContextWriter, property: BoolArrayProperty): void => {
         property.values.forEach(value => BoolProperty.SerializeValue(writer, value));
     }
 }

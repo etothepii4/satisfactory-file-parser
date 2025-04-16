@@ -25,7 +25,7 @@ export class SaveStreamJsonStringifier {
 		// stream level objects in batches.
 		await writer.openLevels();
 		const objectBatchSize = 10000;
-		for (const level of save.levels) {
+		for (const level of Object.values(save.levels)) {
 			await writer.openLevel(level.name);
 
 			let i = 0;
