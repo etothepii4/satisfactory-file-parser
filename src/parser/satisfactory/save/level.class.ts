@@ -67,7 +67,7 @@ export namespace Level {
 			console.warn('save seems corrupt.', level.name);
 		}
 
-		if (SaveReader.IsGameVersionAtLeast_U1_1(reader.context.saveVersion)) {
+		if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
 			level.saveCustomVersion = reader.readInt32();
 		}
 
@@ -95,7 +95,7 @@ export namespace Level {
 		// write entities
 		SerializeAllObjectContents(writer, level.objects, level.name);
 
-		if (SaveReader.IsGameVersionAtLeast_U1_1(writer.context.saveVersion)) {
+		if (writer.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
 			writer.writeInt32(level.saveCustomVersion ?? SaveCustomVersion.SerializePerStreamableLevelTOCVersion);
 		}
 
