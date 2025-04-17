@@ -215,7 +215,7 @@ export namespace StructProperty {
                     };
                 }
 
-                // some have a 0 here. Only applies to ported saves from U8 i think.
+                // on some items, there is a 0 here. Found randomly in U8 and U1.0 saves.
                 const bytesLeft = size - (reader.getBufferPosition() - before);
                 if (bytesLeft === 0 || (bytesLeft === 4 && reader.readInt32() === 0)) {
                     // fine

@@ -5,6 +5,9 @@ import { vec3 } from '../types/structs/vec3';
 
 /** @public */
 export type BlueprintHeader = {
+    headerVersion: number,
+    saveVersion: number,
+    buildVersion: number,
     designerDimension?: vec3;
     itemCosts: [ObjectReference, number][];
     recipeReferences: ObjectReference[];
@@ -44,6 +47,9 @@ export namespace BlueprintHeader {
         }
 
         return {
+            headerVersion,
+            saveVersion,
+            buildVersion,
             designerDimension: dimensions,
             recipeReferences: recipeRefs,
             itemCosts
@@ -53,9 +59,9 @@ export namespace BlueprintHeader {
 
     export const Serialize = (writer: ContextWriter, header: BlueprintHeader) => {
 
-        writer.writeInt32(writer.context.headerVersion);
-        writer.writeInt32(writer.context.saveVersion);
-        writer.writeInt32(writer.context.buildVersion);
+        writer.writeInt32(header.headerVersion);
+        writer.writeInt32(header.saveVersion);
+        writer.writeInt32(header.buildVersion);
 
         // we assume a minimum of 4 foundations dimensions, standard blueprint designer.
         let dimensions = [

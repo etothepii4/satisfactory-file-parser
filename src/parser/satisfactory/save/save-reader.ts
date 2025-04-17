@@ -220,7 +220,7 @@ export class SaveReader extends ContextReader {
 		} else if (roughSaveVersion === 'U6/U7') {
 			throw new UnsupportedVersionError('Game Version U6/U7 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.0.34');
 		} else if (roughSaveVersion === 'U8') {
-			throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
+			//throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
 		}
 
 		const levels: { [levelName: string]: Level; } = {};
