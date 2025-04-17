@@ -59,7 +59,6 @@ export namespace BuildableSubsystemSpecialProperties {
 
                     const instances: BuildableTypeInstance[] = [];
                     for (let j = 0; j < count; j++) {
-                        console.log('buildable subsystem instance', j);
                         instances.push(BuildableTypeInstance.Parse(reader));
                     }
 

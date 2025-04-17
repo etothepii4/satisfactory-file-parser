@@ -1,18 +1,8 @@
 import { ChunkCompressionInfo } from "../../file.types";
 import { SaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity } from "../types/objects/SaveEntity";
-import { col4 } from '../types/structs/col4';
+import { BlueprintConfig } from './blueprint-config';
 import { BlueprintHeader } from './blueprint-header';
-
-/** @public */
-export interface BlueprintConfig {
-    configVersion: number;
-    description: string;
-    color: col4;
-    iconID: number;
-    referencedIconLibrary?: string;
-    iconLibraryType?: string;
-}
 
 /** @public */
 export interface Blueprint {

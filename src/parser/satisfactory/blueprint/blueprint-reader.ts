@@ -4,13 +4,10 @@ import { ContextReader } from '../../context/context-reader';
 import { CorruptSaveError, ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo } from "../../file.types";
 import { Level } from '../save/level.class';
-import { SaveCustomVersion } from '../save/save-custom-version';
 import { DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE } from "../save/save-reader";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { SaveObject } from "../types/objects/SaveObject";
-import { col4 } from '../types/structs/col4';
-import { BlueprintConfig } from "./blueprint.types";
 
 export class BlueprintReader extends ContextReader {
 
@@ -145,30 +142,5 @@ export class BlueprintConfigReader extends ContextReader {
 
 	constructor(public bluePrintConfigBuffer: ArrayBufferLike) {
 		super(bluePrintConfigBuffer, Alignment.LITTLE_ENDIAN);
-	}
-
-	public parse = (): BlueprintConfig => BlueprintConfigReader.ParseConfig(this);
-
-	public static ParseConfig(reader: ContextReader): BlueprintConfig {
-		const configVersion = reader.readInt32();
-		const description = reader.readString();
-		const iconID = reader.readInt32();
-		const color = col4.ParseRGBA(reader);
-
-		const config: BlueprintConfig = {
-			configVersion,
-			description,
-			color,
-			iconID,
-		};
-
-		// since 1.0, created blueprints have those two strings
-		if (reader.context.saveVersion >= SaveCustomVersion.Version1)
-			if (reader.getBufferPosition() < reader.getBufferLength()) {
-				config.referencedIconLibrary = reader.readString();
-				config.iconLibraryType = reader.readString();
-			}
-
-		return config;
 	}
 }

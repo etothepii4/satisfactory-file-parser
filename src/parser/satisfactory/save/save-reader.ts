@@ -52,7 +52,7 @@ export class SaveReader extends ContextReader {
 			return 'U1.1+';
 		} else if (SaveReader.IsGameVersionAtLeast_U1(saveVersion)) {
 			return 'U1.0';
-		} else if (SaveReader.IsGameVersionAtLeast_U8(headerTypeVersion)) {
+		} else if (SaveReader.IsGameVersionAtLeast_U8(saveVersion)) {
 			return 'U8';
 		} else if (SaveReader.IsGameVersionAtLeast_U6_U7(saveVersion)) {
 			return 'U6/U7';
@@ -60,10 +60,11 @@ export class SaveReader extends ContextReader {
 			return '<U6';
 		}
 	};
-	public static IsGameVersionAtLeast_U1_1 = (saveVersion: number | undefined) => saveVersion && saveVersion >= 51;
-	public static IsGameVersionAtLeast_U1 = (saveVersion: number | undefined) => saveVersion && saveVersion >= 46;
-	public static IsGameVersionAtLeast_U8 = (headerTypeVersion: number | undefined) => headerTypeVersion && headerTypeVersion >= 13;
-	public static IsGameVersionAtLeast_U6_U7 = (saveVersion: number | undefined) => saveVersion && saveVersion >= 29;
+	public static IsGameVersionAtLeast_U1_1 = (saveVersion: number) => saveVersion >= 51;
+	public static IsGameVersionAtLeast_U1 = (saveVersion: number) => saveVersion >= 46;
+	//public static IsGameVersionAtLeast_U8 = (headerTypeVersion: number) => headerTypeVersion >= 13;
+	public static IsGameVersionAtLeast_U8 = (saveVersion: number) => saveVersion >= 42;
+	public static IsGameVersionAtLeast_U6_U7 = (saveVersion: number) => saveVersion >= 29;
 
 	public inflateChunks(): { concatenatedChunkLength: number; numChunks: number; } {
 

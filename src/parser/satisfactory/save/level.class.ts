@@ -129,7 +129,6 @@ export namespace Level {
 			objects[i + objectListOffset].shouldMigrateObjectRefsToPersistent = reader.readInt32();	//1 - //occasionally 0 ?
 			const binarySize = reader.readInt32();
 
-			console.log('read object', i);
 			const before = reader.getBufferPosition();
 			if (isSaveEntity(objects[i + objectListOffset])) {
 				SaveEntity.ParseData(objects[i + objectListOffset] as SaveEntity, binarySize, reader, objects[i + objectListOffset].typePath);
@@ -188,7 +187,6 @@ export namespace Level {
 
 			let obj: SaveEntity | SaveComponent;
 			let objectType = reader.readInt32();
-			console.log('reading object', objectsRead);
 			switch (objectType) {
 				case SaveEntity.TypeID:
 					obj = new SaveEntity('', '', '', '');

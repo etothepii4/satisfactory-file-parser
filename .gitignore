@@ -28,6 +28,8 @@
 !/src/test/ficsitcam-1.sav
 !/src/test/structuralsolutions-1.sav
 !/src/test/x3-roads-signs-1.sav
+!/src/test/Unlock 1.1.sav
+!/src/test/Unlock 1.1-2.sav
 
 !src/test/release-single-wall.sbp
 !src/test/release-single-wall.sbpcfg
@@ -37,3 +39,7 @@
 !src/test/release-storage-mk2-blueprintmk2.sbpcfg
 !src/test/release-two-foundations.sbp
 !src/test/release-two-foundations.sbpcfg
+!src/test/U1-1-Single-Container.sbp
+!src/test/U1-1-Single-Container.sbpcfg
+!src/test/U1-1-Single-Container-2.sbp
+!src/test/U1-1-Single-Container-2.sbpcfg

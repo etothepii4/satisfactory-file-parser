@@ -1,5 +1,6 @@
 import { UnsupportedVersionError } from './error/parser.error';
 import { ChunkSummary } from "./file.types";
+import { BlueprintConfig } from './satisfactory/blueprint/blueprint-config';
 import { BlueprintHeader } from './satisfactory/blueprint/blueprint-header';
 import { BlueprintConfigReader, BlueprintReader } from "./satisfactory/blueprint/blueprint-reader";
 import { BlueprintConfigWriter, BlueprintWriter } from "./satisfactory/blueprint/blueprint-writer";
@@ -134,7 +135,7 @@ export class Parser {
 
 		// write config as well.
 		const configWriter = new BlueprintConfigWriter();
-		BlueprintConfigWriter.SerializeConfig(configWriter, blueprint.config);
+		BlueprintConfig.Serialize(configWriter, blueprint.config);
 		const configFileBinary = configWriter.endWriting();
 
 		return {
@@ -162,7 +163,7 @@ export class Parser {
 
 		// read config file
 		const blueprintConfigReader = new BlueprintConfigReader(blueprintConfigFile);
-		const config = BlueprintConfigReader.ParseConfig(blueprintConfigReader);
+		const config = BlueprintConfig.Parse(blueprintConfigReader);
 
 		// read actual blueprint file
 		const blueprintReader = new BlueprintReader(blueprintFile);

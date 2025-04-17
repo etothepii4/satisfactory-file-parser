@@ -6,8 +6,6 @@ import { Level } from '../save/level.class';
 import { SaveWriter } from "../save/save-writer";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
-import { col4 } from '../types/structs/col4';
-import { BlueprintConfig } from "./blueprint.types";
 
 
 
@@ -53,10 +51,10 @@ export class BlueprintWriter extends ContextWriter {
 		writer.writeBinarySizeFromPosition(headersLenIndicator, headersLenIndicator + 4);
 
 		// objects contents
-		BlueprintWriter.SerializeObjectContents(writer, objects, 0, '');
+		BlueprintWriter.SerializeObjectContents(writer, objects);
 	}
 
-	public static SerializeObjectContents(writer: ContextWriter, objects: (SaveEntity | SaveComponent)[], buildVersion: number, levelName: string): void {
+	public static SerializeObjectContents(writer: ContextWriter, objects: (SaveEntity | SaveComponent)[]): void {
 		const lenIndicatorEntities = writer.getBufferPosition();
 		writer.writeInt32(0);
 
@@ -79,17 +77,7 @@ export class BlueprintWriter extends ContextWriter {
 }
 
 export class BlueprintConfigWriter extends ContextWriter {
-
 	constructor() {
 		super(Alignment.LITTLE_ENDIAN);
-	}
-
-	public static SerializeConfig(writer: ContextWriter, config: BlueprintConfig): void {
-		writer.writeInt32(2);   // unknown, seems to always be 02.
-		writer.writeString(config.description);
-		writer.writeInt32(config.iconID);
-		col4.SerializeRGBA(writer, config.color);
-		writer.writeString(config.referencedIconLibrary ?? '');
-		writer.writeString(config.iconLibraryType ?? '');
 	}
 }

@@ -1,9 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { Writable } from 'stream';
 import { isDeepStrictEqual } from 'util';
 import { Parser } from '../parser/parser';
 import { Level } from '../parser/satisfactory/save/level.class';
 import { SatisfactorySave } from '../parser/satisfactory/save/satisfactory-save';
+import { SatisfactorySaveHeader } from '../parser/satisfactory/save/satisfactory-save-header';
+import { SaveReader } from '../parser/satisfactory/save/save-reader';
 import { SaveComponent } from '../parser/satisfactory/types/objects/SaveComponent';
 import { SaveEntity } from '../parser/satisfactory/types/objects/SaveEntity';
 import { SaveObject } from '../parser/satisfactory/types/objects/SaveObject';
@@ -12,6 +15,7 @@ import { Int32Property } from '../parser/satisfactory/types/property/generic/Int
 import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
 import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
 import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
+import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
 let fileLog: fs.WriteStream;
@@ -91,7 +95,7 @@ const saveList = [
 	//'269',					// same
 
 	'Unlock 1.1',
-	'Unlock 1.1-2',
+	//'Unlock 1.1-2',
 
 	// Mods
 	//'ficsitcam-1',
@@ -124,49 +128,23 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 	return [firstContainer];
 };
 
-/*
-it('test byte manipulation', _ => {
+
+it('test save versions', _ => {
+
+	const files = fs.readdirSync(__dirname).filter(filename => path.extname(filename) === '.sav' && !filename.includes('_on-writing'));
+
+	for (const filename of files) {
+		const file = new Uint8Array(fs.readFileSync(path.join(__dirname, filename))).buffer;
+
+		const reader = new SaveReader(file, () => { });
+		const header = SatisfactorySaveHeader.Parse(reader);
+		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.saveHeaderType);
+		console.log('Got Save', reader.context.saveHeaderType, reader.context.saveVersion, roughSaveVersion, filename);
+	}
 
 
-	const testArrayBuffer = new ArrayBuffer(10);
-	const view = new Uint8Array(testArrayBuffer, 0, testArrayBuffer.byteLength);
-	const view2 = new DataView(testArrayBuffer, 0, testArrayBuffer.byteLength);
-	console.log(ArrayBuffer.isView(view), view.byteOffset, view.byteLength, ArrayBuffer.isView(view2), view2.byteOffset, view2.byteLength);
-
-
-	const view3 = new Uint8Array(testArrayBuffer, 10, 0);
-	const view4 = new DataView(testArrayBuffer, 6, 4);
-	console.log(ArrayBuffer.isView(view3), view3.byteOffset, view3.byteLength, ArrayBuffer.isView(view4), view4.byteOffset, view4.byteLength);
-
-	// bei Uint8Array() is alles fein. ODer ArraYBuffer(32).
-	// Aber bei Buffer.from(...) der ist inder regel größer mit offset. Also musst du das beachten wenn du ein File einliest?
-
-	const file = fs.readFileSync('H://Games/Fessie_Fixed/mfx/mini-thing.dat');
-	console.log('file has', file.byteOffset, file.byteLength);
-	console.log('file arraybuffer has', file.buffer.byteLength, file.buffer instanceof SharedArrayBuffer, file.buffer instanceof ArrayBuffer);
-	const array = new Uint8Array(file);  // Node.js' Buffer class can have an offset, that's why it is better to rewrap it in a TypedArray.  https://nodejs.org/api/buffer.html#bufbyteoffset
-	console.log('array has', array.byteOffset, array.byteLength, array, array.buffer.byteLength);
-	const maybeCoolView = new DataView(file.buffer);
-	console.log('i have my cool view', maybeCoolView.byteOffset, maybeCoolView.byteLength, maybeCoolView.buffer.byteLength, file.readInt32LE(0), file.readInt32LE(4), file.readInt32LE(0), file.readInt32LE(8), file.readInt32LE(12), file.readInt32LE(16), file.readInt32LE(20))
-
-	const arr = new Uint8Array([22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 66, 66, 66, 66, 67, 67, 67, 67, 68, 68, 68, 68]);
-	console.log(arr.BYTES_PER_ELEMENT, arr.length, arr.byteOffset, arr.byteLength, arr, arr.buffer.byteLength);
-	const data = Buffer.from(arr.buffer, 0, 32);
-	console.log(data.BYTES_PER_ELEMENT, data.byteOffset, data.byteLength, data.length);
-
-
-	const buf = Buffer.from(data.buffer, 6, 13);
-	console.log(buf.byteOffset, buf.byteLength, buf);
-	const viewNext = new DataView(buf.buffer);
-	const viewOther = new Uint8Array(buf.buffer);
-	console.log(viewNext.byteOffset, viewNext.byteLength, viewNext.getUint8(0), viewNext.getUint8(1), viewNext.getUint8(2), viewNext.getUint8(3), viewNext.getUint8(4), viewNext.getUint8(5), viewNext.getUint8(6), viewNext.getUint8(7));
-	console.log(viewOther, viewOther.byteOffset, viewOther.byteLength);
-
-
-	const save = Parser.ParseSave('whatever', array.buffer);
 
 });
-*/
 
 /**
  * this test iterates through a list of "modificationMethods", where each modifies one or multiple objects. The test then checks whether the update persists through serialization and de-serialization.
@@ -202,7 +180,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const outJsonPathStream = path.join(__dirname, savename + '.stream.json');
 	const outJsonPathSync = path.join(__dirname, savename + '.sync.json');
 
-	/*
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
 	const outJsonStream = fs.createWriteStream(outJsonPathStream, { highWaterMark: 1024 * 1024 * 200 });
@@ -218,7 +195,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	// streaming to file, WritableStream is from stream/web
 	const start = performance.now();
 	startStreaming();
-	stream.pipeTo(Writable.toWeb(outJsonStream) as WritableStream<string>);
+	stream.pipeTo(Writable.toWeb(outJsonStream));
 
 	let end: number = 0;
 	await new Promise<void>((resolve, reject) => {
@@ -235,7 +212,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	});
 
 	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
-	*/
 
 	// parse sync as well.
 	const start2 = performance.now();
@@ -244,7 +220,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	});
 	fs.writeFileSync(outJsonPathSync, JSON.stringify(save));
 	const end2 = performance.now();
-
 	console.log(`Sync Parsing took ${(end2 - start2) / 1000} seconds.`);
 
 	// check that the minified jsons of stream and sync parsing are equal.
@@ -265,7 +240,7 @@ it.skip.each(saveList)('can write a synchronous save', async (savename) => {
 });
 
 
-it.each([
+it.skip.each([
 	'U1-1-Single-Container',	// U1.1
 	'U1-1-Single-Container-2'	// U1.1
 

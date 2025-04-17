@@ -5,6 +5,7 @@ import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
 import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
+import { SaveCustomVersion } from '../../satisfactory/save/save-custom-version';
 import { Grids, SaveBodyValidation, SaveReader } from '../../satisfactory/save/save-reader';
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
@@ -177,7 +178,7 @@ export class ReadableStreamParser {
 			}
 
 			// close the levels and save object.
-			await write(`]}`,);
+			await write(`}}`,);
 			finish();
 		};
 
@@ -213,12 +214,14 @@ export class ReadableStreamParser {
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
 
+			console.log('reading level', levelName);
+
 			if (j % 500 === 0) {
 				reader.onProgressCallback(reader.getBufferProgress(), `reading level [${(j + 1)}/${(levelCount + 1)}] ${levelName}`);
 			}
 
 			// we will intentionally NOT wait for next pull request, since these few characters don't make waiting useful.
-			await write(`${j > 0 ? ', ' : ''}["${levelName}"]: {"name": "${levelName}", "objects": [`, false);
+			await write(`${j > 0 ? ', ' : ''}"${levelName}": {"name": "${levelName}", "objects": [`, false);
 
 
 			// object headers
@@ -290,7 +293,15 @@ export class ReadableStreamParser {
 
 			} while (totalReadObjectsInLevel < countObjectHeaders)
 
-			await write('}, "collectables": [', false);
+
+			await write('], ', false);
+
+			if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
+				const saveCustomVersion = reader.readInt32();
+				await write(`"saveCustomVersion": ${saveCustomVersion}, `, false);
+			}
+
+			await write('"collectables": [', false);
 
 			const collectables = ObjectReferencesList.ReadList(reader);
 
