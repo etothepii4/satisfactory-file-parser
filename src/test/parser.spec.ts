@@ -13,6 +13,7 @@ import { Int32Property } from '../parser/satisfactory/types/property/generic/Int
 import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
 import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
 import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
+import { ObjectReference } from '../parser/satisfactory/types/structs/ObjectReference';
 import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
@@ -125,7 +126,10 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 	const firstStack = inventoryStacks.values[0];
 
 	// modify first item stack
-	(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemName = '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C';
+	(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemReference = {
+		levelName: '',
+		pathName: '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C'
+	} satisfies ObjectReference;
 	((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
 
 	return [firstContainer];

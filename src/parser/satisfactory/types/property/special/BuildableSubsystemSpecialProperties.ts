@@ -188,7 +188,7 @@ export namespace BuildableBeamLightweightData {
     }
 
     export const Serialize = (writer: ContextWriter, instance: BuildableBeamLightweightData) => {
-        PropertiesList.SerializeList(instance.properties, writer);
+        PropertiesList.SerializeList(writer, instance.properties);
     }
 }
 

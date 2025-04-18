@@ -21,6 +21,6 @@ export namespace DynamicStructPropertyValue {
     };
 
     export const write = (writer: ContextWriter, data: DynamicStructPropertyValue): void => {
-        PropertiesList.SerializeList(data.properties, writer);
+        PropertiesList.SerializeList(writer, data.properties);
     };
 };

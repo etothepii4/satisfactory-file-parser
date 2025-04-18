@@ -52,13 +52,13 @@ export namespace SpecialDroneActionProperties {
         writer.writeInt32((property as SpecialDroneActionProperties).activeActions.length);
         for (const action of (property as SpecialDroneActionProperties).activeActions) {
             writer.writeString(action.actionName);
-            PropertiesList.SerializeList(action.properties, writer);
+            PropertiesList.SerializeList(writer, action.properties,);
         }
 
         writer.writeInt32((property as SpecialDroneActionProperties).queuedActions.length);
         for (const action of (property as SpecialDroneActionProperties).queuedActions) {
             writer.writeString(action.actionName);
-            PropertiesList.SerializeList(action.properties, writer);
+            PropertiesList.SerializeList(writer, action.properties);
         }
     };
 }

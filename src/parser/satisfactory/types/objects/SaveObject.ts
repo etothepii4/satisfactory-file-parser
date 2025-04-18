@@ -65,7 +65,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 	}
 
 	public static SerializeData(writer: any, obj: SaveObject): void {
-		PropertiesList.SerializeList(obj.properties, writer);
+		PropertiesList.SerializeList(writer, obj.properties);
 		writer.writeInt32Zero();
 		SpecialProperties.SerializeClassSpecificSpecialProperties(writer, obj.typePath, obj.specialProperties);
 		writer.writeBytesArray(obj.trailingData);

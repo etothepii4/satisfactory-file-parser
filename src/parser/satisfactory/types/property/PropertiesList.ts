@@ -48,7 +48,7 @@ export namespace PropertiesList {
 		return properties;
 	}
 
-	export const SerializeList = (properties: PropertiesMap, writer: ContextWriter): void => {
+	export const SerializeList = (writer: ContextWriter, properties: PropertiesMap): void => {
 		for (const property of Object.values(properties).flatMap(val => Array.isArray(val) ? val : [val])) {
 			writer.writeString(property.name);
 			PropertiesList.SerializeSingleProperty(writer, property);

@@ -5,9 +5,11 @@ import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
+import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
 import { vec4 } from '../../structs/vec4';
-import { AbstractBaseProperty } from './AbstractBaseProperty';
+import { PropertiesList } from '../PropertiesList';
+import { AbstractBaseProperty, PropertiesMap } from './AbstractBaseProperty';
 
 
 export type BasicMultipleStructPropertyValue = {
@@ -32,16 +34,14 @@ export type RailroadTrackPositionStructPropertyValue = {
 };
 
 export type InventoryItemStructPropertyValue = {
-    unk1: number;
-    itemName: string;
-    hasItemState: number;
+    itemReference: ObjectReference;
+    legacyItemStateActor?: ObjectReference;
+    hasItemState?: number;
     itemState?: {
-        unk: number;
-        pathName: string;
+        stateReference: ObjectReference;
         binarySize: number;
-        itemStateRaw: number[];
+        properties: PropertiesMap;
     };
-    legacyOptionalUselessInt?: number;
 };
 
 export type FICFrameRangeStructPropertyValue = {
@@ -197,30 +197,26 @@ export namespace StructProperty {
                 const before = reader.getBufferPosition();
 
                 value = {
-                    unk1: reader.readInt32(),
-                    itemName: reader.readString(),
-                    hasItemState: reader.readInt32(), // this indicates whether more properties follow
+                    itemReference: ObjectReference.read(reader)
                 } satisfies InventoryItemStructPropertyValue;
 
-                if (value.hasItemState >= 1) {
-                    const stateUnk = reader.readInt32(); // 0
-                    const statePathName = reader.readString();
-                    const stateBinarySize = reader.readInt32();
-                    const itemStateRaw = Array.from(reader.readBytes(stateBinarySize)); // TODO: learn to parse these properties
+                // inventory items have potentially an item state. but not before explicit version
+                if (reader.context.saveVersion >= SaveCustomVersion.RefactoredInventoryItemState) {
+                    value.hasItemState = reader.readInt32(); // this indicates whether more properties follow
 
-                    value.itemState = {
-                        unk: stateUnk,
-                        pathName: statePathName,
-                        binarySize: stateBinarySize,
-                        itemStateRaw: itemStateRaw
-                    };
-                }
+                    if (value.hasItemState >= 1) {
+                        const stateReference = ObjectReference.read(reader);
+                        const stateBinarySize = reader.readInt32();
+                        const properties = PropertiesList.ParseList(reader);
 
-
-                // saveVersion 43 (RefactoredInventoryItemState) removed 4 bytes here. but residuals apparently can be present.
-                let bytesLeft = size - (reader.getBufferPosition() - before);
-                if (bytesLeft > 0) {
-                    value.legacyOptionalUselessInt = reader.readInt32();
+                        value.itemState = {
+                            stateReference,
+                            binarySize: stateBinarySize,
+                            properties: properties
+                        };
+                    }
+                } else {
+                    value.legacyItemStateActor = ObjectReference.read(reader);
                 }
 
                 break;
@@ -346,21 +342,20 @@ export namespace StructProperty {
 
             case 'InventoryItem':
                 value = value as InventoryItemStructPropertyValue;
-                writer.writeInt32(value.unk1);
-                writer.writeString(value.itemName);
-                writer.writeInt32(value.hasItemState);
+                ObjectReference.write(writer, value.itemReference);
 
-                if (value.hasItemState >= 1) {
-                    writer.writeInt32(value.itemState!.unk);
-                    writer.writeString(value.itemState!.pathName);
-                    writer.writeInt32(value.itemState!.binarySize);
-                    writer.writeBytesArray(value.itemState!.itemStateRaw);
+
+                if (writer.context.saveVersion >= SaveCustomVersion.RefactoredInventoryItemState) {
+                    writer.writeInt32(value.hasItemState ?? 0);
+
+                    if (value.hasItemState !== undefined && value.hasItemState >= 1) {
+                        ObjectReference.write(writer, value.itemState!.stateReference);
+                        writer.writeInt32(value.itemState!.binarySize);
+                        PropertiesList.SerializeList(writer, value.itemState!.properties);
+                    }
+                } else {
+                    ObjectReference.write(writer, value.legacyItemStateActor!);
                 }
-
-                if (value.legacyOptionalUselessInt !== undefined) {
-                    writer.writeInt32(value.legacyOptionalUselessInt);
-                }
-
                 break;
 
             case 'FluidBox':
