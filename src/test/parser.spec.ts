@@ -255,11 +255,11 @@ it.skip.each(saveList)('can write a synchronous save', async (savename) => {
 });
 
 
-it.skip.each([
-	'U1-1-Single-Container',	// U1.1
-	'U1-1-Single-Container-2'	// U1.1
+it.each([
+	//'U1-1-Single-Container',	// U1.1
+	//'U1-1-Single-Container-2'	// U1.1
 
-	//'BlueprintWithHeaderV1',	// blueprint saved before v2 header was introduced (in U8 i think)
+	'BlueprintWithHeaderV1',	// blueprint saved before v2 header was introduced (in U8 i think)
 
 	//'release-single-wall',					// U1
 	//'release-storage-mk1',					// U1

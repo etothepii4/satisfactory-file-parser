@@ -4,10 +4,12 @@ import { ContextReader } from '../../context/context-reader';
 import { CorruptSaveError, ParserError } from "../../error/parser.error";
 import { ChunkCompressionInfo } from "../../file.types";
 import { Level } from '../save/level.class';
+import { SaveBodyChunks } from '../save/save-body-chunks';
 import { DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE } from "../save/save-reader";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { SaveObject } from "../types/objects/SaveObject";
+
 
 export class BlueprintReader extends ContextReader {
 
@@ -38,6 +40,17 @@ export class BlueprintReader extends ContextReader {
 
 			// Read chunk info size...
 			let chunkHeader = new DataView(this.fileBuffer.slice(0, this.compressionInfo.chunkHeaderSize));
+			const headerVersion = this.compressionInfo.packageFileTag = chunkHeader.getUint32(4, this.alignment === Alignment.LITTLE_ENDIAN);
+
+			// read version to have correct header size. See SaveWriter.GenerateCompressedChunksFromData for details
+			if (headerVersion === SaveBodyChunks.HEADER_V1 && this.compressionInfo.chunkHeaderSize !== 48) {
+				this.compressionInfo.chunkHeaderSize = 48;
+				chunkHeader = new DataView(this.fileBuffer.slice(0, this.compressionInfo.chunkHeaderSize));
+			} else if (headerVersion === SaveBodyChunks.HEADER_V2 && this.compressionInfo.chunkHeaderSize !== 49) {
+				this.compressionInfo.chunkHeaderSize = 49;
+				chunkHeader = new DataView(this.fileBuffer.slice(0, this.compressionInfo.chunkHeaderSize));
+			}
+
 			this.currentByte = this.compressionInfo.chunkHeaderSize;
 			this.handledByte += this.compressionInfo.chunkHeaderSize;
 
@@ -48,8 +61,8 @@ export class BlueprintReader extends ContextReader {
 				this.compressionInfo.maxUncompressedChunkContentSize = chunkHeader.getInt32(8, this.alignment === Alignment.LITTLE_ENDIAN);  //00 00 02 00 = 131072
 			}
 
-			const chunkCompressedLength = chunkHeader.getInt32(33, this.alignment === Alignment.LITTLE_ENDIAN);
-			const chunkUncompressedLength = chunkHeader.getInt32(25, this.alignment === Alignment.LITTLE_ENDIAN);
+			const chunkCompressedLength = chunkHeader.getInt32(headerVersion === SaveBodyChunks.HEADER_V1 ? 32 : 33, this.alignment === Alignment.LITTLE_ENDIAN);
+			const chunkUncompressedLength = chunkHeader.getInt32(headerVersion === SaveBodyChunks.HEADER_V1 ? 24 : 25, this.alignment === Alignment.LITTLE_ENDIAN);
 			totalUncompressedBodySize += chunkUncompressedLength;
 
 
