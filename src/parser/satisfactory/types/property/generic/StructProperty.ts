@@ -1,6 +1,5 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { CorruptSaveError } from '../../../../error/parser.error';
 import { SaveCustomVersion } from '../../../save/save-custom-version';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
@@ -42,6 +41,7 @@ export type InventoryItemStructPropertyValue = {
         binarySize: number;
         itemStateRaw: number[];
     };
+    legacyOptionalUselessInt?: number;
 };
 
 export type FICFrameRangeStructPropertyValue = {
@@ -218,12 +218,9 @@ export namespace StructProperty {
 
 
                 // saveVersion 43 (RefactoredInventoryItemState) removed 4 bytes here. but residuals apparently can be present.
-                // I am not going through the hassle of saving which object has an extra 4 bytes here. Only wastes memory.
-                const bytesLeft = size - (reader.getBufferPosition() - before);
-                if (bytesLeft === 0 || (bytesLeft === 4 && reader.readInt32() === 0)) {
-                    // fine
-                } else {
-                    throw new CorruptSaveError(`save may be corrupt. InventoryItem has weird format that was not seen so far and therefore not implemented. Could be that the save is ported from way before U8.`);
+                let bytesLeft = size - (reader.getBufferPosition() - before);
+                if (bytesLeft > 0) {
+                    value.legacyOptionalUselessInt = reader.readInt32();
                 }
 
                 break;
@@ -359,6 +356,11 @@ export namespace StructProperty {
                     writer.writeInt32(value.itemState!.binarySize);
                     writer.writeBytesArray(value.itemState!.itemStateRaw);
                 }
+
+                if (value.legacyOptionalUselessInt !== undefined) {
+                    writer.writeInt32(value.legacyOptionalUselessInt);
+                }
+
                 break;
 
             case 'FluidBox':
