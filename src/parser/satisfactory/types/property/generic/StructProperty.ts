@@ -1,6 +1,7 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
 import { CorruptSaveError } from '../../../../error/parser.error';
+import { SaveCustomVersion } from '../../../save/save-custom-version';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { GUIDInfo } from '../../structs/GUIDInfo';
@@ -136,13 +137,13 @@ export namespace StructProperty {
             case 'Vector':
             case 'Rotator':
             case 'Vector2D':
-                value = (size === 12) ? vec3.ParseF(reader) : vec3.Parse(reader);
+                value = (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) ? vec3.Parse(reader) : vec3.ParseF(reader);
                 break;
 
             case 'Quat':
             case 'Vector4':
             case 'Vector4D':
-                value = (size === 16) ? vec4.ParseF(reader) : vec4.Parse(reader);
+                value = (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) ? vec4.Parse(reader) : vec4.ParseF(reader);
                 break;
 
             case 'Box':
@@ -215,7 +216,9 @@ export namespace StructProperty {
                     };
                 }
 
-                // on some items, there is a 0 here. Found randomly in U8 and U1.0 saves.
+
+                // saveVersion 43 (RefactoredInventoryItemState) removed 4 bytes here. but residuals apparently can be present.
+                // I am not going through the hassle of saving which object has an extra 4 bytes here. Only wastes memory.
                 const bytesLeft = size - (reader.getBufferPosition() - before);
                 if (bytesLeft === 0 || (bytesLeft === 4 && reader.readInt32() === 0)) {
                     // fine
@@ -289,14 +292,22 @@ export namespace StructProperty {
             case 'Rotator':
             case 'Vector2D':
                 value = value as vec3;
-                vec3.Serialize(writer, value);
+                if (writer.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+                    vec3.Serialize(writer, value);
+                } else {
+                    vec3.SerializeF(writer, value);
+                }
                 break;
 
             case 'Quat':
             case 'Vector4':
             case 'Vector4D':
                 value = value as vec4;
-                vec4.Serialize(writer, value as vec4);
+                if (writer.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+                    vec4.Serialize(writer, value as vec4);
+                } else {
+                    vec4.SerializeF(writer, value as vec4);
+                }
                 break;
 
             case 'Box':

@@ -1,10 +1,9 @@
-import Pako from "pako";
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextWriter } from '../../context/context-writer';
-import { CompressionLibraryError, ParserError } from "../../error/parser.error";
+import { ParserError } from "../../error/parser.error";
 import { Level } from './level.class';
 import { SatisfactorySave } from "./satisfactory-save";
-import { ChunkCompressionInfo, ChunkSummary, CompressionAlgorithmCode, SaveBodyChunks } from "./save-body-chunks";
+import { ChunkCompressionInfo, ChunkSummary, SaveBodyChunks } from "./save-body-chunks";
 import { Grids, SaveBodyValidation } from './save-reader';
 
 
@@ -56,6 +55,10 @@ export class SaveWriter extends ContextWriter {
 		onChunk: (chunk: Uint8Array) => void,
 		alignment: Alignment = Alignment.LITTLE_ENDIAN
 	): ChunkSummary[] {
+
+		return SaveBodyChunks.CompressDataIntoChunks(bufferArray, compressionInfo, onBinaryBeforeCompressing, onChunk, alignment);
+
+		/*
 
 		const totalUncompressedSize = bufferArray.byteLength;
 
@@ -115,6 +118,7 @@ export class SaveWriter extends ContextWriter {
 		}
 
 		return chunkSummary;
+		*/
 	}
 
 	public generateChunks(

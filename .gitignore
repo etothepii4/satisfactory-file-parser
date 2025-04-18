@@ -31,6 +31,8 @@
 !/src/test/Unlock 1.1.sav
 !/src/test/Unlock 1.1-2.sav
 
+!/src/test/BlueprintWithHeaderV1.sbp
+!/src/test/BlueprintWithHeaderV1.sbpcfg
 !src/test/release-single-wall.sbp
 !src/test/release-single-wall.sbpcfg
 !src/test/release-storage-mk1.sbp

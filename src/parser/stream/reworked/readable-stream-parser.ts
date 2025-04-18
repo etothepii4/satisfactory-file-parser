@@ -1,5 +1,4 @@
 import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
-import { UnsupportedVersionError } from '../../error/parser.error';
 import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
@@ -145,7 +144,8 @@ export class ReadableStreamParser {
 			const save = new SatisfactorySave(name, header);
 
 			// guard save version
-			const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.saveHeaderType);
+			/*
+			const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion);
 			if (roughSaveVersion === '<U6') {
 				throw new UnsupportedVersionError('Game Version < U6 is not supported.');
 			} else if (roughSaveVersion === 'U6/U7') {
@@ -153,9 +153,11 @@ export class ReadableStreamParser {
 			} else if (roughSaveVersion === 'U8') {
 				throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
 			}
+			*/
 
 			// inflate chunks
 			const inflateResult = reader.inflateChunks();
+			save.compressionInfo = inflateResult.compressionInfo;
 
 			// call callback on decompressed save body
 			if (options?.onDecompressedSaveBody !== undefined) {
@@ -168,7 +170,7 @@ export class ReadableStreamParser {
 			// parse grids
 			const grids = reader.readGrids();
 
-			await ReadableStreamParser.WriteHeaderAndGrids(write, name, reader.compressionInfo, header, grids, gridHash);
+			await ReadableStreamParser.WriteHeaderAndGrids(write, name, inflateResult.compressionInfo, header, grids, gridHash);
 
 			// parse levels
 			await ReadableStreamParser.ReadWriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
@@ -214,7 +216,7 @@ export class ReadableStreamParser {
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
 
-			console.log('reading level', levelName);
+			//console.log('reading level', levelName);
 
 			if (j % 500 === 0) {
 				reader.onProgressCallback(reader.getBufferProgress(), `reading level [${(j + 1)}/${(levelCount + 1)}] ${levelName}`);

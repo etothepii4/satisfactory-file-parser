@@ -1,13 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { Writable } from 'stream';
 import { isDeepStrictEqual } from 'util';
 import { Parser } from '../parser/parser';
-import { BlueprintHeader } from '../parser/satisfactory/blueprint/blueprint-header';
-import { BlueprintReader } from '../parser/satisfactory/blueprint/blueprint-reader';
 import { Level } from '../parser/satisfactory/save/level.class';
 import { SatisfactorySave } from '../parser/satisfactory/save/satisfactory-save';
-import { SatisfactorySaveHeader } from '../parser/satisfactory/save/satisfactory-save-header';
-import { SaveReader } from '../parser/satisfactory/save/save-reader';
 import { SaveComponent } from '../parser/satisfactory/types/objects/SaveComponent';
 import { SaveEntity } from '../parser/satisfactory/types/objects/SaveEntity';
 import { SaveObject } from '../parser/satisfactory/types/objects/SaveObject';
@@ -16,6 +13,7 @@ import { Int32Property } from '../parser/satisfactory/types/property/generic/Int
 import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
 import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
 import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
+import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
 let fileLog: fs.WriteStream;
@@ -89,12 +87,12 @@ const ModifyObjects = (save: SatisfactorySave, ...modifiedObjects: (SaveEntity |
 
 
 const saveList = [
-	//'Release 001',			// 1.0 Save, almost empty.
+	'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
 	'265',					// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
-	//'269',					// same
+	'269',					// U8 save ported to 1.0
 
-	'Unlock 1.1',				// 1.1 Save
+	'Unlock 1.1',			// 1.1 Save
 	'Unlock 1.1-2',			// 1.1 Save
 
 	'FreshStartU8001-vehicles-2',	// purely U8
@@ -134,6 +132,7 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 };
 
 
+/*
 
 it('print save and blueprint versions', _ => {
 
@@ -157,6 +156,7 @@ it('print save and blueprint versions', _ => {
 		console.log('Got BP', reader.context.headerVersion, reader.context.saveVersion, roughSaveVersion, filename);
 	}
 });
+*/
 
 
 /**
@@ -185,7 +185,7 @@ it.skip.each([
 	}
 });
 
-it.skip.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
+it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
 	const filepath = path.join(__dirname, savename + '.sav');
 	const binaryFilepathStream = path.join(__dirname, savename + '.stream.bin');
 	const binaryFilepathSync = path.join(__dirname, savename + '.sync.bin');
@@ -193,7 +193,6 @@ it.skip.each(saveList)('can parse a binary save (%s) to json with stream and wit
 	const outJsonPathStream = path.join(__dirname, savename + '.stream.json');
 	const outJsonPathSync = path.join(__dirname, savename + '.sync.json');
 
-	/*
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
 	const outJsonStream = fs.createWriteStream(outJsonPathStream, { highWaterMark: 1024 * 1024 * 200 });
@@ -202,11 +201,11 @@ it.skip.each(saveList)('can parse a binary save (%s) to json with stream and wit
 		onDecompressedSaveBody: decompressedBody => {
 			fs.writeFileSync(binaryFilepathStream, Buffer.from(decompressedBody));
 		}, onProgress: (progress, msg) => {
-			console.log(`progress`, progress, msg);
+			console.log(`parsing stream progress ${savename}`, progress, msg);
 		}
 	});
 
-	// streaming to file, WritableStream is from stream/web
+	// streaming to file, WritableStream is from stream
 	const start = performance.now();
 	startStreaming();
 	stream.pipeTo(Writable.toWeb(outJsonStream));
@@ -226,7 +225,6 @@ it.skip.each(saveList)('can parse a binary save (%s) to json with stream and wit
 	});
 
 	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
-	*/
 
 	// parse sync as well.
 	const start2 = performance.now();
@@ -242,7 +240,7 @@ it.skip.each(saveList)('can parse a binary save (%s) to json with stream and wit
 	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
 	const thing1 = JSON.parse(json1) as SatisfactorySave;
 	const thing2 = JSON.parse(json2) as SatisfactorySave;
-	//expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
+	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
 });
 
 
@@ -256,8 +254,8 @@ it.skip.each(saveList)('can write a synchronous save', async (savename) => {
 
 
 it.each([
-	//'U1-1-Single-Container',	// U1.1
-	//'U1-1-Single-Container-2'	// U1.1
+	'U1-1-Single-Container',	// U1.1
+	'U1-1-Single-Container-2',	// U1.1
 
 	'BlueprintWithHeaderV1',	// blueprint saved before v2 header was introduced (in U8 i think)
 

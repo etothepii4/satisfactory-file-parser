@@ -1,7 +1,6 @@
-import Pako from "pako";
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextReader } from '../../context/context-reader';
-import { CorruptSaveError, ParserError } from "../../error/parser.error";
+import { CorruptBlueprintError, CorruptSaveError } from "../../error/parser.error";
 import { Level } from '../save/level.class';
 import { ChunkCompressionInfo, SaveBodyChunks } from '../save/save-body-chunks';
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
@@ -21,8 +20,27 @@ export class BlueprintReader extends ContextReader {
 		super(bluePrintBuffer, Alignment.LITTLE_ENDIAN);
 	}
 
-	public inflateChunks(): any {
+	public inflateChunks(): { inflatedData: ArrayBufferLike } {
 
+		const result = SaveBodyChunks.DecompressChunks(this.fileBuffer.slice(this.currentByte), this.alignment);
+		this.compressionInfo = result.compressionInfo;
+
+		// reset on decompressed data.
+		this.currentByte = 0;
+		this.fileBuffer = result.uncompressedData.buffer;
+		this.maxByte = this.fileBuffer.byteLength;
+		this.bufferView = new DataView(this.fileBuffer);
+
+		const totalBodyRestSize = this.readInt32();
+		if (result.uncompressedData.byteLength !== totalBodyRestSize + 4) {
+			throw new CorruptBlueprintError(`Possibly corrupt. Indicated size of total blueprint body (${totalBodyRestSize + 4}) does not match the uncompressed real size of ${result.uncompressedData.byteLength}.`);
+		}
+
+		return {
+			inflatedData: this.fileBuffer
+		};
+
+		/*
 		// free memory
 		this.fileBuffer = this.fileBuffer.slice(this.currentByte);
 
@@ -109,11 +127,10 @@ export class BlueprintReader extends ContextReader {
 			numChunks: currentChunks.length,
 			inflatedData: bigWholeChunk
 		};
+		*/
 	}
 
 	public static ParseObjects(reader: ContextReader): (SaveEntity | SaveComponent)[] {
-
-		const totalBodyRestSize = reader.readInt32();
 
 		// object headers
 		const objectHeadersBinarySize = reader.readInt32();

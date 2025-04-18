@@ -31,7 +31,7 @@ export namespace Level {
 			collectables: []
 		}
 
-		console.log('reading level', levelName);
+		//console.log('reading level', levelName);
 
 		// checksum object headers.
 		const headersBinLen = reader.readInt32(); // object headers + binary length

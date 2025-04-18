@@ -1,4 +1,3 @@
-import { UnsupportedVersionError } from './error/parser.error';
 import { BlueprintConfig } from './satisfactory/blueprint/blueprint-config';
 import { BlueprintHeader } from './satisfactory/blueprint/blueprint-header';
 import { BlueprintConfigReader, BlueprintReader } from "./satisfactory/blueprint/blueprint-reader";
@@ -36,7 +35,8 @@ export class Parser {
 		const save = new SatisfactorySave(name, header);
 
 		// guard save version
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.saveHeaderType);
+		/*
+		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion);
 		if (roughSaveVersion === '<U6') {
 			throw new UnsupportedVersionError('Game Version < U6 is not supported.');
 		} else if (roughSaveVersion === 'U6/U7') {
@@ -44,10 +44,11 @@ export class Parser {
 		} else if (roughSaveVersion === 'U8') {
 			//throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
 		}
+		*/
 
 		// inflate chunks
 		const inflateResult = reader.inflateChunks();
-		save.compressionInfo = reader.compressionInfo;
+		save.compressionInfo = inflateResult.compressionInfo;
 
 		// call callback on decompressed save body
 		if (options?.onDecompressedSaveBody !== undefined) {
@@ -83,6 +84,9 @@ export class Parser {
 	): ChunkSummary[] {
 
 		const writer = new SaveWriter();
+		writer.context.saveHeaderType = save.header.saveHeaderType;
+		writer.context.saveVersion = save.header.saveVersion;
+		writer.context.buildVersion = save.header.buildVersion;
 
 		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
@@ -117,6 +121,10 @@ export class Parser {
 
 		// write main blueprint file
 		const blueprintWriter = new BlueprintWriter();
+		blueprintWriter.context.blueprintConfigVersion = blueprint.config.configVersion;
+		blueprintWriter.context.saveVersion = blueprint.header.saveVersion;
+		blueprintWriter.context.buildVersion = blueprint.header.buildVersion;
+
 		BlueprintHeader.Serialize(blueprintWriter, blueprint.header);
 		const saveBodyPos = blueprintWriter.getBufferPosition();
 		BlueprintWriter.SerializeObjects(blueprintWriter, blueprint.objects);
@@ -135,6 +143,10 @@ export class Parser {
 
 		// write config as well.
 		const configWriter = new BlueprintConfigWriter();
+		configWriter.context.blueprintConfigVersion = blueprint.config.configVersion;
+		blueprintWriter.context.saveVersion = blueprint.header.saveVersion;
+		blueprintWriter.context.buildVersion = blueprint.header.buildVersion;
+
 		BlueprintConfig.Serialize(configWriter, blueprint.config);
 		const configFileBinary = configWriter.endWriting();
 
@@ -157,7 +169,7 @@ export class Parser {
 		blueprintFile: ArrayBufferLike,
 		blueprintConfigFile: ArrayBufferLike,
 		options?: Partial<{
-			onDecompressedBlueprintBody: (buffer: ArrayBuffer) => void
+			onDecompressedBlueprintBody: (buffer: ArrayBufferLike) => void
 		}>
 	): Blueprint {
 
@@ -165,8 +177,9 @@ export class Parser {
 		const blueprintConfigReader = new BlueprintConfigReader(blueprintConfigFile);
 		const config = BlueprintConfig.Parse(blueprintConfigReader);
 
-		// read actual blueprint file
+		// read actual blueprint file. with context from config
 		const blueprintReader = new BlueprintReader(blueprintFile);
+		blueprintReader.context.blueprintConfigVersion = config.configVersion;
 		const header = BlueprintHeader.Parse(blueprintReader);
 		const inflateResult = blueprintReader.inflateChunks();
 

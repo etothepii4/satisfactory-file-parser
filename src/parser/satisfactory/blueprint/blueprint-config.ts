@@ -1,7 +1,7 @@
 import { ContextReader } from '../../context/context-reader';
 import { ContextWriter } from '../../context/context-writer';
-import { SaveCustomVersion } from '../save/save-custom-version';
 import { col4 } from '../types/structs/col4';
+import { BlueprintConfigVersion } from './blueprint-config-version';
 
 
 /** @public */
@@ -20,6 +20,7 @@ export namespace BlueprintConfig {
         const description = reader.readString();
         const iconID = reader.readInt32();
         const color = col4.ParseRGBA(reader);
+        reader.context.blueprintConfigVersion = configVersion;
 
         const config: BlueprintConfig = {
             configVersion,
@@ -28,13 +29,9 @@ export namespace BlueprintConfig {
             iconID,
         };
 
-        // TODO: check if thats 100% solid logic.
-        // since 1.0, created blueprints have those two strings
-        if (reader.context.saveVersion >= SaveCustomVersion.Version1) {
-            //if (reader.getBufferPosition() < reader.getBufferLength()) {
+        if (configVersion >= BlueprintConfigVersion.AddedIconLibraryPath) {
             config.referencedIconLibrary = reader.readString();
             config.iconLibraryType = reader.readString();
-            //}
         }
 
         return config;
@@ -46,7 +43,7 @@ export namespace BlueprintConfig {
         writer.writeInt32(config.iconID);
         col4.SerializeRGBA(writer, config.color);
 
-        if (writer.context.saveVersion >= SaveCustomVersion.Version1) {
+        if (config.configVersion >= BlueprintConfigVersion.AddedIconLibraryPath) {
             writer.writeString(config.referencedIconLibrary ?? '');
             writer.writeString(config.iconLibraryType ?? '');
         }

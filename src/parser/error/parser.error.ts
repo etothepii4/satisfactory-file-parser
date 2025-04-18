@@ -19,6 +19,12 @@ export class CorruptSaveError extends ParserError {
     }
 }
 
+export class CorruptBlueprintError extends ParserError {
+    constructor(message?: string) {
+        super('CorruptBlueprintError', message ?? 'This blueprint data is most likely corrupt.');
+    }
+}
+
 export class CompressionLibraryError extends ParserError {
     constructor(message?: string) {
         super('CompressionLibraryError', message ?? 'Failed to compress/decompress save data.');

@@ -1,7 +1,6 @@
-import Pako from 'pako';
 import { Alignment } from '../../byte/alignment.enum';
 import { ContextReader } from '../../context/context-reader';
-import { CompressionLibraryError, CorruptSaveError, ParserError, UnsupportedVersionError } from '../../error/parser.error';
+import { CorruptSaveError, ParserError } from '../../error/parser.error';
 import { Level } from './level.class';
 import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
 import { RoughSaveVersion } from './save.types';
@@ -28,12 +27,6 @@ export type Grids = {
 };
 export class SaveReader extends ContextReader {
 
-	public compressionInfo: ChunkCompressionInfo = {
-		packageFileTag: 0,
-		maxUncompressedChunkContentSize: 0,
-		chunkHeaderVersion: SaveBodyChunks.HEADER_V2
-	};
-
 	// the number of .net ticks at the unix epoch
 	public static readonly EPOCH_TICKS = 621355968000000000n;
 
@@ -47,7 +40,7 @@ export class SaveReader extends ContextReader {
 		}
 	};
 
-	public static GetRoughSaveVersion = (saveVersion: number, headerTypeVersion: number): RoughSaveVersion => {
+	public static GetRoughSaveVersion = (saveVersion: number): RoughSaveVersion => {
 		if (SaveReader.IsGameVersionAtLeast_U1_1(saveVersion)) {
 			return 'U1.1+';
 		} else if (SaveReader.IsGameVersionAtLeast_U1(saveVersion)) {
@@ -62,12 +55,29 @@ export class SaveReader extends ContextReader {
 	};
 	public static IsGameVersionAtLeast_U1_1 = (saveVersion: number) => saveVersion >= 51;
 	public static IsGameVersionAtLeast_U1 = (saveVersion: number) => saveVersion >= 46;
-	//public static IsGameVersionAtLeast_U8 = (headerTypeVersion: number) => headerTypeVersion >= 13;
 	public static IsGameVersionAtLeast_U8 = (saveVersion: number) => saveVersion >= 42;
 	public static IsGameVersionAtLeast_U6_U7 = (saveVersion: number) => saveVersion >= 29;
 
-	public inflateChunks(): { concatenatedChunkLength: number; numChunks: number; } {
+	public inflateChunks(): { compressionInfo: ChunkCompressionInfo } {
 
+		const result = SaveBodyChunks.DecompressChunks(this.fileBuffer.slice(this.currentByte), this.alignment);
+
+		// reset on decompressed data.
+		this.currentByte = 0;
+		this.fileBuffer = result.uncompressedData.buffer;
+		this.maxByte = this.fileBuffer.byteLength;
+		this.bufferView = new DataView(this.fileBuffer);
+
+		const totalBodyRestSize = this.readInt32();
+		if (result.uncompressedData.byteLength !== totalBodyRestSize + 8) {
+			throw new CorruptSaveError(`Possibly corrupt. Indicated size of total save body (${totalBodyRestSize + 8}) does not match the uncompressed real size of ${result.uncompressedData.byteLength}.`);
+		}
+
+		return {
+			compressionInfo: result.compressionInfo
+		};
+
+		/*
 		// free memory
 		this.fileBuffer = this.fileBuffer.slice(this.currentByte);
 
@@ -147,6 +157,7 @@ export class SaveReader extends ContextReader {
 			concatenatedChunkLength: newChunkLength,
 			numChunks: currentChunks.length
 		};
+		*/
 	}
 
 	public readSaveBodyHash = (): SaveBodyValidation => {
@@ -212,11 +223,12 @@ export class SaveReader extends ContextReader {
 	public readLevels(): { [levelName: string]: Level; } {
 
 		if (!this.context.saveVersion || !this.context.saveHeaderType) {
-			throw new ParserError('ParserError', 'Header must be set before objects can be read.');
+			throw new ParserError('ParserError', 'Header and its context must be set before objects can be read.');
 		}
 
 		// guard save version
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(this.context.saveVersion!, this.context.saveHeaderType!);
+		/*
+		const roughSaveVersion = SaveReader.GetRoughSaveVersion(this.context.saveVersion!);
 		if (roughSaveVersion === '<U6') {
 			throw new UnsupportedVersionError('Game Version < U6 is not supported.');
 		} else if (roughSaveVersion === 'U6/U7') {
@@ -224,6 +236,7 @@ export class SaveReader extends ContextReader {
 		} else if (roughSaveVersion === 'U8') {
 			//throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
 		}
+		*/
 
 		const levels: { [levelName: string]: Level; } = {};
 		const levelCount = this.readInt32();
