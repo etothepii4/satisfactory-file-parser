@@ -2,8 +2,8 @@ import Pako from 'pako';
 import { Alignment } from '../../byte/alignment.enum';
 import { ContextReader } from '../../context/context-reader';
 import { CompressionLibraryError, CorruptSaveError, ParserError, UnsupportedVersionError } from '../../error/parser.error';
-import { ChunkCompressionInfo } from '../../file.types';
 import { Level } from './level.class';
+import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
 import { RoughSaveVersion } from './save.types';
 
 
@@ -31,7 +31,7 @@ export class SaveReader extends ContextReader {
 	public compressionInfo: ChunkCompressionInfo = {
 		packageFileTag: 0,
 		maxUncompressedChunkContentSize: 0,
-		chunkHeaderSize: DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE
+		chunkHeaderVersion: SaveBodyChunks.HEADER_V2
 	};
 
 	// the number of .net ticks at the unix epoch
@@ -83,9 +83,11 @@ export class SaveReader extends ContextReader {
 		while (this.handledByte < this.maxByte) {
 
 			// Read chunk info size...
-			let chunkHeader = new DataView(this.fileBuffer.slice(0, this.compressionInfo.chunkHeaderSize));
-			this.currentByte = this.compressionInfo.chunkHeaderSize;
-			this.handledByte += this.compressionInfo.chunkHeaderSize;
+			// TODO: gets replaced.
+			const chunkHeaderSize = this.compressionInfo.chunkHeaderVersion === SaveBodyChunks.HEADER_V1 ? 48 : 49;
+			let chunkHeader = new DataView(this.fileBuffer.slice(0, chunkHeaderSize));
+			this.currentByte = chunkHeaderSize;
+			this.handledByte += chunkHeaderSize;
 
 
 			if (this.compressionInfo.packageFileTag <= 0) {

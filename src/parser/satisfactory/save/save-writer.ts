@@ -2,9 +2,9 @@ import Pako from "pako";
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextWriter } from '../../context/context-writer';
 import { CompressionLibraryError, ParserError } from "../../error/parser.error";
-import { ChunkCompressionInfo, ChunkSummary, CompressionAlgorithmCode } from "../../file.types";
 import { Level } from './level.class';
 import { SatisfactorySave } from "./satisfactory-save";
+import { ChunkCompressionInfo, ChunkSummary, CompressionAlgorithmCode, SaveBodyChunks } from "./save-body-chunks";
 import { Grids, SaveBodyValidation } from './save-reader';
 
 
@@ -86,8 +86,9 @@ export class SaveWriter extends ContextWriter {
 				throw new CompressionLibraryError("Could not compress save data. " + err);
 			}
 
-			const chunk = new Uint8Array(compressionInfo.chunkHeaderSize + compressedChunk.byteLength);
-			chunk.set(compressedChunk, compressionInfo.chunkHeaderSize);
+			const chunkHeaderSize = compressionInfo.chunkHeaderVersion === SaveBodyChunks.HEADER_V1 ? 48 : 49;
+			const chunk = new Uint8Array(chunkHeaderSize + compressedChunk.byteLength);
+			chunk.set(compressedChunk, chunkHeaderSize);
 
 			// write header
 			const view = new DataView(chunk.buffer);
@@ -107,8 +108,8 @@ export class SaveWriter extends ContextWriter {
 
 			onChunk(chunk);
 			chunkSummary.push({
-				uncompressedSize: uncompressedContentSize + compressionInfo.chunkHeaderSize,
-				compressedSize: compressedChunk.byteLength + compressionInfo.chunkHeaderSize
+				uncompressedSize: uncompressedContentSize + chunkHeaderSize,
+				compressedSize: compressedChunk.byteLength + chunkHeaderSize
 			});
 			handledByte += uncompressedContentSize;
 		}

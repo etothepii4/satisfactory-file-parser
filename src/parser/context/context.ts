@@ -1,5 +1,4 @@
-import { ChunkCompressionInfo } from '../file.types';
-
+import { ChunkCompressionInfo } from "../satisfactory/save/save-body-chunks";
 
 /**
  * Merged Context Type for Saves and Blueprints.

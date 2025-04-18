@@ -1,10 +1,10 @@
 import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
 import { UnsupportedVersionError } from '../../error/parser.error';
-import { ChunkCompressionInfo } from "../../file.types";
 import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
 import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
+import { ChunkCompressionInfo } from "../../satisfactory/save/save-body-chunks";
 import { SaveCustomVersion } from '../../satisfactory/save/save-custom-version';
 import { Grids, SaveBodyValidation, SaveReader } from '../../satisfactory/save/save-reader';
 

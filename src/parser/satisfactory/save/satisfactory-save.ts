@@ -1,6 +1,6 @@
-import { ChunkCompressionInfo } from "../../file.types";
 import { Levels } from './level.class';
 import { SatisfactorySaveHeader } from './satisfactory-save-header';
+import { ChunkCompressionInfo } from './save-body-chunks';
 import { Grids, SaveBodyValidation } from "./save-reader";
 
 export class SatisfactorySave {

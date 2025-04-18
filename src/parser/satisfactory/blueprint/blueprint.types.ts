@@ -1,4 +1,4 @@
-import { ChunkCompressionInfo } from "../../file.types";
+import { ChunkCompressionInfo } from "../save/save-body-chunks";
 import { SaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity } from "../types/objects/SaveEntity";
 import { BlueprintConfig } from './blueprint-config';

@@ -1,5 +1,4 @@
 import { UnsupportedVersionError } from './error/parser.error';
-import { ChunkSummary } from "./file.types";
 import { BlueprintConfig } from './satisfactory/blueprint/blueprint-config';
 import { BlueprintHeader } from './satisfactory/blueprint/blueprint-header';
 import { BlueprintConfigReader, BlueprintReader } from "./satisfactory/blueprint/blueprint-reader";
@@ -7,6 +6,7 @@ import { BlueprintConfigWriter, BlueprintWriter } from "./satisfactory/blueprint
 import { Blueprint } from "./satisfactory/blueprint/blueprint.types";
 import { SatisfactorySave } from "./satisfactory/save/satisfactory-save";
 import { SatisfactorySaveHeader } from './satisfactory/save/satisfactory-save-header';
+import { ChunkSummary } from './satisfactory/save/save-body-chunks';
 import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
 

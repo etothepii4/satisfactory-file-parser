@@ -1,8 +1,8 @@
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextWriter } from '../../context/context-writer';
 import { ParserError } from "../../error/parser.error";
-import { ChunkCompressionInfo, ChunkSummary } from "../../file.types";
 import { Level } from '../save/level.class';
+import { ChunkCompressionInfo, ChunkSummary } from "../save/save-body-chunks";
 import { SaveWriter } from "../save/save-writer";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
