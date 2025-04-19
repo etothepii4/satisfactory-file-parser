@@ -11,17 +11,25 @@ The purpose to have an editable structure, game logic is not known.
 It is recommended that you look at the parsed save/blueprint to get an idea what you want to edit.
 
 # Supported Versions
-The version support of the packages is indicated below. Some bugs might still be present, see Bug Reporting further down.
-
+The version support of the Game Updates is indicated below.
+The parser is pretty compatible with older saves and blueprints (for example from U8).
+If you still run into errors, let me know or raise an issue.
 Game Version Files of U5 and below are NOT supported.
 
 | Game Version   |      Package                 |
 |:--------------:|:-----------------------------|
-| <= U5          |  ❌                          |
-| U6 + U7        |  ✅ 0.0.1 - 0.0.34           |
-| U8             |  ✅ 0.1.20 - 0.3.7           |
-| U1.0           |  ✅ >= 0.4.20                |
+| <= U5          |  ❌ not compatible           |
+| U6             |  ⚠️ mostly compatible        |
+| U7             |  ⚠️ mostly compatible        |
+| U8             |  ✅ compatible               |
+| U1.0           |  ✅ compatible               |
+| U1.1           |  ✅ compatible               |
 
+
+
+# Version Migration
+The parser will NOT MIGRATE from one game version to another, for compatibility reasons.
+If you parse a U8 save, the parser will also serialize it back to a U8 save.
 
 # Installation
 #### npm
