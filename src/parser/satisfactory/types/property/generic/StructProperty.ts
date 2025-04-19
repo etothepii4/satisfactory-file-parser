@@ -3,13 +3,13 @@ import { ContextWriter } from '../../../../context/context-writer';
 import { SaveCustomVersion } from '../../../save/save-custom-version';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
+import { FGDynamicStruct } from '../../structs/FGDynamicStruct';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { vec3 } from '../../structs/vec3';
 import { vec4 } from '../../structs/vec4';
-import { PropertiesList } from '../PropertiesList';
-import { AbstractBaseProperty, PropertiesMap } from './AbstractBaseProperty';
+import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
 export type BasicMultipleStructPropertyValue = {
@@ -35,13 +35,8 @@ export type RailroadTrackPositionStructPropertyValue = {
 
 export type InventoryItemStructPropertyValue = {
     itemReference: ObjectReference;
+    itemState?: FGDynamicStruct;
     legacyItemStateActor?: ObjectReference;
-    hasItemState?: number;
-    itemState?: {
-        stateReference: ObjectReference;
-        binarySize: number;
-        properties: PropertiesMap;
-    };
 };
 
 export type FICFrameRangeStructPropertyValue = {
@@ -202,19 +197,7 @@ export namespace StructProperty {
 
                 // inventory items have potentially an item state. but not before explicit version
                 if (reader.context.saveVersion >= SaveCustomVersion.RefactoredInventoryItemState) {
-                    value.hasItemState = reader.readInt32(); // this indicates whether more properties follow
-
-                    if (value.hasItemState >= 1) {
-                        const stateReference = ObjectReference.read(reader);
-                        const stateBinarySize = reader.readInt32();
-                        const properties = PropertiesList.ParseList(reader);
-
-                        value.itemState = {
-                            stateReference,
-                            binarySize: stateBinarySize,
-                            properties: properties
-                        };
-                    }
+                    value.itemState = FGDynamicStruct.Parse(reader);
                 } else {
                     value.legacyItemStateActor = ObjectReference.read(reader);
                 }
@@ -344,15 +327,8 @@ export namespace StructProperty {
                 value = value as InventoryItemStructPropertyValue;
                 ObjectReference.write(writer, value.itemReference);
 
-
                 if (writer.context.saveVersion >= SaveCustomVersion.RefactoredInventoryItemState) {
-                    writer.writeInt32(value.hasItemState ?? 0);
-
-                    if (value.hasItemState !== undefined && value.hasItemState >= 1) {
-                        ObjectReference.write(writer, value.itemState!.stateReference);
-                        writer.writeInt32(value.itemState!.binarySize);
-                        PropertiesList.SerializeList(writer, value.itemState!.properties);
-                    }
+                    FGDynamicStruct.Serialize(writer, value.itemState!);
                 } else {
                     ObjectReference.write(writer, value.legacyItemStateActor!);
                 }

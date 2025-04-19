@@ -31,11 +31,11 @@ export namespace Level {
 			collectables: []
 		}
 
-		//console.log('reading level', levelName);
-
 		// checksum object headers.
 		const headersBinLen = reader.readInt32(); // object headers + binary length
-		reader.readInt32Zero();
+		if (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+			reader.readInt32Zero();
+		}
 
 		// object headers
 		const posBeforeHeaders = reader.getBufferPosition();
@@ -56,7 +56,9 @@ export namespace Level {
 
 		// checksum for object content size
 		const objectContentsBinLen = reader.readInt32();
-		reader.readInt32Zero();
+		if (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+			reader.readInt32Zero();
+		}
 
 		// objects contents
 		const posBeforeContents = reader.getBufferPosition();
@@ -80,7 +82,10 @@ export namespace Level {
 	export const SerializeLevel = (writer: ContextWriter, level: Level) => {
 		const lenIndicatorHeaderAndDestroyedEntitiesSize = writer.getBufferPosition();
 		writer.writeInt32(0);	// len indicator
-		writer.writeInt32(0);	// unk
+
+		if (writer.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+			writer.writeInt32Zero();
+		}
 
 		SerializeAllObjectHeaders(writer, level.objects);
 
@@ -125,8 +130,13 @@ export namespace Level {
 
 	export const ReadNObjectContents = (reader: ContextReader, count: number, objects: SaveObject[], objectListOffset: number = 0, buildVersion: number = 0) => {
 		for (let i = 0; i < count; i++) {
-			objects[i + objectListOffset].saveCustomVersion = reader.readInt32();	// seems to be customSaveVersion. 36, 41..... 42, 46 at 1.0 Release - 51 at 1.1
-			objects[i + objectListOffset].shouldMigrateObjectRefsToPersistent = reader.readInt32();	//1 - //occasionally 0 ?
+			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+				objects[i + objectListOffset].saveCustomVersion = reader.readInt32();
+			}
+			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+				objects[i + objectListOffset].shouldMigrateObjectRefsToPersistent = reader.readInt32() >= 1;
+			}
+
 			const binarySize = reader.readInt32();
 
 			const before = reader.getBufferPosition();
@@ -147,13 +157,19 @@ export namespace Level {
 		const lenIndicatorEntities = writer.getBufferPosition();
 		writer.writeInt32(0);
 
-		writer.writeInt32(0);	// 0
+		if (writer.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+			writer.writeInt32Zero();
+		}
 
 		writer.writeInt32(objects.length);
 		for (const obj of objects) {
 
-			writer.writeInt32(obj.saveCustomVersion);
-			writer.writeInt32(obj.shouldMigrateObjectRefsToPersistent);
+			if (writer.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+				writer.writeInt32(obj.saveCustomVersion);
+			}
+			if (writer.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+				writer.writeInt32(obj.shouldMigrateObjectRefsToPersistent ? 1 : 0);
+			}
 			const lenReplacementPosition = writer.getBufferPosition();
 			writer.writeInt32(0);
 

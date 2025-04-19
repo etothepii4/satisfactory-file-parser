@@ -93,13 +93,15 @@ const saveList = [
 	'265',					// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
 	'269',					// U8 save ported to 1.0
 
-	'Unlock 1.1',			// 1.1 Save
+	'Unlock 1.1',				// 1.1 Save
 	'Unlock 1.1-2',			// 1.1 Save
 
-	'FreshStartU8001-vehicles-2',	// purely U8
+	'FreshStartU8001-vehicles-2',	// U8 save
 
+	'FreshStart001',		// U6/U7 save
+	'FreshStart002',		// U6/U7 save
 
-	//'011.sav'
+	//'011'
 
 	// Mods
 	//'ficsitcam-1',
@@ -136,33 +138,6 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 };
 
 
-/*
-
-it('print save and blueprint versions', _ => {
-
-	const files = fs.readdirSync(__dirname).filter(filename => path.extname(filename) === '.sav' && !filename.includes('_on-writing'));
-	for (const filename of files) {
-		const file = new Uint8Array(fs.readFileSync(path.join(__dirname, filename))).buffer;
-
-		const reader = new SaveReader(file, () => { });
-		const header = SatisfactorySaveHeader.Parse(reader);
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.saveHeaderType);
-		console.log('Got Save', reader.context.saveHeaderType, reader.context.saveVersion, roughSaveVersion, filename);
-	}
-
-	const bpFiles = fs.readdirSync(__dirname).filter(filename => path.extname(filename) === '.sbp' && !filename.includes('_on-writing'));
-	for (const filename of bpFiles) {
-		const file = new Uint8Array(fs.readFileSync(path.join(__dirname, filename))).buffer;
-
-		const reader = new BlueprintReader(file);
-		const header = BlueprintHeader.Parse(reader);
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion, header.headerVersion);
-		console.log('Got BP', reader.context.headerVersion, reader.context.saveVersion, roughSaveVersion, filename);
-	}
-});
-*/
-
-
 /**
  * this test iterates through a list of "modificationMethods", where each modifies one or multiple objects. The test then checks whether the update persists through serialization and de-serialization.
  */
@@ -190,12 +165,14 @@ it.skip.each([
 });
 
 it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
+
 	const filepath = path.join(__dirname, savename + '.sav');
 	const binaryFilepathStream = path.join(__dirname, savename + '.stream.bin');
 	const binaryFilepathSync = path.join(__dirname, savename + '.sync.bin');
 	const file = new Uint8Array(fs.readFileSync(filepath)).buffer;
 	const outJsonPathStream = path.join(__dirname, savename + '.stream.json');
 	const outJsonPathSync = path.join(__dirname, savename + '.sync.json');
+
 
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
@@ -230,6 +207,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 
 	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
 
+
 	// parse sync as well.
 	const start2 = performance.now();
 	const save = ParseSaveSync(savename, file, decompressedBody => {
@@ -244,11 +222,12 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
 	const thing1 = JSON.parse(json1) as SatisfactorySave;
 	const thing2 = JSON.parse(json2) as SatisfactorySave;
+
 	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
 });
 
 
-it.skip.each(saveList)('can write a synchronous save', async (savename) => {
+it.each(saveList)('can write a synchronous save', async (savename) => {
 	const filepath = path.join(__dirname, savename + '.sync.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
 	WriteSaveSync(save, binary => {

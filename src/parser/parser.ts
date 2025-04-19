@@ -6,6 +6,7 @@ import { Blueprint } from "./satisfactory/blueprint/blueprint.types";
 import { SatisfactorySave } from "./satisfactory/save/satisfactory-save";
 import { SatisfactorySaveHeader } from './satisfactory/save/satisfactory-save-header';
 import { ChunkSummary } from './satisfactory/save/save-body-chunks';
+import { SaveCustomVersion } from './satisfactory/save/save-custom-version';
 import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
 
@@ -55,11 +56,15 @@ export class Parser {
 			options.onDecompressedSaveBody(reader.getBuffer());
 		}
 
-		// save body validation hash
-		save.gridHash = reader.readSaveBodyHash();
+		if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
 
-		// parse grids
-		save.grids = reader.readGrids();
+			// save body validation hash
+			save.gridHash = reader.readSaveBodyHash();
+
+			// parse grids
+			save.grids = reader.readGrids();
+		}
+
 
 		// parse levels
 		save.levels = reader.readLevels();
@@ -91,8 +96,11 @@ export class Parser {
 		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
 
-		SaveWriter.WriteSaveBodyHash(writer, save.gridHash);
-		SaveWriter.WriteGrids(writer, save.grids);
+		if (writer.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+			SaveWriter.WriteSaveBodyHash(writer, save.gridHash);
+			SaveWriter.WriteGrids(writer, save.grids);
+		}
+
 		SaveWriter.WriteLevels(writer, save);
 
 		writer.endWriting();

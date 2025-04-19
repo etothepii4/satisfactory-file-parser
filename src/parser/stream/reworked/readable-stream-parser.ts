@@ -164,11 +164,15 @@ export class ReadableStreamParser {
 				options.onDecompressedSaveBody(reader.getBuffer());
 			}
 
-			// grid hash i guess
-			const gridHash = reader.readSaveBodyHash();
+			let gridHash = save.gridHash;
+			let grids = save.grids;
+			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+				// grid hash i guess
+				gridHash = reader.readSaveBodyHash();
 
-			// parse grids
-			const grids = reader.readGrids();
+				// parse grids
+				grids = reader.readGrids();
+			}
 
 			await ReadableStreamParser.WriteHeaderAndGrids(write, name, inflateResult.compressionInfo, header, grids, gridHash);
 
@@ -216,8 +220,6 @@ export class ReadableStreamParser {
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
 
-			//console.log('reading level', levelName);
-
 			if (j % 500 === 0) {
 				reader.onProgressCallback(reader.getBufferProgress(), `reading level [${(j + 1)}/${(levelCount + 1)}] ${levelName}`);
 			}
@@ -228,7 +230,10 @@ export class ReadableStreamParser {
 
 			// object headers
 			const headersBinLen = reader.readInt32(); // object headers + destroyed colelctables
-			reader.readInt32Zero();
+			if (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+				reader.readInt32Zero();
+			}
+
 			const posBeforeHeaders = reader.getBufferPosition();
 			const afterAllHeaders = posBeforeHeaders + headersBinLen;
 			let countObjectHeaders = reader.readInt32();
@@ -266,7 +271,10 @@ export class ReadableStreamParser {
 					reader.skipBytes(afterAllHeaders - reader.getBufferPosition());
 
 					const objectContentsBinLen = reader.readInt32();
-					reader.readInt32Zero();
+					if (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
+						reader.readInt32Zero();
+					}
+
 					const posBeforeContents = reader.getBufferPosition();
 					const countEntities = reader.readInt32();
 					afterObjectsOfBatch = reader.getBufferPosition();	// at first no batch is read.

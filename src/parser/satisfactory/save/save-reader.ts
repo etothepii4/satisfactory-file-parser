@@ -3,6 +3,7 @@ import { ContextReader } from '../../context/context-reader';
 import { CorruptSaveError, ParserError } from '../../error/parser.error';
 import { Level } from './level.class';
 import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
+import { SaveCustomVersion } from './save-custom-version';
 import { RoughSaveVersion } from './save.types';
 
 
@@ -53,10 +54,10 @@ export class SaveReader extends ContextReader {
 			return '<U6';
 		}
 	};
-	public static IsGameVersionAtLeast_U1_1 = (saveVersion: number) => saveVersion >= 51;
-	public static IsGameVersionAtLeast_U1 = (saveVersion: number) => saveVersion >= 46;
-	public static IsGameVersionAtLeast_U8 = (saveVersion: number) => saveVersion >= 42;
-	public static IsGameVersionAtLeast_U6_U7 = (saveVersion: number) => saveVersion >= 29;
+	public static IsGameVersionAtLeast_U1_1 = (saveVersion: number) => saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion;
+	public static IsGameVersionAtLeast_U1 = (saveVersion: number) => saveVersion >= SaveCustomVersion.Version1;
+	public static IsGameVersionAtLeast_U8 = (saveVersion: number) => saveVersion >= SaveCustomVersion.UnrealEngine5;	// Could be anywhere from UnrealEngine5 (37) to ResetBrokenBlueprintSplinnes (42)
+	public static IsGameVersionAtLeast_U6_U7 = (saveVersion: number) => saveVersion >= SaveCustomVersion.AddedSublevelStreaming;
 
 	public inflateChunks(): { compressionInfo: ChunkCompressionInfo } {
 
@@ -69,95 +70,13 @@ export class SaveReader extends ContextReader {
 		this.bufferView = new DataView(this.fileBuffer);
 
 		const totalBodyRestSize = this.readInt32();
-		if (result.uncompressedData.byteLength !== totalBodyRestSize + 8) {
+		if (result.uncompressedData.byteLength !== (totalBodyRestSize + (this.context.saveVersion >= SaveCustomVersion.UnrealEngine5 ? 8 : 4))) {
 			throw new CorruptSaveError(`Possibly corrupt. Indicated size of total save body (${totalBodyRestSize + 8}) does not match the uncompressed real size of ${result.uncompressedData.byteLength}.`);
 		}
 
 		return {
 			compressionInfo: result.compressionInfo
 		};
-
-		/*
-		// free memory
-		this.fileBuffer = this.fileBuffer.slice(this.currentByte);
-
-		this.handledByte = 0;
-		this.currentByte = 0;
-		this.maxByte = this.fileBuffer.byteLength;
-
-
-		let currentChunks = [];
-		let totalUncompressedBodySize = 0;
-
-		// read while we can handle
-		while (this.handledByte < this.maxByte) {
-
-			// Read chunk info size...
-			// TODO: gets replaced.
-			const chunkHeaderSize = this.compressionInfo.chunkHeaderVersion === SaveBodyChunks.HEADER_V1 ? 48 : 49;
-			let chunkHeader = new DataView(this.fileBuffer.slice(0, chunkHeaderSize));
-			this.currentByte = chunkHeaderSize;
-			this.handledByte += chunkHeaderSize;
-
-
-			if (this.compressionInfo.packageFileTag <= 0) {
-				// Should always be 0xC1832A9E in LE
-				this.compressionInfo.packageFileTag = chunkHeader.getUint32(0, this.alignment === Alignment.LITTLE_ENDIAN);
-			}
-			if (this.compressionInfo.maxUncompressedChunkContentSize <= 0) {
-				// should always be 0x00000200 in LE
-				this.compressionInfo.maxUncompressedChunkContentSize = chunkHeader.getInt32(8, this.alignment === Alignment.LITTLE_ENDIAN);
-			}
-
-			const chunkCompressedLength = chunkHeader.getInt32(33, this.alignment === Alignment.LITTLE_ENDIAN);
-			const chunkUncompressedLength = chunkHeader.getInt32(25, this.alignment === Alignment.LITTLE_ENDIAN);
-			totalUncompressedBodySize += chunkUncompressedLength;
-
-			const currentChunkSize = chunkCompressedLength;
-			let currentChunk = this.fileBuffer.slice(this.currentByte, this.currentByte + currentChunkSize);
-			this.handledByte += currentChunkSize;
-			this.currentByte += currentChunkSize;
-
-
-			// Free memory from previous chunk...
-			this.fileBuffer = this.fileBuffer.slice(this.currentByte);
-			this.currentByte = 0;
-
-			// unzip current chunk
-			try {
-				let currentInflatedChunk = null;
-				currentInflatedChunk = Pako.inflate(new Uint8Array(currentChunk));
-				currentChunks.push(currentInflatedChunk);
-			}
-			catch (err: any) {
-				throw new CompressionLibraryError("Failed to inflate compressed save data. " + err);
-			}
-		}
-
-		//TODO we can get rid of file buffer here.
-		// Create one big chunk out of the little chunks
-		let newChunkLength = currentChunks.map<number>(cc => cc.length).reduce((prev, cur) => prev + cur);
-		const bigWholeChunk = new Uint8Array(newChunkLength);
-		let currentLength = 0;
-		for (let i = 0; i < currentChunks.length; i++) {
-			bigWholeChunk.set(currentChunks[i], currentLength);
-			currentLength += currentChunks[i].length;
-		}
-
-		this.currentByte = 0;
-		this.maxByte = bigWholeChunk.buffer.byteLength;
-		this.bufferView = new DataView(bigWholeChunk.buffer);
-
-		const dataLength = this.readInt32();
-		if (totalUncompressedBodySize !== dataLength + 8) {
-			throw new CorruptSaveError(`Possibly corrupt. Indicated size of total save body (${dataLength + 8}) does not match the uncompressed real size of ${totalUncompressedBodySize}.`);
-		}
-
-		return {
-			concatenatedChunkLength: newChunkLength,
-			numChunks: currentChunks.length
-		};
-		*/
 	}
 
 	public readSaveBodyHash = (): SaveBodyValidation => {
@@ -169,7 +88,6 @@ export class SaveReader extends ContextReader {
 		this.expect(this.readString(), 'None');
 		this.expect(this.readInt32(), 0);
 
-		// binary len maybe? But its not binary length of just grids, must be grids + levels?
 		const hash1 = Array.from(this.readBytes(4)) as ByteArray4; // some weird binary hash - 67 21 E7 F7 / DC 7E 81 48 / 59 E4 1E 1B  -- changes not when collecting a slug or dismantling an object. Grids havent changed. So it must depend on grid-related things.
 
 		this.expect(this.readInt32(), 1);

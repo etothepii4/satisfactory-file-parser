@@ -22,7 +22,11 @@ export namespace SetProperty {
 
         const subtype = reader.readString();
         reader.skipBytes(1); // 0
-        reader.skipBytes(4); // 0
+        const numElementsToRemove = reader.readInt32();
+        if (numElementsToRemove > 0) {
+            // not observed so far.
+            throw new UnimplementedError('SetPreperty does not yet support Number of Elements to be removed. Feel free to raise an issue.');
+        }
         const elementCount = reader.readInt32();
 
         let property;

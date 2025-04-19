@@ -14,9 +14,8 @@
 * The `objects` of `VehicleSpecialProperties` are now of type `VehiclePhysicsData` instead of just listing `unknownBytes`.
 * Levels within a Save are not an array, but an object with level name as key now.
 * Blueprint Configs have now a `configVersion`
+* InventoryItems' naming of fields changed. `itemStateRaw` is now better resolved into individual `properties`
 * InventoryItems have now a ObjectReference `itemReference` instead of the single string `itemName`, since that is more correct. InventoryItems' fields are also mostly optional due to compatibility.
-* InventoryItems have a `stateReference` instead of `statePathName` and `unk`, since that is more correct.
-* InventoryItems' `itemStateRaw` is now better resolved into individual `properties`.
 
 #### Internal Updates
 * Some internal changes like making Reader and Writer have context. To support different save versions.

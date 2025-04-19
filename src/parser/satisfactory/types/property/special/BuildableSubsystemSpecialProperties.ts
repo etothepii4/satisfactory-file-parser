@@ -2,10 +2,10 @@ import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
 import { SaveCustomVersion } from '../../../save/save-custom-version';
 import { col4 } from '../../structs/col4';
+import { FGDynamicStruct } from '../../structs/FGDynamicStruct';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { Transform } from '../../structs/Transform';
-import { PropertiesMap } from '../generic/AbstractBaseProperty';
-import { PropertiesList } from '../PropertiesList';
+import { RuntimeBuildableInstanceDataVersion } from './runtime-buildable-instance-data-version';
 
 
 
@@ -17,9 +17,6 @@ export type BuildableSubsystemSpecialProperties = {
         [typePath: string]: {
             typePath: string;
             instances: BuildableTypeInstance[];
-        } | {
-            typePath: '/Script/FactoryGame.BuildableBeamLightweightData',
-            instances: BuildableBeamLightweightData[]
         }
     };
     currentLightweightVersion?: number;
@@ -34,7 +31,7 @@ export namespace BuildableSubsystemSpecialProperties {
             currentLightweightVersion: 0
         };
 
-        if (reader.context.saveVersion !== undefined && reader.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
+        if (reader.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
             property.currentLightweightVersion = reader.readInt32();
         }
 
@@ -46,27 +43,15 @@ export namespace BuildableSubsystemSpecialProperties {
                 const typePath = reader.readString();
                 const count = reader.readInt32();
 
-                // when the type path is beam, the count is irrelevant? and the structure is different. Thanks CS. Added in 1.1
-                if (typePath === '/Script/FactoryGame.BuildableBeamLightweightData') {
-
-                    const instance = BuildableBeamLightweightData.Parse(reader);
-
-                    property.buildables[typePath] = {
-                        typePath,
-                        instances: [...(property.buildables[typePath]?.instances ?? []), instance] as BuildableBeamLightweightData[]
-                    };
-                } else {
-
-                    const instances: BuildableTypeInstance[] = [];
-                    for (let j = 0; j < count; j++) {
-                        instances.push(BuildableTypeInstance.Parse(reader));
-                    }
-
-                    property.buildables[typePath] = {
-                        typePath,
-                        instances: [...(property.buildables[typePath]?.instances ?? []), ...instances] as BuildableTypeInstance[]
-                    };
+                const instances: BuildableTypeInstance[] = [];
+                for (let j = 0; j < count; j++) {
+                    instances.push(BuildableTypeInstance.Parse(reader, property.currentLightweightVersion ?? 0));
                 }
+
+                property.buildables[typePath] = {
+                    typePath,
+                    instances: [...(property.buildables[typePath]?.instances ?? []), ...instances]
+                };
             }
         }
 
@@ -75,7 +60,7 @@ export namespace BuildableSubsystemSpecialProperties {
 
     export const Serialize = (writer: ContextWriter, property: BuildableSubsystemSpecialProperties) => {
 
-        if (writer.context.saveVersion !== undefined && writer.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
+        if (writer.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
             writer.writeInt32(property.currentLightweightVersion ?? 1);
         }
 
@@ -89,12 +74,7 @@ export namespace BuildableSubsystemSpecialProperties {
                 writer.writeInt32(buildable.instances.length);
 
                 for (const instance of buildable.instances) {
-
-                    if (typePath === '/Script/FactoryGame.BuildableBeamLightweightData') {
-                        BuildableBeamLightweightData.Serialize(writer, instance as BuildableBeamLightweightData);
-                    } else {
-                        BuildableTypeInstance.Serialize(writer, instance as BuildableTypeInstance);
-                    }
+                    BuildableTypeInstance.Serialize(writer, instance as BuildableTypeInstance, property.currentLightweightVersion ?? 0);
                 }
             }
         }
@@ -113,11 +93,11 @@ export type BuildableTypeInstance = {
     patternRotation: number;
     usedRecipe: ObjectReference;
     blueprintProxy: ObjectReference;
-    instanceSpecificData?: number;
+    instanceSpecificData?: FGDynamicStruct;
 };
 
 export namespace BuildableTypeInstance {
-    export const Parse = (reader: ContextReader) => {
+    export const Parse = (reader: ContextReader, lightWeightVersion: number) => {
         const transform = Transform.Parse(reader);
 
         const usedSwatchSlot = ObjectReference.read(reader);
@@ -134,8 +114,8 @@ export namespace BuildableTypeInstance {
         const blueprintProxy = ObjectReference.read(reader);
 
         let instanceSpecificData;
-        if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
-            instanceSpecificData = reader.readInt32();   // observed 0 or 1
+        if (lightWeightVersion >= RuntimeBuildableInstanceDataVersion.AddedTypeSpecificData) {
+            instanceSpecificData = FGDynamicStruct.Parse(reader);
         }
 
         return {
@@ -154,7 +134,7 @@ export namespace BuildableTypeInstance {
         } satisfies BuildableTypeInstance;
     }
 
-    export const Serialize = (writer: ContextWriter, instance: BuildableTypeInstance) => {
+    export const Serialize = (writer: ContextWriter, instance: BuildableTypeInstance, lightweightVersion: number) => {
         Transform.Serialize(writer, instance.transform);
 
         ObjectReference.write(writer, instance.usedSwatchSlot);
@@ -170,25 +150,9 @@ export namespace BuildableTypeInstance {
         ObjectReference.write(writer, instance.usedRecipe);
         ObjectReference.write(writer, instance.blueprintProxy);
 
-        if (writer.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
-            writer.writeInt32(instance.instanceSpecificData ?? 0);
+        if (lightweightVersion >= RuntimeBuildableInstanceDataVersion.AddedTypeSpecificData) {
+            FGDynamicStruct.Serialize(writer, instance.instanceSpecificData!);
         }
     }
 };
-
-export type BuildableBeamLightweightData = {
-    properties: PropertiesMap;
-}
-
-export namespace BuildableBeamLightweightData {
-    export const Parse = (reader: ContextReader) => {
-        return {
-            properties: PropertiesList.ParseList(reader)
-        };
-    }
-
-    export const Serialize = (writer: ContextWriter, instance: BuildableBeamLightweightData) => {
-        PropertiesList.SerializeList(writer, instance.properties);
-    }
-}
 

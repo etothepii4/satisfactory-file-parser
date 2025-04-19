@@ -10,7 +10,7 @@ export interface SaveObjectHeader {
 	typePath: string;
 	rootObject: string;
 	instanceName: string;
-	potentialFlags?: number;
+	flags?: number;
 }
 
 export abstract class SaveObject implements SaveObjectHeader {
@@ -20,9 +20,9 @@ export abstract class SaveObject implements SaveObjectHeader {
 	public trailingData: number[] = [];
 
 	public saveCustomVersion: number = 0;
-	public shouldMigrateObjectRefsToPersistent: number = 0;
+	public shouldMigrateObjectRefsToPersistent: boolean = false;
 
-	constructor(public typePath: string, public rootObject: string, public instanceName: string, public potentialFlags?: number) {
+	constructor(public typePath: string, public rootObject: string, public instanceName: string, public flags?: number) {
 
 	}
 
@@ -32,7 +32,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 		obj.instanceName = reader.readString();
 
 		if (reader.context.saveVersion >= SaveCustomVersion.SerializeObjectFlags) {
-			obj.potentialFlags = reader.readInt32();
+			obj.flags = reader.readUint32();
 		}
 	}
 
@@ -42,7 +42,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 		writer.writeString(obj.instanceName);
 
 		if (writer.context.saveVersion >= SaveCustomVersion.SerializeObjectFlags) {
-			writer.writeInt32(obj.potentialFlags ?? 0);
+			writer.writeUint32(obj.flags ?? 0);
 		}
 	}
 
