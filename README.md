@@ -13,12 +13,12 @@ It is recommended that you look at the parsed save/blueprint to get an idea what
 
 # Supported Versions
 The version support of the Game Updates is indicated below.
-The parser is pretty compatible with older saves and blueprints (for example from U8).
+The parser is pretty compatible with older saves and blueprints alike (for example from U8).
 If you still run into errors, let me know or raise an issue.
 Game Version Files of U5 and below are NOT supported.
 
-| Game Version   |      Package                 |
-|:--------------:|:-----------------------------|
+| Game Version   |             Support           |
+|:--------------:|:------------------------------|
 | <= U5          |  ❌ not compatible           |
 | U6             |  ⚠️ mostly compatible        |
 | U7             |  ⚠️ mostly compatible        |
@@ -30,7 +30,7 @@ Game Version Files of U5 and below are NOT supported.
 
 # Version Migration
 The parser will NOT MIGRATE from one game version to another, for compatibility reasons.
-If you parse a U8 save, the parser will also serialize it back to a U8 save.
+If you parse a U8 save/blueprint, the parser will also serialize it back to a U8 save/blueprint.
 
 # Installation
 #### npm
