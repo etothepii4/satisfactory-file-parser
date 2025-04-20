@@ -5,10 +5,9 @@
 * The save header in 1.1 has now the save file name. Which gets used over the passed name when the file is from 1.1.
 * Save objects have 1-2 new fields.
 * `BuildableSubsystemSpecialProperties` have now a slightly different structure. Their buildables `typePath` gets replaced with an object reference `typeReference`.
-* `BuildableSubsystemSpecialProperties` for `BuildableBeamLightweightData` is different from the others in 1.1. Noone knows why.
 * SaveObject's field `unknownType2` is now called `shouldMigrateObjectRefsToPersistent`.
 * SaveObject's field `objectVersion` is now called `saveCustomVersion`.
-* Levels have a new field `saveCustomVersion`.
+* Levels also have a field `saveCustomVersion`.
 * `BuildableSubsystemSpecialProperties` have one more field (`currentLightweightVersion`) and their buildables can now be also a different type.
 * The `parentObjectRoot` and `parentObjectName` got merged to `parentObject` as a Reference struct, instead of two strings.
 * The `objects` of `VehicleSpecialProperties` are now of type `VehiclePhysicsData` instead of just listing `unknownBytes`.

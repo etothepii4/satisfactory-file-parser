@@ -146,7 +146,7 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
  */
 it.each([
 	['modifies position of first player', ModifyPlayer],
-	/*['modifies an item stack in a storage container', ModifyStorageContainer]*/
+	['modifies an item stack in a storage container', ModifyStorageContainer]
 ])('example %s correctly', (_, modificationMethod: (save: SatisfactorySave) => { object: SaveEntity | SaveComponent, level: Level }[]) => {
 	const savename = '265';
 	const file = new Uint8Array(fs.readFileSync(path.join(__dirname, savename + '.sav'))).buffer;

@@ -1,6 +1,7 @@
 # Satisfactory File Parser
 This is a TypeScript [github project](https://github.com/etothepii4/satisfactory-file-parser) to parse Satisfactory Saves/Blueprints. Satisfactory is a game released by Coffee Stain Studios.
 The reporitory is written entirely in TypeScript and is bundled on [NPM](https://www.npmjs.com/package/@etothepii/satisfactory-file-parser).
+The examples listed here are Node.js. Should work in browser as well.
 
 This parser can read, modify and write:
 - Save Files `.sav`
@@ -54,8 +55,11 @@ Reading a Save in Memory.
 import * as fs from 'fs';
 import { Parser } from '@etothepii/satisfactory-file-parser';
 
-const file = fs.readFileSync('./MySave.sav');
-const save = Parser.ParseSave('MySave', file.buffer);
+const file = new Uint8Array(fs.readFileSync('./MySave.sav')).buffer;
+const save = Parser.ParseSave('MySave', file);
+
+// write to json file
+fs.writeFileSync('MySave.json', JSON.stringify(save));
 ```
 
 
@@ -108,15 +112,18 @@ fs.writeFileSync('./MyModifiedSave.sav', Buffer.concat([fileHeader!, ...bodyChun
 
 
 # Reading Blueprints
-Note, that blueprints consist of 2 files. The `.sbp` main file and the config file `.sbpcfg`.
+Blueprints consist of 2 files. The `.sbp` main file and the config file `.sbpcfg`.
 
 ```js
 import * as fs from 'fs';
 import { Parser } from "@etothepii/satisfactory-file-parser";
 
-const mainFile = fs.readFileSync('./MyBlueprint.sbp');
-const configFile = fs.readFileSync('./MyBlueprint.sbpcfg');
+const file = new Uint8Array(fs.readFileSync('./MyBlueprint.sbp')).buffer;
+const configFile = new Uint8Array(fs.readFileSync('./MyBlueprint.sbpcfg')).buffer;
 const blueprint = Parser.ParseBlueprintFiles('Myblueprint', mainFile, configFile);
+
+// write to json file
+fs.writeFileSync('Myblueprint.json', JSON.stringify(blueprint));
 ```
 
 # Writing Blueprints
@@ -173,7 +180,7 @@ import { SaveComponent, SaveEntity, StructArrayProperty, Int32Property, ObjectPr
 // currently quite inefficient to loop through everything, so theres room to improve in a future version. Feel free to raise an issue.
 const modifyObjects = (...modifiedObjects: (SaveEntity | SaveComponent)[]) => {
     for (const modifiedObject of modifiedObjects) {
-        for (const level of save.levels) {
+        for (const level of Object.values(save.levels)) {
             for (let i = 0; i < level.objects.length; i++) {
                 if (level.objects[i].instanceName === modifiedObject.instanceName) {
                     level.objects[i] = modifiedObject;
@@ -183,8 +190,8 @@ const modifyObjects = (...modifiedObjects: (SaveEntity | SaveComponent)[]) => {
     }
 }
 
-const objects = save.levels.flatMap(level => level.objects);
-const collectables = save.levels.flatMap(level => level.collectables);
+const objects = Object.values(save.levels).flatMap(level => level.objects);
+const collectables = Object.values(save.levels).flatMap(level => level.collectables);
 ```
 
 ## Example Print Hub Terminal Location
@@ -229,7 +236,10 @@ const firstStack = inventoryStacks.values[0];
 
 // Items within ItemStacks are quite nested. And StructProperties can basically be anything.
 // overwrite first item stack with 5 Rotors.
-(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemName = '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C';
+(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemReference = {
+    levelName: '',
+    pathName: '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C'
+};
 ((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
 
 // modify original save object

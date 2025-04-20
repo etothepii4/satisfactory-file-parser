@@ -13,8 +13,12 @@ export class SatisfactorySave {
 	public compressionInfo?: ChunkCompressionInfo;
 	public unresolvedWorldSaveData?: ObjectReference[];
 
+	// since 1.1 we finally have the save file name in the header.
 	constructor(name: string, header: SatisfactorySaveHeader) {
 		this.name = name;
 		this.header = header;
+		if (header.saveName !== undefined) {
+			this.name = header.saveName;
+		}
 	}
 }

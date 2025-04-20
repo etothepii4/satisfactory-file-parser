@@ -1,7 +1,7 @@
 {
 	"name": "@etothepii/satisfactory-file-parser",
 	"author": "etothepii",
-	"version": "2.1.3",
+	"version": "3.0.0",
 	"description": "A file parser for satisfactory files. Includes save files and blueprint files.",
 	"types": "./build/index.d.ts",
 	"main": "./build/index.js",
