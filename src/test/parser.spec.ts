@@ -13,7 +13,6 @@ import { Int32Property } from '../parser/satisfactory/types/property/generic/Int
 import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
 import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
 import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
-import { ObjectReference } from '../parser/satisfactory/types/structs/ObjectReference';
 import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
@@ -63,12 +62,12 @@ const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing?: (bina
 
 
 const FindFirst = (save: SatisfactorySave, condition: (obj: SaveObject) => boolean): { object: SaveEntity | SaveComponent, level: Level } | undefined => {
-	for (let i = 0; i < Object.values(save.levels).length; i++) {
-		const potentialHub = save.levels[i].objects.find(condition);
-		if (potentialHub) {
+	for (const level of Object.values(save.levels)) {
+		const potentialObject = level.objects.find(condition);
+		if (potentialObject) {
 			return {
-				level: save.levels[i],
-				object: potentialHub
+				level,
+				object: potentialObject
 			};
 		}
 	}
@@ -101,6 +100,10 @@ const saveList = [
 	'FreshStart001',		// U6/U7 save
 	'FreshStart002',		// U6/U7 save
 
+	'Release Ported U1 to U1.1',							// U1 ported to U1.1
+	'Release Ported U1 to U1.1 Collected Nuts and Berry',	// U1 ported to U1.1
+	'Release Ported U1 to U1.1 Collected Blue Slug',		// U1 ported to U1.1
+
 	//'011'
 
 	// Mods
@@ -131,7 +134,7 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 	(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemReference = {
 		levelName: '',
 		pathName: '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C'
-	} satisfies ObjectReference;
+	};
 	((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
 
 	return [firstContainer];
@@ -141,9 +144,9 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 /**
  * this test iterates through a list of "modificationMethods", where each modifies one or multiple objects. The test then checks whether the update persists through serialization and de-serialization.
  */
-it.skip.each([
+it.each([
 	['modifies position of first player', ModifyPlayer],
-	['modifies an item stack in a storage container', ModifyStorageContainer]
+	/*['modifies an item stack in a storage container', ModifyStorageContainer]*/
 ])('example %s correctly', (_, modificationMethod: (save: SatisfactorySave) => { object: SaveEntity | SaveComponent, level: Level }[]) => {
 	const savename = '265';
 	const file = new Uint8Array(fs.readFileSync(path.join(__dirname, savename + '.sav'))).buffer;
@@ -152,7 +155,9 @@ it.skip.each([
 	// modify, write save, read save again
 	const modifiedObjects = modificationMethod(save);
 	ModifyObjects(save, ...modifiedObjects.map(wrapper => wrapper.object));
-	WriteSaveSync(save);
+	WriteSaveSync(save, binary => {
+		fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
+	});
 	const modifiedFile = new Uint8Array(fs.readFileSync(path.join(__dirname, save.name + '_on-writing.sav'))).buffer;
 	const modifiedSave = ParseSaveSync(savename, modifiedFile);
 
@@ -222,6 +227,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
 	const thing1 = JSON.parse(json1) as SatisfactorySave;
 	const thing2 = JSON.parse(json2) as SatisfactorySave;
+
 
 	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
 });

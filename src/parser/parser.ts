@@ -1,3 +1,4 @@
+import { UnsupportedVersionError } from './error/parser.error';
 import { BlueprintConfig } from './satisfactory/blueprint/blueprint-config';
 import { BlueprintHeader } from './satisfactory/blueprint/blueprint-header';
 import { BlueprintConfigReader, BlueprintReader } from "./satisfactory/blueprint/blueprint-reader";
@@ -9,6 +10,7 @@ import { ChunkSummary } from './satisfactory/save/save-body-chunks';
 import { SaveCustomVersion } from './satisfactory/save/save-custom-version';
 import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
+import { ObjectReference } from './satisfactory/types/structs/ObjectReference';
 
 
 /** @public */
@@ -36,16 +38,10 @@ export class Parser {
 		const save = new SatisfactorySave(name, header);
 
 		// guard save version
-		/*
 		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion);
 		if (roughSaveVersion === '<U6') {
-			throw new UnsupportedVersionError('Game Version < U6 is not supported.');
-		} else if (roughSaveVersion === 'U6/U7') {
-			throw new UnsupportedVersionError('Game Version U6/U7 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.0.34');
-		} else if (roughSaveVersion === 'U8') {
-			//throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
+			throw new UnsupportedVersionError('Game Version < U6 is not supported in the parser. Please save the file in a newer game version.');
 		}
-		*/
 
 		// inflate chunks
 		const inflateResult = reader.inflateChunks();
@@ -68,6 +64,18 @@ export class Parser {
 
 		// parse levels
 		save.levels = reader.readLevels();
+
+		// unresolved data, probably not even useful.
+		const countUnresolvedWorldSaveData = reader.readInt32();
+		if (countUnresolvedWorldSaveData) {
+			save.unresolvedWorldSaveData = [];
+			for (let i = 0; i < countUnresolvedWorldSaveData; i++) {
+				save.unresolvedWorldSaveData.push(ObjectReference.read(reader));
+			}
+		}
+
+		reader.onProgressCallback(reader.getBufferProgress(), 'finished parsing.');
+
 
 		return save;
 	}
@@ -92,6 +100,7 @@ export class Parser {
 		writer.context.saveHeaderType = save.header.saveHeaderType;
 		writer.context.saveVersion = save.header.saveVersion;
 		writer.context.buildVersion = save.header.buildVersion;
+		writer.context.mapName = save.header.mapName;
 
 		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
@@ -102,6 +111,12 @@ export class Parser {
 		}
 
 		SaveWriter.WriteLevels(writer, save);
+
+		// unresolved data
+		writer.writeInt32(save.unresolvedWorldSaveData?.length ?? 0);
+		for (const actor of save.unresolvedWorldSaveData ?? []) {
+			ObjectReference.write(writer, actor);
+		}
 
 		writer.endWriting();
 		const chunkSummary = writer.generateChunks(save.compressionInfo!, posAfterHeader, options?.onBinaryBeforeCompressing ?? (() => { }), onHeader, onChunk);

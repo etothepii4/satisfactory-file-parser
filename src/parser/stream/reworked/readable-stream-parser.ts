@@ -1,4 +1,5 @@
 import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
+import { UnsupportedVersionError } from '../../error/parser.error';
 import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
@@ -6,6 +7,7 @@ import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-sav
 import { ChunkCompressionInfo } from "../../satisfactory/save/save-body-chunks";
 import { SaveCustomVersion } from '../../satisfactory/save/save-custom-version';
 import { Grids, SaveBodyValidation, SaveReader } from '../../satisfactory/save/save-reader';
+import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
 const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): QueuingStrategy<string> => ({
@@ -144,16 +146,10 @@ export class ReadableStreamParser {
 			const save = new SatisfactorySave(name, header);
 
 			// guard save version
-			/*
 			const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion);
 			if (roughSaveVersion === '<U6') {
-				throw new UnsupportedVersionError('Game Version < U6 is not supported.');
-			} else if (roughSaveVersion === 'U6/U7') {
-				throw new UnsupportedVersionError('Game Version U6/U7 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.0.34');
-			} else if (roughSaveVersion === 'U8') {
-				throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
+				throw new UnsupportedVersionError('Game Version < U6 is not supported in the parser. Please save the file in a newer game version.');
 			}
-			*/
 
 			// inflate chunks
 			const inflateResult = reader.inflateChunks();
@@ -178,13 +174,24 @@ export class ReadableStreamParser {
 
 			// parse levels
 			await ReadableStreamParser.ReadWriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
+			await write(`}`, false);
+
+			// unresolved data
+			const countUnresolvedWorldSaveData = reader.readInt32();
+			if (countUnresolvedWorldSaveData) {
+				save.unresolvedWorldSaveData = [];
+				for (let i = 0; i < countUnresolvedWorldSaveData; i++) {
+					save.unresolvedWorldSaveData.push(ObjectReference.read(reader));
+				}
+				await write(`, "unresolvedWorldSaveData": ${JSON.stringify(save.unresolvedWorldSaveData)} `, false);
+			}
 
 			if (options?.onProgress !== undefined) {
 				options.onProgress(1, 'finished parsing.');
 			}
 
 			// close the levels and save object.
-			await write(`}}`,);
+			await write(`}`, true);
 			finish();
 		};
 
@@ -217,6 +224,7 @@ export class ReadableStreamParser {
 		reader.onProgressCallback(reader.getBufferProgress(), `reading pack of ${levelCount + 1} levels.`);
 
 		let writtenTotalObjectsSinceConsumerSync = 0;
+		let collectables: ObjectReference[] = [];
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
 
@@ -260,7 +268,7 @@ export class ReadableStreamParser {
 				if (countObjectHeaders === totalReadObjectsInLevel + objects.length) {
 					const bytesLeft = afterAllHeaders - reader.getBufferPosition();
 					if (bytesLeft > 0) {
-						ObjectReferencesList.ReadList(reader);
+						collectables = ObjectReferencesList.ReadList(reader);
 					}
 				}
 
@@ -306,14 +314,36 @@ export class ReadableStreamParser {
 
 			await write('], ', false);
 
-			if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
-				const saveCustomVersion = reader.readInt32();
-				await write(`"saveCustomVersion": ${saveCustomVersion}, `, false);
+			// only NOT in the persistent level, we have saveVersion
+			if (levelName !== reader.context.mapName) {
+				if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
+					const saveCustomVersion = reader.readInt32();
+					await write(`"saveCustomVersion": ${saveCustomVersion}, `, false);
+				}
+			}
+
+			// only in persistent level, we have LevelToDestroyedActorsMap
+			if (levelName === reader.context.mapName) {
+				const entriesCount = reader.readInt32();
+				const destroyedActorsMap: { [levelName: string]: ObjectReference[] } = {};
+				for (let i = 0; i < entriesCount; i++) {
+					const levelName = reader.readString();
+					const destroyedActors: ObjectReference[] = [];
+					const destroyedActorsCount = reader.readInt32();
+					for (let j = 0; j < destroyedActorsCount; j++) {
+						destroyedActors.push(ObjectReference.read(reader));
+					}
+					destroyedActorsMap[levelName] = destroyedActors;
+				}
+				await write(`"destroyedActorsMap": ${JSON.stringify(destroyedActorsMap)}, `, false);
 			}
 
 			await write('"collectables": [', false);
 
-			const collectables = ObjectReferencesList.ReadList(reader);
+			// only NOT in the persistent level, we have 2nd collectables.
+			if (levelName !== reader.context.mapName) {
+				collectables = ObjectReferencesList.ReadList(reader);
+			}
 
 			await write(`${collectables.map(obj => JSON.stringify(obj)).join(', ')}`, true);
 

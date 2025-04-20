@@ -57,68 +57,6 @@ export class SaveWriter extends ContextWriter {
 	): ChunkSummary[] {
 
 		return SaveBodyChunks.CompressDataIntoChunks(bufferArray, compressionInfo, onBinaryBeforeCompressing, onChunk, alignment);
-
-		/*
-
-		const totalUncompressedSize = bufferArray.byteLength;
-
-		const saveBody = new Uint8Array(bufferArray.byteLength + 8);
-		saveBody.set(new Uint8Array(bufferArray), 4);
-		const miniView = new DataView(saveBody.buffer);
-		miniView.setInt32(0, totalUncompressedSize, alignment === Alignment.LITTLE_ENDIAN);
-		onBinaryBeforeCompressing(saveBody.buffer);
-
-		// collect slices of chunks with help of compression info for max chunk size
-		let handledByte = 0;
-		const chunkSummary: {
-			uncompressedSize: number,
-			compressedSize: number
-		}[] = [];
-		while (handledByte < saveBody.byteLength) {
-
-			// create uncompressed chunk.
-			const uncompressedContentSize = Math.min(compressionInfo.maxUncompressedChunkContentSize, saveBody.byteLength - handledByte);
-			const uncompressedChunk = saveBody.buffer.slice(handledByte, handledByte + uncompressedContentSize);
-
-			// deflate chunk while we're at it.
-			let compressedChunk: Uint8Array = new Uint8Array(0);
-			try {
-				compressedChunk = Pako.deflate(uncompressedChunk);
-			}
-			catch (err) {
-				throw new CompressionLibraryError("Could not compress save data. " + err);
-			}
-
-			const chunkHeaderSize = compressionInfo.chunkHeaderVersion === SaveBodyChunks.HEADER_V1 ? 48 : 49;
-			const chunk = new Uint8Array(chunkHeaderSize + compressedChunk.byteLength);
-			chunk.set(compressedChunk, chunkHeaderSize);
-
-			// write header
-			const view = new DataView(chunk.buffer);
-			view.setInt32(0, compressionInfo.packageFileTag, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(4, 0x22222222, alignment === Alignment.LITTLE_ENDIAN);		//v1 header is 0x00000000, v2 is 0x22222222
-			view.setInt32(8, compressionInfo.maxUncompressedChunkContentSize, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(12, 0, alignment === Alignment.LITTLE_ENDIAN);
-			view.setUint8(16, CompressionAlgorithmCode.ZLIB);	// compression algo, came with U8, only present if header v2. Which means the header is actually 48 bytes long if header is not v2
-			view.setInt32(17, compressedChunk.byteLength, alignment === Alignment.LITTLE_ENDIAN); // E0 3A 00 00 / 03 78 64 00
-			view.setInt32(21, 0, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(25, uncompressedContentSize, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(29, 0, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(33, compressedChunk.byteLength, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(37, 0, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(41, uncompressedContentSize, alignment === Alignment.LITTLE_ENDIAN);
-			view.setInt32(45, 0, alignment === Alignment.LITTLE_ENDIAN);
-
-			onChunk(chunk);
-			chunkSummary.push({
-				uncompressedSize: uncompressedContentSize + chunkHeaderSize,
-				compressedSize: compressedChunk.byteLength + chunkHeaderSize
-			});
-			handledByte += uncompressedContentSize;
-		}
-
-		return chunkSummary;
-		*/
 	}
 
 	public generateChunks(

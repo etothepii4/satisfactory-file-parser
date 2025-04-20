@@ -1,6 +1,6 @@
 import { Alignment } from '../../byte/alignment.enum';
 import { ContextReader } from '../../context/context-reader';
-import { CorruptSaveError, ParserError } from '../../error/parser.error';
+import { CorruptSaveError, ParserError, UnsupportedVersionError } from '../../error/parser.error';
 import { Level } from './level.class';
 import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
 import { SaveCustomVersion } from './save-custom-version';
@@ -115,8 +115,8 @@ export class SaveReader extends ContextReader {
 			const childrenCount = this.readUint32();
 			for (let i = 0; i < childrenCount; i++) {
 				const levelInstanceName = this.readString();
-				const cellBinHex = this.readUint32();
-				grids[gridName].children[levelInstanceName] = cellBinHex;
+				const cellHash = this.readUint32();
+				grids[gridName].children[levelInstanceName] = cellHash;
 			}
 		};
 
@@ -145,16 +145,10 @@ export class SaveReader extends ContextReader {
 		}
 
 		// guard save version
-		/*
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(this.context.saveVersion!);
+		const roughSaveVersion = SaveReader.GetRoughSaveVersion(this.context.saveVersion);
 		if (roughSaveVersion === '<U6') {
-			throw new UnsupportedVersionError('Game Version < U6 is not supported.');
-		} else if (roughSaveVersion === 'U6/U7') {
-			throw new UnsupportedVersionError('Game Version U6/U7 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.0.34');
-		} else if (roughSaveVersion === 'U8') {
-			//throw new UnsupportedVersionError('Game Version U8 is not supported in this package version. Consider downgrading to the latest package version supporting it, which is 0.3.7');
+			throw new UnsupportedVersionError('Game Version < U6 is not supported in the parser. Please save the file in a newer game version.');
 		}
-		*/
 
 		const levels: { [levelName: string]: Level; } = {};
 		const levelCount = this.readInt32();
@@ -168,8 +162,6 @@ export class SaveReader extends ContextReader {
 
 			levels[levelSingleName] = Level.ReadLevel(this, levelSingleName);
 		}
-
-		this.onProgressCallback(this.getBufferProgress(), 'finished parsing.');
 
 		return levels;
 	}

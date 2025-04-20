@@ -14,11 +14,9 @@ export const isBuildableSubsystemSpecialProperties = (obj: any): obj is Buildabl
 export type BuildableSubsystemSpecialProperties = {
     type: 'BuildableSubsystemSpecialProperties';
     buildables: {
-        [typePath: string]: {
-            typePath: string;
-            instances: BuildableTypeInstance[];
-        }
-    };
+        typeReference: ObjectReference;
+        instances: BuildableTypeInstance[];
+    }[];
     currentLightweightVersion?: number;
 };
 
@@ -27,7 +25,7 @@ export namespace BuildableSubsystemSpecialProperties {
 
         const property: BuildableSubsystemSpecialProperties = {
             type: 'BuildableSubsystemSpecialProperties',
-            buildables: {},
+            buildables: [],
             currentLightweightVersion: 0
         };
 
@@ -39,8 +37,7 @@ export namespace BuildableSubsystemSpecialProperties {
         if (entriesCount > 0) {
 
             for (let i = 0; i < entriesCount; i++) {
-                reader.readInt32Zero();
-                const typePath = reader.readString();
+                const typeReference = ObjectReference.read(reader);
                 const count = reader.readInt32();
 
                 const instances: BuildableTypeInstance[] = [];
@@ -48,10 +45,10 @@ export namespace BuildableSubsystemSpecialProperties {
                     instances.push(BuildableTypeInstance.Parse(reader, property.currentLightweightVersion ?? 0));
                 }
 
-                property.buildables[typePath] = {
-                    typePath,
-                    instances: [...(property.buildables[typePath]?.instances ?? []), ...instances]
-                };
+                property.buildables.push({
+                    typeReference,
+                    instances
+                });
             }
         }
 
@@ -68,13 +65,11 @@ export namespace BuildableSubsystemSpecialProperties {
 
         if (Object.keys(property.buildables).length > 0) {
 
-            for (const [typePath, buildable] of Object.entries(property.buildables)) {
-                writer.writeInt32Zero();
-                writer.writeString(typePath);
+            for (const buildable of property.buildables) {
+                ObjectReference.write(writer, buildable.typeReference);
                 writer.writeInt32(buildable.instances.length);
-
                 for (const instance of buildable.instances) {
-                    BuildableTypeInstance.Serialize(writer, instance as BuildableTypeInstance, property.currentLightweightVersion ?? 0);
+                    BuildableTypeInstance.Serialize(writer, instance, property.currentLightweightVersion ?? 0);
                 }
             }
         }

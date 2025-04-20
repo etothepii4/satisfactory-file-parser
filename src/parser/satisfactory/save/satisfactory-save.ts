@@ -1,3 +1,4 @@
+import { ObjectReference } from '../types/structs/ObjectReference';
 import { Levels } from './level.class';
 import { SatisfactorySaveHeader } from './satisfactory-save-header';
 import { ChunkCompressionInfo } from './save-body-chunks';
@@ -10,6 +11,7 @@ export class SatisfactorySave {
 	public grids: Grids = {};
 	public levels: Levels = {};
 	public compressionInfo?: ChunkCompressionInfo;
+	public unresolvedWorldSaveData?: ObjectReference[];
 
 	constructor(name: string, header: SatisfactorySaveHeader) {
 		this.name = name;

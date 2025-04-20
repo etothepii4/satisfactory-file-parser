@@ -19,6 +19,7 @@ export type Level = {
 	objects: (SaveEntity | SaveComponent)[];
 	collectables: ObjectReference[];
 	saveCustomVersion?: number;
+	destroyedActorsMap?: { [levelName: string]: ObjectReference[] }
 }
 export type Levels = { [levelName: string]: Level };
 
@@ -44,7 +45,7 @@ export namespace Level {
 		// collected, like slugs Only listed here since U8.
 		let remainingSize = headersBinLen - (reader.getBufferPosition() - posBeforeHeaders);
 		if (remainingSize > 0) {
-			const doubledCollectablesIgnored = ObjectReferencesList.ReadList(reader);
+			level.collectables = ObjectReferencesList.ReadList(reader);
 		} else {
 			// its perfectly possible for ported saves to have nothing here.
 		}
@@ -69,12 +70,34 @@ export namespace Level {
 			console.warn('save seems corrupt.', level.name);
 		}
 
-		if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
-			level.saveCustomVersion = reader.readInt32();
+
+		// only NOT in the persistent level, we have saveVersion
+		if (levelName !== reader.context.mapName) {
+			if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
+				level.saveCustomVersion = reader.readInt32();
+			}
 		}
 
-		// collectables 2nd time. Listed here since < U8 and in U8 as well. So this is the best list you can rely on.
-		level.collectables = ObjectReferencesList.ReadList(reader);
+		// only in persistent level, we have LevelToDestroyedActorsMap
+		if (levelName === reader.context.mapName) {
+			const entriesCount = reader.readInt32();
+			level.destroyedActorsMap = {};
+			for (let i = 0; i < entriesCount; i++) {
+				const levelName = reader.readString();
+				const destroyedActors: ObjectReference[] = [];
+				const destroyedActorsCount = reader.readInt32();
+				for (let j = 0; j < destroyedActorsCount; j++) {
+					destroyedActors.push(ObjectReference.read(reader));
+				}
+				level.destroyedActorsMap[levelName] = destroyedActors;
+			}
+		}
+
+		// only NOT in the persistent level, we have 2nd collectables.
+		// Listed here since < U8 and in U8 as well. So this is the best list you can rely on.
+		if (levelName !== reader.context.mapName) {
+			level.collectables = ObjectReferencesList.ReadList(reader);
+		}
 
 		return level;
 	}
@@ -100,11 +123,32 @@ export namespace Level {
 		// write entities
 		SerializeAllObjectContents(writer, level.objects, level.name);
 
-		if (writer.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
-			writer.writeInt32(level.saveCustomVersion ?? SaveCustomVersion.SerializePerStreamableLevelTOCVersion);
+
+		// only NOT in the persistent level, we have saveVersion
+		if (level.name !== writer.context.mapName) {
+			if (writer.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
+				writer.writeInt32(level.saveCustomVersion ?? SaveCustomVersion.SerializePerStreamableLevelTOCVersion);
+			}
 		}
 
-		ObjectReferencesList.SerializeList(writer, level.collectables);
+		// only in persistent level, we have LevelToDestroyedActorsMap
+		if (level.name === writer.context.mapName) {
+			writer.writeInt32(Object.keys(level.destroyedActorsMap!).length);
+			level.destroyedActorsMap = {};
+			for (const entry of Object.entries(level.destroyedActorsMap)) {
+				writer.writeString(entry[0]);
+
+				writer.writeInt32(Object.keys(entry[1]).length);
+				for (const actor of entry[1]) {
+					ObjectReference.write(writer, actor);
+				}
+			}
+		}
+
+		// only NOT in the persistent level, we have 2nd collectables.
+		if (level.name !== writer.context.mapName) {
+			ObjectReferencesList.SerializeList(writer, level.collectables);
+		}
 	}
 
 	export const ReadAllObjectContents = (levelName: string, reader: ContextReader, objectsList: SaveObject[], onProgressCallback: (progress: number, msg?: string) => void): void => {

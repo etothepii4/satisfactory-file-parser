@@ -34,7 +34,10 @@ export namespace FGDynamicStruct {
         writer.writeInt32(struct.hasValidStruct ? 1 : 0);
         if (struct.hasValidStruct) {
             ObjectReference.write(writer, struct.structReference!);
+            const before = writer.getBufferPosition();
+            writer.writeInt32Zero();
             PropertiesList.SerializeList(writer, struct.properties!);
+            writer.writeBinarySizeFromPosition(before, before + 4);
         }
     }
 }

@@ -1,10 +1,10 @@
 
 # Changelog
-### [3.0.0] (2025-04-13)
+### [3.0.1] (2025-04-20)
 #### Breaking Changes in Save Structure for 1.1
 * The save header in 1.1 has now the save file name. Which gets used over the passed name when the file is from 1.1.
-* Save objects have a new property as int32. No idea about the meaning.
-* `BuildableSubsystemSpecialProperties` have now a slightly different structure. Their buildables are an object with the typepaths as key now, instead of an array. It just makes it easier to group them.
+* Save objects have 1-2 new fields.
+* `BuildableSubsystemSpecialProperties` have now a slightly different structure. Their buildables `typePath` gets replaced with an object reference `typeReference`.
 * `BuildableSubsystemSpecialProperties` for `BuildableBeamLightweightData` is different from the others in 1.1. Noone knows why.
 * SaveObject's field `unknownType2` is now called `shouldMigrateObjectRefsToPersistent`.
 * SaveObject's field `objectVersion` is now called `saveCustomVersion`.

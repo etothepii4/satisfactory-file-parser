@@ -18,4 +18,6 @@ export namespace ObjectReference {
 		writer.writeString(ref.levelName);
 		writer.writeString(ref.pathName);
 	};
+
+	export const IsEqual = (ref1: ObjectReference, ref2: ObjectReference) => ref1.levelName === ref2.levelName && ref1.pathName === ref2.pathName;
 };
