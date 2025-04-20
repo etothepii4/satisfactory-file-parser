@@ -34,7 +34,6 @@ export namespace SatisfactorySaveHeader {
         const header = {
             saveHeaderType: 0,
             saveVersion: 0,
-            saveName: "",
             buildVersion: 0,
             mapName: "DEFAULT",
             mapOptions: "",

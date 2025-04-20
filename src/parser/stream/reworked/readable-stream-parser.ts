@@ -186,11 +186,15 @@ export class ReadableStreamParser {
 				await write(`, "unresolvedWorldSaveData": ${JSON.stringify(save.unresolvedWorldSaveData)} `, false);
 			}
 
+			if (save.name !== undefined) {
+				await write(`, "name": "${save.name}" `, false);
+			}
+
 			if (options?.onProgress !== undefined) {
 				options.onProgress(1, 'finished parsing.');
 			}
 
-			// close the levels and save object.
+			// close save object.
 			await write(`}`, true);
 			finish();
 		};

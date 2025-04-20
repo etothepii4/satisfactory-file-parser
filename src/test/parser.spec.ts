@@ -228,7 +228,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const thing1 = JSON.parse(json1) as SatisfactorySave;
 	const thing2 = JSON.parse(json2) as SatisfactorySave;
 
-
 	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
 });
 
