@@ -21,7 +21,6 @@
 * `SatisfactorySaveHeader` and `BlueprintHeader` have their own namespace now.
 
 
-# Changelog
 ### [2.1.3] (2024-11-24)
 #### Update README
 * fixed link to auto-generated typedoc.

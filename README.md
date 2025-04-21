@@ -107,7 +107,7 @@ Parser.WriteSave(save, header => {
 });
 
 // write complete sav file back to disk
-fs.writeFileSync('./MyModifiedSave.sav', Uint8Array.from([fileHeader!, ...bodyChunks]));
+fs.writeFileSync('./MyModifiedSave.sav', new Uint8Array(Buffer.concat([fileHeader!, ...bodyChunks]));
 ```
 
 
@@ -146,7 +146,7 @@ const summary = Parser.WriteBlueprintFiles(blueprint,
 );
 
 // write complete .sbp file back to disk
-fs.writeFileSync('./MyBlueprint.sbp', Uint8Array.from([mainFileHeader!, ...mainFileBodyChunks]));
+fs.writeFileSync('./MyBlueprint.sbp', new Uint8Array(Buffer.concat([mainFileHeader!, ...mainFileBodyChunks])));
 
 // write .sbpcfg file back to disk, we get that data from the result of WriteBlueprintFiles
 fs.writeFileSync('./MyBlueprint.sbpcfg', new Uint8Array(summary.configFileBinary));
