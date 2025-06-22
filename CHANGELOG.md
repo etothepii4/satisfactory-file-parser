@@ -8,10 +8,10 @@
 * SaveObject's field `unknownType2` is now called `shouldMigrateObjectRefsToPersistent`.
 * SaveObject's field `objectVersion` is now called `saveCustomVersion`.
 * Levels also have a field `saveCustomVersion`.
-* `BuildableSubsystemSpecialProperties` have one more field (`currentLightweightVersion`) and their buildables can now be also a different type.
+* `BuildableSubsystemSpecialProperties` have one more field (`currentLightweightVersion`).
 * The `parentObjectRoot` and `parentObjectName` got merged to `parentObject` as a Reference struct, instead of two strings.
 * The `objects` of `VehicleSpecialProperties` are now of type `VehiclePhysicsData` instead of just listing `unknownBytes`.
-* Levels within a Save are not an array, but an object with level name as key now.
+* Levels within a Save are not an array, but an object with level name as key now. You can use `Object.values(levels)`to get your array.
 * Blueprint Configs have now a `configVersion`
 * InventoryItems' naming of fields changed. `itemStateRaw` is now better resolved into individual `properties`
 * InventoryItems have now a ObjectReference `itemReference` instead of the single string `itemName`, since that is more correct. InventoryItems' fields are also mostly optional due to compatibility.

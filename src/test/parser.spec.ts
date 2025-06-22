@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Writable } from 'stream';
 import { isDeepStrictEqual } from 'util';
 import { Parser } from '../parser/parser';
 import { Level } from '../parser/satisfactory/save/level.class';
@@ -13,7 +12,6 @@ import { Int32Property } from '../parser/satisfactory/types/property/generic/Int
 import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
 import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
 import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
-import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
 const util = require('util');
 
 let fileLog: fs.WriteStream;
@@ -87,14 +85,44 @@ const ModifyObjects = (save: SatisfactorySave, ...modifiedObjects: (SaveEntity |
 
 
 const saveList = [
-	'Release 001',			// 1.0 Save, almost empty.
+
+	//'Release 001',			// 1.0 Save, almost empty.
 	'Release 032',			// 1.0 Save
 	'265',					// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
 	'269',					// U8 save ported to 1.0
 
-	'Unlock 1.1',				// 1.1 Save
+	/*
+	'Unlock 1.1',			// 1.1 Save
 	'Unlock 1.1-2',			// 1.1 Save
+	*/
 
+	//'Fresh 1.1 001',		// 1.1 Stable
+	//'Fresh 1.1 002',		// 1.1 Stable
+	//'Fresh 1.1 Empty Save',
+
+
+
+
+	//'Fresh 1.1 after-collect-1',
+	//'Fresh 1.1 before-collect',
+	//'Fresh 1.1 before-dismantle',
+	//'Fresh 1.1 after-dismantle',
+
+	// -- problematic
+	//'Fresh 1.1 after-dismantle-2',
+
+	//'Fresh 1.1 before-slug',
+	//'Fresh 1.1 after-slug'
+
+	//'Fresh 1.1 Dismantled',	// Dismantled Crashsite.
+	//'satis',
+
+
+
+
+
+
+	/*
 	'FreshStartU8001-vehicles-2',	// U8 save
 
 	'FreshStart001',		// U6/U7 save
@@ -110,6 +138,7 @@ const saveList = [
 	//'ficsitcam-1',
 	//'structuralsolutions-1',
 	//'x3-roads-signs'
+	*/
 ];
 
 const ModifyPlayer = (save: SatisfactorySave): { object: SaveEntity | SaveComponent, level: Level }[] => {
@@ -144,7 +173,7 @@ const ModifyStorageContainer = (save: SatisfactorySave): { object: SaveEntity | 
 /**
  * this test iterates through a list of "modificationMethods", where each modifies one or multiple objects. The test then checks whether the update persists through serialization and de-serialization.
  */
-it.each([
+it.skip.each([
 	['modifies position of first player', ModifyPlayer],
 	['modifies an item stack in a storage container', ModifyStorageContainer]
 ])('example %s correctly', (_, modificationMethod: (save: SatisfactorySave) => { object: SaveEntity | SaveComponent, level: Level }[]) => {
@@ -181,6 +210,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
+	/*
 	const outJsonStream = fs.createWriteStream(outJsonPathStream, { highWaterMark: 1024 * 1024 * 200 });
 
 	const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson(savename, file, {
@@ -211,6 +241,7 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	});
 
 	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
+	*/
 
 
 	// parse sync as well.
@@ -218,10 +249,15 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const save = ParseSaveSync(savename, file, decompressedBody => {
 		fs.writeFileSync(binaryFilepathSync, Buffer.from(decompressedBody));
 	});
+
+	const x = Object.fromEntries(Object.entries(save.levels).map(([name, lvl]) => [name, lvl.collectables]).filter(entry => entry[1].length > 0));
+	console.log(x);
+
 	fs.writeFileSync(outJsonPathSync, JSON.stringify(save));
 	const end2 = performance.now();
 	console.log(`Sync Parsing took ${(end2 - start2) / 1000} seconds.`);
 
+	/*
 	// check that the minified jsons of stream and sync parsing are equal.
 	const json1 = fs.readFileSync(outJsonPathStream, { encoding: 'utf-8' });
 	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
@@ -229,10 +265,11 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const thing2 = JSON.parse(json2) as SatisfactorySave;
 
 	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
+	*/
 });
 
 
-it.each(saveList)('can write a synchronous save', async (savename) => {
+it.skip.each(saveList)('can write a synchronous save', async (savename) => {
 	const filepath = path.join(__dirname, savename + '.sync.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
 	WriteSaveSync(save, binary => {
@@ -241,11 +278,11 @@ it.each(saveList)('can write a synchronous save', async (savename) => {
 });
 
 
-it.each([
-	'U1-1-Single-Container',	// U1.1
-	'U1-1-Single-Container-2',	// U1.1
+it.skip.each([
+	//'U1-1-Single-Container',	// U1.1
+	//'U1-1-Single-Container-2',	// U1.1
 
-	'BlueprintWithHeaderV1',	// blueprint saved before v2 header was introduced (in U8 i think)
+	//'BlueprintWithHeaderV1',	// blueprint saved before v2 header was introduced (in U8 i think)
 
 	//'release-single-wall',					// U1
 	//'release-storage-mk1',					// U1

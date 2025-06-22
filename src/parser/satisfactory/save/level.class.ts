@@ -45,14 +45,21 @@ export namespace Level {
 		// collected, like slugs Only listed here since U8.
 		let remainingSize = headersBinLen - (reader.getBufferPosition() - posBeforeHeaders);
 		if (remainingSize > 0) {
-			level.collectables = ObjectReferencesList.ReadList(reader);
+
+			if (levelName === reader.context.mapName) {
+				const bytes = reader.readBytes(remainingSize);
+				console.log('bytes was more than nothing?', bytes);
+			} else {
+				level.collectables = ObjectReferencesList.ReadList(reader);
+			}
+
 		} else {
 			// its perfectly possible for ported saves to have nothing here.
 		}
 
 		remainingSize = headersBinLen - (reader.getBufferPosition() - posBeforeHeaders);
 		if (remainingSize !== 0) {
-			console.warn('remaining size not 0. Save may be corrupt.', remainingSize, levelName);
+			console.warn(`remaining size ${remainingSize} not 0 in level ${levelName}. Save may be corrupt.`);
 		}
 
 		// checksum for object content size
@@ -154,7 +161,7 @@ export namespace Level {
 	export const ReadAllObjectContents = (levelName: string, reader: ContextReader, objectsList: SaveObject[], onProgressCallback: (progress: number, msg?: string) => void): void => {
 		const countEntities = reader.readInt32();
 		if (countEntities !== objectsList.length) {
-			throw new Error(`possibly corrupt. entity content count ${countEntities} does not equal object count of ${objectsList.length}`);
+			throw new Error(`possibly corrupt. entity count ${countEntities} does not equal object count of ${objectsList.length}`);
 		}
 
 		// read in batches
@@ -247,6 +254,7 @@ export namespace Level {
 
 			let obj: SaveEntity | SaveComponent;
 			let objectType = reader.readInt32();
+			console.log('read object header', objectsRead);
 			switch (objectType) {
 				case SaveEntity.TypeID:
 					obj = new SaveEntity('', '', '', '');
@@ -259,6 +267,7 @@ export namespace Level {
 				default:
 					throw new CorruptSaveError('Unknown object type' + objectType);
 			}
+			console.log(obj.instanceName);
 			objects.push(obj);
 		}
 		return objects;

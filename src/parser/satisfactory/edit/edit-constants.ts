@@ -1035,6 +1035,10 @@ export const EDIT = {
 				STEEL_WALL_GATE: {
 					TYPE_PATH: '/Game/FactoryGame/Buildable/Building/Wall/SteelWallSet/Build_SteelWall_8x4_Gate_01.Build_SteelWall_8x4_Gate_01_C',
 					CLASS_NAME: 'Build_SteelWall_8x4_Gate_01_C'
+				},
+				BIG_GARAGE: {
+					TYPE_PATH: '/Game/FactoryGame/Buildable/Building/Doors/Build_BigGarageDoor_16x8.Build_BigGarageDoor_16x8_C',
+					CLASS_NAME: 'Build_BigGarageDoor_16x8_C'
 				}
 			},
 			CONVEYOR: {
@@ -1555,6 +1559,10 @@ export const EDIT = {
 			CHAIN_LINK_FENCE: {
 				TYPE_PATH: '/Game/FactoryGame/Buildable/Building/TarpFence/Build_ChainLinkFence.Build_ChainLinkFence_C',
 				CLASS_NAME: 'Build_ChainLinkFence_C'
+			},
+			BARRIER_CORNER: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Building/Fence/Build_Barrier_Corner.Build_Barrier_Corner_C',
+				CLASS_NAME: 'Build_Barrier_Corner_C'
 			}
 		},
 		WORKSHOP: {
@@ -1627,6 +1635,22 @@ export const EDIT = {
 				CLASS_NAME: 'Build_Beam_Cable_C',
 				RECIPE: '/Game/FactoryGame/Prototype/Buildable/Beams/Recipe_Beam_Cable.Recipe_Beam_Cable_C'
 			},
+			CABLE_CLUSTER: {
+				TYPE_PATH: '/Game/FactoryGame/Prototype/Buildable/Beams/Build_Beam_Cable_Cluster.Build_Beam_Cable_Cluster_C',
+				CLASS_NAME: 'Build_Beam_Cable_Cluster_C'
+			},
+			CONCRETE: {
+				TYPE_PATH: '/Game/FactoryGame/Prototype/Buildable/Beams/Build_Beam_Concrete.Build_Beam_Concrete_C',
+				CLASS_NAME: 'Build_Beam_Concrete_C'
+			},
+			SHELF: {
+				TYPE_PATH: '/Game/FactoryGame/Prototype/Buildable/Beams/Build_Beam_Shelf.Build_Beam_Shelf_C',
+				CLASS_NAME: 'Build_Beam_Shelf_C'
+			},
+			H: {
+				TYPE_PATH: '/Game/FactoryGame/Prototype/Buildable/Beams/Build_Beam_H.Build_Beam_H_C',
+				CLASS_NAME: 'Build_Beam_H_C'
+			},
 			BUILDABLE_BEAM_LIGHTWEIGHT_DATA: {
 				TYPE_PATH: '/Script/FactoryGame.BuildableBeamLightweightData'
 			}
@@ -1678,6 +1702,10 @@ export const EDIT = {
 			TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/Train/Track/Build_RailroadTrack.Build_RailroadTrack_C',
 			CLASS_NAME: 'Build_RailroadTrack_C',
 			RECIPE: '/Game/FactoryGame/Recipes/Buildings/Recipe_RailroadTrack.Recipe_RailroadTrack_C'
+		},
+		RAILROAD_STOP: {
+			TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/Train/EndStop/Build_RailroadEndStop.Build_RailroadEndStop_C',
+			CLASS_NAME: 'Build_RailroadEndStop_C'
 		},
 		HUB_TERMINAL: {
 			TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/HubTerminal/Build_HubTerminal.Build_HubTerminal_C',
@@ -1817,6 +1845,14 @@ export const EDIT = {
 				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/ConveyorLiftMk6/Build_ConveyorLiftMk6.Build_ConveyorLiftMk6_C',
 				CLASS_NAME: 'Build_ConveyorLiftMk6_C'
 			},
+			MONITOR: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/ConveyorMonitor/Build_ConveyorMonitor.Build_ConveyorMonitor_C',
+				CLASS_NAME: 'Build_ConveyorMonitor_C'
+			},
+			PRIORITY_MERGER: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/CA_MergerPriority/Build_ConveyorAttachmentMergerPriority.Build_ConveyorAttachmentMergerPriority_C',
+				CLASS_NAME: 'Build_ConveyorAttachmentMergerPriority_C'
+			}
 		},
 		PIPELINE: {
 			PIPELINE_MK1: {
@@ -1867,6 +1903,10 @@ export const EDIT = {
 				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/Holiday/Build_TreeGiftProducer/Build_TreeGiftProducer.Build_TreeGiftProducer_C'
 			},
 
+		},
+		SHELF: {
+			TYPE_PATH: '/Game/FactoryGame/Buildable/Building/StackableShelf/Build_StackableShelf.Build_StackableShelf_C',
+			CLASS_NAME: 'Build_StackableShelf_C'
 		},
 		FACTORY: {
 			CONSTRUCTOR: {
@@ -2153,6 +2193,20 @@ export const EDIT = {
 		BUILDGUN: {
 			TYPE_PATH: '/Script/FactoryGame.FGBuildGun'
 		},
+		ELEVATOR: {
+			ELEVATOR_CABIN: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/Elevator/BP_ElevatorCabin.BP_ElevatorCabin_C',
+				CLASS_NAME: 'BP_ElevatorCabin_C'
+			},
+			STOP: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/Elevator/Build_ElevatorFloorStop.Build_ElevatorFloorStop_C',
+				CLASS_NAME: 'Build_ElevatorFloorStop_C'
+			},
+			ELEVATOR: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/Elevator/Build_Elevator.Build_Elevator_C',
+				CLASS_NAME: 'Build_Elevator_C'
+			}
+		},
 		HYPERTUBES: {
 			HYPERTUBE_SUPPORT: {
 				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/PipeHyperSupport/Build_PipeHyperSupport.Build_PipeHyperSupport_C',
@@ -2166,6 +2220,14 @@ export const EDIT = {
 			HYPERTUBE: {
 				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/PipeHyper/Build_PipeHyper.Build_PipeHyper_C',
 				CLASS_NAME: 'Build_PipeHyper_C'
+			},
+			TJUNCTION: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/PipeHyperTJunction/Build_HypertubeTJunction.Build_HypertubeTJunction_C',
+				CLASS_NAME: 'Build_HypertubeTJunction_C'
+			},
+			JUNCTION: {
+				TYPE_PATH: '/Game/FactoryGame/Buildable/Factory/PipeHyperJunction/Build_HyperTubeJunction.Build_HyperTubeJunction_C',
+				CLASS_NAME: 'Build_HyperTubeJunction_C'
 			}
 		},
 		SUBSYSTEMS_AND_MANAGERS: {
