@@ -4,6 +4,7 @@ import { SaveCustomVersion } from '../../../save/save-custom-version';
 import { col4 } from '../../structs/col4';
 import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
 import { FGDynamicStruct } from '../../structs/FGDynamicStruct';
+import { GUID } from '../../structs/GUID';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
 import { ObjectReference } from '../../structs/ObjectReference';
@@ -167,7 +168,7 @@ export namespace StructProperty {
                 break;
 
             case 'Guid':
-                value = reader.readString();
+                value = GUID.read(reader);
                 break;
 
             case 'ClientIdentityInfo':
@@ -307,8 +308,7 @@ export namespace StructProperty {
                 break;
 
             case 'Guid':
-                value = value as string;
-                writer.writeString(value);
+                GUID.write(writer, value as GUID);
                 break;
 
             case 'ClientIdentityInfo':

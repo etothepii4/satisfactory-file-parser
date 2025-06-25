@@ -4,6 +4,7 @@ export * from './parser/satisfactory/blueprint/blueprint-config-version';
 export * from './parser/satisfactory/blueprint/blueprint-header';
 export * from './parser/satisfactory/blueprint/blueprint.types';
 export * from './parser/satisfactory/save/factory-game-custom-version';
+export * from './parser/satisfactory/save/level-to-destroyed-actors-map';
 export * from './parser/satisfactory/save/level.class';
 export * from './parser/satisfactory/save/satisfactory-save';
 export * from './parser/satisfactory/save/satisfactory-save-header';

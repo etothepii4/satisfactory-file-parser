@@ -1,5 +1,6 @@
 import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
 import { UnsupportedVersionError } from '../../error/parser.error';
+import { LevelToDestroyedActorsMap } from '../../satisfactory/save/level-to-destroyed-actors-map';
 import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
@@ -229,6 +230,7 @@ export class ReadableStreamParser {
 
 		let writtenTotalObjectsSinceConsumerSync = 0;
 		let collectables: ObjectReference[] = [];
+		let destroyedActorsMap: LevelToDestroyedActorsMap = {};
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
 
@@ -272,8 +274,13 @@ export class ReadableStreamParser {
 				if (countObjectHeaders === totalReadObjectsInLevel + objects.length) {
 					const bytesLeft = afterAllHeaders - reader.getBufferPosition();
 					if (bytesLeft > 0) {
-						collectables = ObjectReferencesList.ReadList(reader);
+						if (levelName === reader.context.mapName) {
+							destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
+						} else {
+							collectables = ObjectReferencesList.ReadList(reader);
+						}
 					}
+
 				}
 
 
@@ -328,17 +335,7 @@ export class ReadableStreamParser {
 
 			// only in persistent level, we have LevelToDestroyedActorsMap
 			if (levelName === reader.context.mapName) {
-				const entriesCount = reader.readInt32();
-				const destroyedActorsMap: { [levelName: string]: ObjectReference[] } = {};
-				for (let i = 0; i < entriesCount; i++) {
-					const levelName = reader.readString();
-					const destroyedActors: ObjectReference[] = [];
-					const destroyedActorsCount = reader.readInt32();
-					for (let j = 0; j < destroyedActorsCount; j++) {
-						destroyedActors.push(ObjectReference.read(reader));
-					}
-					destroyedActorsMap[levelName] = destroyedActors;
-				}
+				destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 				await write(`"destroyedActorsMap": ${JSON.stringify(destroyedActorsMap)}, `, false);
 			}
 

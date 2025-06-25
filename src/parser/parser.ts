@@ -113,9 +113,12 @@ export class Parser {
 		SaveWriter.WriteLevels(writer, save);
 
 		// unresolved data
-		writer.writeInt32(save.unresolvedWorldSaveData?.length ?? 0);
-		for (const actor of save.unresolvedWorldSaveData ?? []) {
-			ObjectReference.write(writer, actor);
+		// TODO: check if we ever encounter it.
+		if (save.unresolvedWorldSaveData && save.unresolvedWorldSaveData.length > 0) {
+			writer.writeInt32(save.unresolvedWorldSaveData?.length ?? 0);
+			for (const actor of save.unresolvedWorldSaveData ?? []) {
+				ObjectReference.write(writer, actor);
+			}
 		}
 
 		writer.endWriting();

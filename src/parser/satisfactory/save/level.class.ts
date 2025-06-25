@@ -6,6 +6,7 @@ import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { SaveObject } from "../types/objects/SaveObject";
 import { ObjectReference } from "../types/structs/ObjectReference";
+import { LevelToDestroyedActorsMap } from './level-to-destroyed-actors-map';
 import { ObjectReferencesList } from './object-references-list';
 import { SaveCustomVersion } from './save-custom-version';
 import { SaveReader } from './save-reader';
@@ -19,7 +20,7 @@ export type Level = {
 	objects: (SaveEntity | SaveComponent)[];
 	collectables: ObjectReference[];
 	saveCustomVersion?: number;
-	destroyedActorsMap?: { [levelName: string]: ObjectReference[] }
+	destroyedActorsMap?: LevelToDestroyedActorsMap
 }
 export type Levels = { [levelName: string]: Level };
 
@@ -42,13 +43,12 @@ export namespace Level {
 		const posBeforeHeaders = reader.getBufferPosition();
 		ReadAllObjectHeaders(reader, level.objects);
 
-		// collected, like slugs Only listed here since U8.
+		// for persistent level, we have LevelToDestroyedActorsMap, else collectibles. Only listed here since U8.
 		let remainingSize = headersBinLen - (reader.getBufferPosition() - posBeforeHeaders);
 		if (remainingSize > 0) {
 
 			if (levelName === reader.context.mapName) {
-				const bytes = reader.readBytes(remainingSize);
-				console.log('bytes was more than nothing?', bytes);
+				level.destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 			} else {
 				level.collectables = ObjectReferencesList.ReadList(reader);
 			}
@@ -56,6 +56,7 @@ export namespace Level {
 		} else {
 			// its perfectly possible for ported saves to have nothing here.
 		}
+
 
 		remainingSize = headersBinLen - (reader.getBufferPosition() - posBeforeHeaders);
 		if (remainingSize !== 0) {
@@ -85,24 +86,12 @@ export namespace Level {
 			}
 		}
 
-		// only in persistent level, we have LevelToDestroyedActorsMap
-		if (levelName === reader.context.mapName) {
-			const entriesCount = reader.readInt32();
-			level.destroyedActorsMap = {};
-			for (let i = 0; i < entriesCount; i++) {
-				const levelName = reader.readString();
-				const destroyedActors: ObjectReference[] = [];
-				const destroyedActorsCount = reader.readInt32();
-				for (let j = 0; j < destroyedActorsCount; j++) {
-					destroyedActors.push(ObjectReference.read(reader));
-				}
-				level.destroyedActorsMap[levelName] = destroyedActors;
-			}
-		}
-
-		// only NOT in the persistent level, we have 2nd collectables.
+		// 2nd time.
+		// for persistent level, we have LevelToDestroyedActorsMap, else collectibles
 		// Listed here since < U8 and in U8 as well. So this is the best list you can rely on.
-		if (levelName !== reader.context.mapName) {
+		if (levelName === reader.context.mapName) {
+			level.destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
+		} else {
 			level.collectables = ObjectReferencesList.ReadList(reader);
 		}
 
@@ -120,7 +109,9 @@ export namespace Level {
 		SerializeAllObjectHeaders(writer, level.objects);
 
 		// <--- destroyed actors is the same as collectables list. Seems like its not there if count 0.
-		if (level.collectables.length > 0) {
+		if (level.name === writer.context.mapName && level.destroyedActorsMap !== undefined && Object.keys(level.destroyedActorsMap).length > 0) {
+			LevelToDestroyedActorsMap.write(writer, level.destroyedActorsMap);
+		} else if (level.name !== writer.context.mapName && level.collectables.length > 0) {
 			ObjectReferencesList.SerializeList(writer, level.collectables);
 		}
 
@@ -138,22 +129,11 @@ export namespace Level {
 			}
 		}
 
-		// only in persistent level, we have LevelToDestroyedActorsMap
+		// 2nd time.
+		// for persistent level, we have LevelToDestroyedActorsMap, else collectibles
 		if (level.name === writer.context.mapName) {
-			writer.writeInt32(Object.keys(level.destroyedActorsMap!).length);
-			level.destroyedActorsMap = {};
-			for (const entry of Object.entries(level.destroyedActorsMap)) {
-				writer.writeString(entry[0]);
-
-				writer.writeInt32(Object.keys(entry[1]).length);
-				for (const actor of entry[1]) {
-					ObjectReference.write(writer, actor);
-				}
-			}
-		}
-
-		// only NOT in the persistent level, we have 2nd collectables.
-		if (level.name !== writer.context.mapName) {
+			LevelToDestroyedActorsMap.write(writer, level.destroyedActorsMap ?? {});
+		} else {
 			ObjectReferencesList.SerializeList(writer, level.collectables);
 		}
 	}
@@ -254,7 +234,6 @@ export namespace Level {
 
 			let obj: SaveEntity | SaveComponent;
 			let objectType = reader.readInt32();
-			console.log('read object header', objectsRead);
 			switch (objectType) {
 				case SaveEntity.TypeID:
 					obj = new SaveEntity('', '', '', '');
@@ -267,7 +246,6 @@ export namespace Level {
 				default:
 					throw new CorruptSaveError('Unknown object type' + objectType);
 			}
-			console.log(obj.instanceName);
 			objects.push(obj);
 		}
 		return objects;

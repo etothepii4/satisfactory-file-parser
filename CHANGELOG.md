@@ -1,3 +1,8 @@
+# Changelog
+### [3.0.2] (2025-06-25)
+#### Bugfix for Dismantled Crashsites and Map Markers
+* Dismantled Crashsites weren't parsed correctly. They now correctly show up in the `destroyedActors` field of the persistent level.
+* Map Markers weren't parsed correctly. They should be fixed now.
 
 # Changelog
 ### [3.0.1] (2025-04-20)
