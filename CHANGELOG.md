@@ -4,7 +4,6 @@
 * Dismantled Crashsites weren't parsed correctly. They now correctly show up in the `destroyedActors` field of the persistent level.
 * Map Markers weren't parsed correctly. They should be fixed now.
 
-# Changelog
 ### [3.0.1] (2025-04-20)
 #### Breaking Changes in Save Structure for 1.1
 * The save header in 1.1 has now the save file name. Which gets used over the passed name when the file is from 1.1.

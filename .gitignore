@@ -27,9 +27,6 @@
 !src/test/265.sav
 !src/test/269.sav
 !src/test/Fresh 1.1 Dismantled.sav
-!src/test/ficsitcam-1.sav
-!src/test/structuralsolutions-1.sav
-!src/test/x3-roads-signs-1.sav
 !src/test/Unlock 1.1.sav
 !src/test/Unlock 1.1-2.sav
 !src/test/FreshStartU8001-vehicles-2.sav
@@ -38,6 +35,9 @@
 !src/test/Release Ported U1 to U1.1.sav
 !src/test/Release Ported U1 to U1.1 Collected Blue Slug.sav
 !src/test/Release Ported U1 to U1.1 Collected Nuts and Berry.sav
+!src/test/ficsitcam-1.sav
+!src/test/structuralsolutions-1.sav
+!src/test/x3-roads-signs-1.sav
 
 !src/test/BlueprintWithHeaderV1.sbp
 !src/test/BlueprintWithHeaderV1.sbpcfg
