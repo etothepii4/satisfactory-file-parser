@@ -243,7 +243,7 @@ const firstStack = inventoryStacks.values[0];
 ((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
 
 // modify original save object
-modifyObjects(firstContainer);
+modifyObjects(inventory);
 ```
 # [Auto-Generated TypeDoc Reference](https://raw.githack.com/etothepii4/satisfactory-file-parser/main/docs/index.html).
 
