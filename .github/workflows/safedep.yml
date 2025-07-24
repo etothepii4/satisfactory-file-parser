@@ -1,0 +1,26 @@
+name: Run Package Analysis for Malicous Dependencies
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Run vet
+        id: vet
+        permissions:
+          contents: read
+          issues: write
+          pull-requests: write
+        uses: safedep/vet-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
