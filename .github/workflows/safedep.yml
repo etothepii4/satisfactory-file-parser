@@ -10,6 +10,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
     strategy:
       matrix:
         node-version: [22.x]
@@ -17,10 +22,15 @@ jobs:
     steps:
       - name: Run vet
         id: vet
-        permissions:
-          contents: read
-          issues: write
-          pull-requests: write
         uses: safedep/vet-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload SARIF Report
+        permissions:
+          contents: read
+          security-events: write
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.vet.outputs.report }}
+          category: vet
