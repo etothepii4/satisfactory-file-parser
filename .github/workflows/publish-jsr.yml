@@ -1,8 +1,7 @@
 name: Publish on JSR
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   publish:
@@ -12,5 +11,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - name: Publish package
-        run: npx jsr publish
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx jsr publish
