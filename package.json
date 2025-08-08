@@ -40,8 +40,6 @@
 		"typescript": "^5.0.2"
 	},
 	"dependencies": {
-		"@types/json-diff": "^1.0.3",
-		"json-diff": "^1.0.6",
 		"pako": "^2.1.0"
 	}
 }
