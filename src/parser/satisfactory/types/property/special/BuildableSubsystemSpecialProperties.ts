@@ -55,7 +55,7 @@ export namespace BuildableSubsystemSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ContextWriter, property: BuildableSubsystemSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: BuildableSubsystemSpecialProperties): void => {
 
         if (writer.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
             writer.writeInt32(property.currentLightweightVersion ?? 1);

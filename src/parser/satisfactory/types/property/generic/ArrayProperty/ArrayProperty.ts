@@ -14,7 +14,7 @@ import { isStrArrayProperty, StrArrayProperty } from './StrArrayProperty';
 import { isStructArrayProperty, StructArrayProperty } from './StructArrayProperty';
 import { isTextArrayProperty, TextArrayProperty } from './TextArrayProperty';
 
-export const isArrayProperty = (obj: any): boolean =>
+export const isArrayProperty = (obj: any): obj is ArrayProperty.AvailableArrayPropertyTypes =>
     isBoolArrayProperty(obj)
     || isByteArrayProperty(obj)
     || isDoubleArrayProperty(obj)

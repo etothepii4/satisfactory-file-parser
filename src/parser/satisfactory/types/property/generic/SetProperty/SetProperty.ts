@@ -7,7 +7,7 @@ import { isStrSetProperty, StrSetProperty } from './StrSetProperty';
 import { isStructSetProperty, StructSetProperty } from './StructSetProperty';
 import { isUint32SetProperty, Uint32SetProperty } from './Uint32SetProperty';
 
-export const isSetProperty = (obj: any) =>
+export const isSetProperty = (obj: any): obj is SetProperty.AvailableSetPropertyTypes =>
     isUint32SetProperty(obj)
     || isInt32SetProperty(obj)
     || isObjectSetProperty(obj)
