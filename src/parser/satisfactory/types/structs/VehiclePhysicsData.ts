@@ -22,7 +22,7 @@ export namespace VehiclePhysicsData {
         flags: reader.readByte()
     });
 
-    export const Serialize = (writer: ContextWriter, data: VehiclePhysicsData) => {
+    export const Serialize = (writer: ContextWriter, data: VehiclePhysicsData): void => {
         writer.writeString(data.boneName);
         vec3.Serialize(writer, data.position);
         vec4.Serialize(writer, data.rotation);

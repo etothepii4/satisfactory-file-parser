@@ -15,10 +15,10 @@ import { isVehicleSpecialProperties, VehicleSpecialProperties } from './VehicleS
 
 export namespace SpecialProperties {
 
-    export type AvailableSpecialPropertiesTypes = ReturnType<typeof ParseClassSpecificSpecialProperties>;
+    export type AvailableSpecialPropertiesTypes = ConveyorSpecialProperties | CircuitSpecialProperties | ObjectsListSpecialProperties | ConveyorChainActorSpecialProperties | PowerLineSpecialProperties | VehicleSpecialProperties | SpecialDroneActionProperties | PlayerSpecialProperties | BuildableSubsystemSpecialProperties | EmptySpecialProperties;
 
-    export const ParseClassSpecificSpecialProperties = (reader: ContextReader, typePath: string, remainingLen: number) => {
-        let property;
+    export const ParseClassSpecificSpecialProperties = (reader: ContextReader, typePath: string, remainingLen: number): AvailableSpecialPropertiesTypes => {
+        let property: AvailableSpecialPropertiesTypes;
 
         switch (typePath) {
             case '/Game/FactoryGame/Buildable/Factory/ConveyorBeltMk1/Build_ConveyorBeltMk1.Build_ConveyorBeltMk1_C':

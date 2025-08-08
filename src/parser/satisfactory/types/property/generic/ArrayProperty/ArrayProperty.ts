@@ -14,7 +14,7 @@ import { isStrArrayProperty, StrArrayProperty } from './StrArrayProperty';
 import { isStructArrayProperty, StructArrayProperty } from './StructArrayProperty';
 import { isTextArrayProperty, TextArrayProperty } from './TextArrayProperty';
 
-export const isArrayProperty = (obj: any) =>
+export const isArrayProperty = (obj: any): boolean =>
     isBoolArrayProperty(obj)
     || isByteArrayProperty(obj)
     || isDoubleArrayProperty(obj)
@@ -30,13 +30,13 @@ export const isArrayProperty = (obj: any) =>
 
 export namespace ArrayProperty {
 
-    export type AvailableArrayPropertyTypes = ReturnType<typeof Parse>;
+    export type AvailableArrayPropertyTypes = BoolArrayProperty | ByteArrayProperty | DoubleArrayProperty | EnumArrayProperty | FloatArrayProperty | Int32ArrayProperty | Int64ArrayProperty | ObjectArrayProperty | SoftObjectArrayProperty | StrArrayProperty | StructArrayProperty | TextArrayProperty;
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number) => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number): AvailableArrayPropertyTypes => {
         const subtype = reader.readString();
         reader.skipBytes(1); // 0
 
-        let property;
+        let property: AvailableArrayPropertyTypes;
         const elementCount = reader.readInt32();
         switch (subtype) {
             case "FloatProperty":

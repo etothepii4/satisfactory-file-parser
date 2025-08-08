@@ -36,7 +36,7 @@ export namespace PowerLineSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ContextWriter, property: PowerLineSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: PowerLineSpecialProperties): void => {
         ObjectReference.write(writer, property.source);
         ObjectReference.write(writer, property.target);
         if (writer.context.blueprintConfigVersion !== undefined && writer.context.saveVersion >= SaveCustomVersion.AddedCachedLocationsForWire) {

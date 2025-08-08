@@ -90,7 +90,7 @@ export namespace ConveyorChainActorSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ContextWriter, property: ConveyorChainActorSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: ConveyorChainActorSpecialProperties): void => {
 
         ObjectReference.write(writer, property.lastBelt);
         ObjectReference.write(writer, property.firstBelt);

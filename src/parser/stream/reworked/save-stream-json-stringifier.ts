@@ -4,6 +4,7 @@ import { SaveStreamWriter } from "./save-stream-writer.class";
 
 
 /**
+ * @deprecated use ReadableStreamParser instead.
  * simply streams a whole satisfactorySave without backpressure to Json.
  */
 export class SaveStreamJsonStringifier {

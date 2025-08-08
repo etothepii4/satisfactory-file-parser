@@ -1,7 +1,7 @@
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextWriter } from '../../context/context-writer';
 import { ParserError } from "../../error/parser.error";
-import { Level } from './level.class';
+import { Level } from './level';
 import { SatisfactorySave } from "./satisfactory-save";
 import { ChunkCompressionInfo, ChunkSummary, SaveBodyChunks } from "./save-body-chunks";
 import { Grids, SaveBodyValidation } from './save-reader';

@@ -40,7 +40,7 @@ export namespace VehicleSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ContextWriter, property: VehicleSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: VehicleSpecialProperties): void => {
         writer.writeInt32(property.objects.length);
         for (const object of property.objects) {
             VehiclePhysicsData.Serialize(writer, object);

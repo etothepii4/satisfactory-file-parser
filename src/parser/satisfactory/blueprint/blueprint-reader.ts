@@ -1,7 +1,7 @@
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextReader } from '../../context/context-reader';
 import { CorruptBlueprintError, CorruptSaveError } from "../../error/parser.error";
-import { Level } from '../save/level.class';
+import { Level } from '../save/level';
 import { ChunkCompressionInfo, SaveBodyChunks } from '../save/save-body-chunks';
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";

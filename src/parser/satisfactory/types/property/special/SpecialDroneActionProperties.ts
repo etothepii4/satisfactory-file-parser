@@ -46,7 +46,7 @@ export namespace SpecialDroneActionProperties {
         };
     };
 
-    export const Serialize = (writer: ContextWriter, property: SpecialDroneActionProperties) => {
+    export const Serialize = (writer: ContextWriter, property: SpecialDroneActionProperties): void => {
         writer.writeInt32(0);
 
         writer.writeInt32((property as SpecialDroneActionProperties).activeActions.length);

@@ -1,5 +1,5 @@
 import { ObjectReference } from '../types/structs/ObjectReference';
-import { Levels } from './level.class';
+import { Levels } from './level';
 import { SatisfactorySaveHeader } from './satisfactory-save-header';
 import { ChunkCompressionInfo } from './save-body-chunks';
 import { Grids, SaveBodyValidation } from "./save-reader";

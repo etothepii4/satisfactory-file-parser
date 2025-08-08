@@ -1,7 +1,7 @@
 import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
 import { UnsupportedVersionError } from '../../error/parser.error';
+import { Level } from '../../satisfactory/save/level';
 import { LevelToDestroyedActorsMap } from '../../satisfactory/save/level-to-destroyed-actors-map';
-import { Level } from '../../satisfactory/save/level.class';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
 import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
@@ -105,7 +105,7 @@ export class ReadableStreamParser {
 			onDecompressedSaveBody: (buffer: ArrayBufferLike) => void,
 			onProgress: (progress: number, message?: string) => void
 		}>
-	) => {
+	): { stream: ReadableStream<string>, startStreaming: () => Promise<void> } => {
 
 		// create a simple lock to sync with consumer of the stream. Aka handle backpressure.
 		const waitForConsumerLock = new SimpleWaitForConsumerLock();
@@ -301,7 +301,7 @@ export class ReadableStreamParser {
 					reader.skipBytes(afterObjectsOfBatch - reader.getBufferPosition());
 				}
 
-				Level.ReadNObjectContents(reader, objectCountToRead, objects, 0, buildVersion);
+				Level.ReadNObjectContents(reader, objectCountToRead, objects, 0);
 				afterObjectsOfBatch = reader.getBufferPosition();
 
 				totalReadObjectsInLevel += objectCountToRead;

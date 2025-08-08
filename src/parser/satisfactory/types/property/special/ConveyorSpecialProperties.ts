@@ -17,7 +17,7 @@ export namespace ConveyorSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ContextWriter, property: ConveyorSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: ConveyorSpecialProperties): void => {
         writer.writeInt32Zero();
     };
 }

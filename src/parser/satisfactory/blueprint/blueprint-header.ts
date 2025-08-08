@@ -15,7 +15,7 @@ export type BlueprintHeader = {
 
 export namespace BlueprintHeader {
 
-    export const Parse = (reader: ContextReader) => {
+    export const Parse = (reader: ContextReader): BlueprintHeader => {
 
         const headerVersion = reader.readInt32();
         const saveVersion = reader.readInt32();
@@ -57,7 +57,7 @@ export namespace BlueprintHeader {
 
     }
 
-    export const Serialize = (writer: ContextWriter, header: BlueprintHeader) => {
+    export const Serialize = (writer: ContextWriter, header: BlueprintHeader): void => {
 
         writer.writeInt32(header.headerVersion);
         writer.writeInt32(header.saveVersion);

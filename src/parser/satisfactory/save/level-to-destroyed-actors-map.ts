@@ -20,7 +20,7 @@ export namespace LevelToDestroyedActorsMap {
         return map;
     }
 
-    export const write = (writer: ContextWriter, map: LevelToDestroyedActorsMap) => {
+    export const write = (writer: ContextWriter, map: LevelToDestroyedActorsMap): void => {
         writer.writeInt32(Object.keys(map).length);
         for (const entry of Object.entries(map)) {
             writer.writeString(entry[0]);

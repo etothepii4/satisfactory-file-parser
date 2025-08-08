@@ -20,7 +20,7 @@ export interface BlueprintConfig {
 }
 
 export namespace BlueprintConfig {
-    export const Parse = (reader: ContextReader) => {
+    export const Parse = (reader: ContextReader): BlueprintConfig => {
         const configVersion = reader.readInt32();
         const description = reader.readString();
         const iconID = reader.readInt32();
@@ -54,7 +54,7 @@ export namespace BlueprintConfig {
         return config;
     };
 
-    export const Serialize = (writer: ContextWriter, config: BlueprintConfig) => {
+    export const Serialize = (writer: ContextWriter, config: BlueprintConfig): void => {
         writer.writeInt32(config.configVersion);
         writer.writeString(config.description);
         writer.writeInt32(config.iconID);

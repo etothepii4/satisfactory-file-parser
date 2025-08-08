@@ -1,7 +1,7 @@
 import { Alignment } from '../../byte/alignment.enum';
 import { ContextReader } from '../../context/context-reader';
 import { CorruptSaveError, ParserError, UnsupportedVersionError } from '../../error/parser.error';
-import { Level } from './level.class';
+import { Level } from './level';
 import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
 import { SaveCustomVersion } from './save-custom-version';
 import { RoughSaveVersion } from './save.types';
@@ -35,7 +35,7 @@ export class SaveReader extends ContextReader {
 		super(fileBuffer, Alignment.LITTLE_ENDIAN);
 	}
 
-	public expect = (value: any, expected: any) => {
+	public expect = (value: any, expected: any): void => {
 		if (value !== expected) {
 			console.warn(`Read a value that's usually ${expected}, but this time ${value}. Meaning unclear. Raise an issue or contact me if you want.`);
 		}

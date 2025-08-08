@@ -16,9 +16,9 @@ export const isSetProperty = (obj: any) =>
 
 export namespace SetProperty {
 
-    export type AvailableSetPropertyTypes = ReturnType<typeof Parse>;
+    export type AvailableSetPropertyTypes = Uint32SetProperty | Int32SetProperty | ObjectSetProperty | StrSetProperty | StructSetProperty;
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number, propertyName: string) => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number, propertyName: string): AvailableSetPropertyTypes => {
 
         const subtype = reader.readString();
         reader.skipBytes(1); // 0
@@ -29,7 +29,7 @@ export namespace SetProperty {
         }
         const elementCount = reader.readInt32();
 
-        let property;
+        let property: AvailableSetPropertyTypes;
         switch (subtype) {
 
             case "UInt32Property":
@@ -59,11 +59,11 @@ export namespace SetProperty {
         return property;
     }
 
-    export const CalcOverhead = (property: SetProperty.AvailableSetPropertyTypes): number => {
+    export const CalcOverhead = (property: AvailableSetPropertyTypes): number => {
         return property.subtype.length + 5 + 1;
     }
 
-    export const Serialize = (writer: ContextWriter, property: SetProperty.AvailableSetPropertyTypes): void => {
+    export const Serialize = (writer: ContextWriter, property: AvailableSetPropertyTypes): void => {
         writer.writeString(property.subtype);
         writer.writeByte(0);
         writer.writeInt32(0);

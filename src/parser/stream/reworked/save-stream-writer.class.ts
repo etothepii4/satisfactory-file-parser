@@ -24,6 +24,9 @@ class ModeStateTracker {
 	}
 }
 
+/**
+ * @deprecated use ReadableStreamParser instead.
+ */
 export class SaveStreamWriter {
 
 	private mode: Mode;
@@ -51,7 +54,7 @@ export class SaveStreamWriter {
 		this.tracker.advance(targetMode);
 	}
 
-	public beginSave = () => this.createExecutionFunction(
+	public beginSave = (): Promise<void> => this.createExecutionFunction(
 		['BEFORE_START'],
 		async () => {
 			await this.writer.write('{');
@@ -59,7 +62,7 @@ export class SaveStreamWriter {
 		'OPENED_SAVE'
 	);
 
-	public writeHeader = (header: SatisfactorySaveHeader) => this.createExecutionFunction(
+	public writeHeader = (header: SatisfactorySaveHeader): Promise<void> => this.createExecutionFunction(
 		['OPENED_SAVE'],
 		async () => {
 			await this.writer.write(`"header": ${JSON.stringify(header)}`);
@@ -67,7 +70,7 @@ export class SaveStreamWriter {
 		'FINISHED_HEADER'
 	);
 
-	public writeCompressionInfo = (compressionInfo: ChunkCompressionInfo) => this.createExecutionFunction(
+	public writeCompressionInfo = (compressionInfo: ChunkCompressionInfo): Promise<void> => this.createExecutionFunction(
 		['FINISHED_HEADER'],
 		async () => {
 			await this.writer.write(`, "compressionInfo": ${JSON.stringify(compressionInfo)}`);
@@ -75,7 +78,7 @@ export class SaveStreamWriter {
 		'WROTE_COMPRESSION_INFO'
 	);
 
-	public writeGridHash = (gridHash: SaveBodyValidation) => this.createExecutionFunction(
+	public writeGridHash = (gridHash: SaveBodyValidation): Promise<void> => this.createExecutionFunction(
 		['WROTE_COMPRESSION_INFO'],
 		async () => {
 			await this.writer.write(`, "gridHash": ${JSON.stringify(gridHash)}`);
@@ -83,7 +86,7 @@ export class SaveStreamWriter {
 		'WROTE_GRID_HASH'
 	);
 
-	public writeGrids = (grids: Grids) => this.createExecutionFunction(
+	public writeGrids = (grids: Grids): Promise<void> => this.createExecutionFunction(
 		['WROTE_GRID_HASH'],
 		async () => {
 			await this.writer.write(`, "grids": ${JSON.stringify(grids)}`);
@@ -91,7 +94,7 @@ export class SaveStreamWriter {
 		'WROTE_GRIDS'
 	);
 
-	public openLevels = () => this.createExecutionFunction(
+	public openLevels = (): Promise<void> => this.createExecutionFunction(
 		['WROTE_GRIDS'],
 		async () => {
 			await this.writer.write(`, "levels": [`);
@@ -99,7 +102,7 @@ export class SaveStreamWriter {
 		'OPENED_LEVELS'
 	);
 
-	public openLevel = (levelName: string) => this.createExecutionFunction(
+	public openLevel = (levelName: string): Promise<void> => this.createExecutionFunction(
 		['OPENED_LEVELS', 'FINISHED_LEVEL'],
 		async () => {
 			this.formatTracker.levels.push({
@@ -111,7 +114,7 @@ export class SaveStreamWriter {
 		'OPENED_LEVEL'
 	);
 
-	public writeObjects = (...objects: SaveObject[]) => this.createExecutionFunction(
+	public writeObjects = (...objects: SaveObject[]): Promise<void> => this.createExecutionFunction(
 		['OPENED_LEVEL', 'WROTE_OBJECT'],
 		async () => {
 			const stringified = objects.map(saveObj => JSON.stringify(saveObj));
@@ -124,7 +127,7 @@ export class SaveStreamWriter {
 		'WROTE_OBJECT'
 	);
 
-	public switchInLevelToCollectables = (...objects: SaveObject[]) => this.createExecutionFunction(
+	public switchInLevelToCollectables = (...objects: SaveObject[]): Promise<void> => this.createExecutionFunction(
 		['OPENED_LEVEL', 'WROTE_OBJECT'],
 		async () => {
 			await this.writer.write(`], "collectables": [`);
@@ -132,7 +135,7 @@ export class SaveStreamWriter {
 		'SWITCH_TO_COLLECTABLES'
 	);
 
-	public writeCollectables = (...collectables: ObjectReference[]) => this.createExecutionFunction(
+	public writeCollectables = (...collectables: ObjectReference[]): Promise<void> => this.createExecutionFunction(
 		['SWITCH_TO_COLLECTABLES', 'WROTE_COLLECTABLE'],
 		async () => {
 			const stringified = collectables.map(coll => JSON.stringify(coll));
@@ -145,7 +148,7 @@ export class SaveStreamWriter {
 		'WROTE_COLLECTABLE'
 	);
 
-	public endLevel = () => this.createExecutionFunction(
+	public endLevel = (): Promise<void> => this.createExecutionFunction(
 		['SWITCH_TO_COLLECTABLES', 'WROTE_COLLECTABLE'],
 		async () => {
 			await this.writer.write(`]}`);
@@ -153,7 +156,7 @@ export class SaveStreamWriter {
 		'FINISHED_LEVEL'
 	);
 
-	public endLevels = () => this.createExecutionFunction(
+	public endLevels = (): Promise<void> => this.createExecutionFunction(
 		['OPENED_LEVELS', 'FINISHED_LEVEL'],
 		async () => {
 			await this.writer.write(`]`);
@@ -161,7 +164,7 @@ export class SaveStreamWriter {
 		'FINISHED_LEVELS'
 	);
 
-	public endSave = () => this.createExecutionFunction(
+	public endSave = (): Promise<void> => this.createExecutionFunction(
 		['FINISHED_LEVELS'],
 		async () => {
 			await this.writer.write('}');

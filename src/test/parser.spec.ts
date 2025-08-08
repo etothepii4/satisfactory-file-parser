@@ -3,7 +3,7 @@ import * as path from 'path';
 import { Writable } from 'stream';
 import { isDeepStrictEqual } from 'util';
 import { Parser } from '../parser/parser';
-import { Level } from '../parser/satisfactory/save/level.class';
+import { Level } from '../parser/satisfactory/save/level';
 import { SatisfactorySave } from '../parser/satisfactory/save/satisfactory-save';
 import { SaveComponent } from '../parser/satisfactory/types/objects/SaveComponent';
 import { SaveEntity } from '../parser/satisfactory/types/objects/SaveEntity';
@@ -146,23 +146,23 @@ it.each([
 
 const saveList = [
 
-	'Release 001',			// 1.0 Save, almost empty.
-	'Release 032',			// 1.0 Save
+	'Release-001',			// 1.0 Save, almost empty.
+	'Release-032',			// 1.0 Save
 	'265',					// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
 	'269',					// U8 save ported to 1.0
 
-	'Fresh 1.1 Dismantled',	// 1.1 with Dismantled Crashsite.
-	'Unlock 1.1',			// 1.1 Save
-	'Unlock 1.1-2',			// 1.1 Save
+	'Fresh-1.1-Dismantled',	// 1.1 with Dismantled Crashsite.
+	'Unlock-1.1',			// 1.1 Save
+	'Unlock-1.1-2',			// 1.1 Save
 
 	'FreshStartU8001-vehicles-2',	// U8 save
 
 	'FreshStart001',		// U6/U7 save
 	'FreshStart002',		// U6/U7 save
 
-	'Release Ported U1 to U1.1',							// U1 ported to U1.1
-	'Release Ported U1 to U1.1 Collected Nuts and Berry',	// U1 ported to U1.1
-	'Release Ported U1 to U1.1 Collected Blue Slug',		// U1 ported to U1.1
+	'Release-Ported-U1-to-U1.1',							// U1 ported to U1.1
+	'Release-Ported-U1-to-U1.1-Collected-Nuts-and-Berry',	// U1 ported to U1.1
+	'Release-Ported-U1-to-U1.1-Collected-Blue-Slug',		// U1 ported to U1.1
 
 	// Mods
 	'ficsitcam-1',

@@ -31,7 +31,7 @@ export namespace CircuitSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ContextWriter, property: CircuitSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: CircuitSpecialProperties): void => {
         writer.writeInt32((property as CircuitSpecialProperties).circuits.length);
         for (const circuit of (property as CircuitSpecialProperties).circuits) {
             writer.writeInt32(circuit.id);

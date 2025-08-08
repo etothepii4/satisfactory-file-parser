@@ -106,7 +106,7 @@ export namespace SatisfactorySaveHeader {
         return header;
     }
 
-    export const Serialize = (writer: ContextWriter, header: SatisfactorySaveHeader) => {
+    export const Serialize = (writer: ContextWriter, header: SatisfactorySaveHeader): void => {
 
         writer.writeInt32(header.saveHeaderType);
         writer.writeInt32(header.saveVersion);

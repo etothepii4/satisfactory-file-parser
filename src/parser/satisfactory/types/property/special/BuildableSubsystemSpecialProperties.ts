@@ -92,7 +92,7 @@ export type BuildableTypeInstance = {
 };
 
 export namespace BuildableTypeInstance {
-    export const Parse = (reader: ContextReader, lightWeightVersion: number) => {
+    export const Parse = (reader: ContextReader, lightWeightVersion: number): BuildableTypeInstance => {
         const transform = Transform.Parse(reader);
 
         const usedSwatchSlot = ObjectReference.read(reader);
@@ -129,7 +129,7 @@ export namespace BuildableTypeInstance {
         } satisfies BuildableTypeInstance;
     }
 
-    export const Serialize = (writer: ContextWriter, instance: BuildableTypeInstance, lightweightVersion: number) => {
+    export const Serialize = (writer: ContextWriter, instance: BuildableTypeInstance, lightweightVersion: number): void => {
         Transform.Serialize(writer, instance.transform);
 
         ObjectReference.write(writer, instance.usedSwatchSlot);

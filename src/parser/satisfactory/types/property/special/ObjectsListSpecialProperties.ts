@@ -21,7 +21,7 @@ export namespace ObjectsListSpecialProperties {
         };
     };
 
-    export const Serialize = (writer: ContextWriter, property: ObjectsListSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: ObjectsListSpecialProperties): void => {
         ObjectReferencesList.SerializeList(writer, property.objects);
     };
 }

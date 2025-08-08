@@ -98,7 +98,7 @@ export namespace Level {
 		return level;
 	}
 
-	export const SerializeLevel = (writer: ContextWriter, level: Level) => {
+	export const SerializeLevel = (writer: ContextWriter, level: Level): void => {
 		const lenIndicatorHeaderAndDestroyedEntitiesSize = writer.getBufferPosition();
 		writer.writeInt32(0);	// len indicator
 
@@ -159,7 +159,7 @@ export namespace Level {
 		}
 	}
 
-	export const ReadNObjectContents = (reader: ContextReader, count: number, objects: SaveObject[], objectListOffset: number = 0, buildVersion: number = 0) => {
+	export const ReadNObjectContents = (reader: ContextReader, count: number, objects: SaveObject[], objectListOffset: number = 0): void => {
 		for (let i = 0; i < count; i++) {
 			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
 				objects[i + objectListOffset].saveCustomVersion = reader.readInt32();

@@ -39,7 +39,7 @@ export namespace PlayerSpecialProperties {
         return property;
     };
 
-    export const Serialize = (writer: ContextWriter, property: PlayerSpecialProperties) => {
+    export const Serialize = (writer: ContextWriter, property: PlayerSpecialProperties): void => {
         writer.writeByte((property as PlayerSpecialProperties).flag);
         switch ((property as PlayerSpecialProperties).flag) {
             case 248: // default EOS
