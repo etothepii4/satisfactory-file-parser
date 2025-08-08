@@ -1,4 +1,9 @@
 # Changelog
+### [3.0.3] (2025-08-08)
+#### Internal Cleanup
+* Renamed sample test saves to not include whitespaces.
+* Made some function return types explicit instead of implicit.
+
 ### [3.0.2] (2025-06-25)
 #### Bugfix for Dismantled Crashsites and Map Markers
 * Dismantled Crashsites weren't parsed correctly. They now correctly show up in the `destroyedActors` field of the persistent level.
