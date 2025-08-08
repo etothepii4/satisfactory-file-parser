@@ -22,8 +22,8 @@
 /src/test/*.sbpcfg
 
 # But not these specific example saves and blueprints
-!src/test/Release 001.sav
-!src/test/Release 032.sav
+!src/test/Release-001.sav
+!src/test/Release-032.sav
 !src/test/265.sav
 !src/test/269.sav
 !src/test/Fresh-1.1-Dismantled.sav
