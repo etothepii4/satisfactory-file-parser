@@ -1,8 +1,7 @@
 name: Publish on JSR
 on:
   push:
-    tags:        
-      - '*'
+    branches: [ main ]
       
 jobs:
   publish:
