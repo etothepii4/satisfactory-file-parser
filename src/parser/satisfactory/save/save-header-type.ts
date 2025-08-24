@@ -46,4 +46,8 @@ export enum SaveHeaderType {
 
     // @2024-09-12 Added saveName to the header to have proper names on Consoles	<FL> [bgr]
     AddedSaveName,
+
+    // -----<new versions can be added above this line>-----
+    VersionPlusOne,
+    LatestVersion = VersionPlusOne - 1 // Last version to use
 }

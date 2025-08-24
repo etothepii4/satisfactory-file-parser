@@ -1,7 +1,7 @@
 
 
 /***
- * Source: FactoryGame.h
+ * Source: FactoryGameCustomVersion.h
  */
 export enum FactoryGameCustomVersion {
     // Before any version changes were made

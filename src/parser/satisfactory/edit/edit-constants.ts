@@ -4,6 +4,10 @@ const SWATCH_DESC_CONCRETE = '/Game/FactoryGame/Buildable/-Shared/Customization/
 const SWATCH_SLOT_DEFAULT_0 = '/Game/FactoryGame/Buildable/-Shared/Customization/Swatches/SwatchDesc_Slot0.SwatchDesc_Slot0_C';
 const SWATCH_SLOT_DEFAULT_FOUNDATIONS = '/Game/FactoryGame/Buildable/-Shared/Customization/Swatches/SwatchDesc_Slot16.SwatchDesc_Slot16_C';
 
+/**
+ * @deprecated
+ * this is a big collection of typepaths and names, but it is not 100% complete. therefore no ambition to make it a real feature. use with caution.
+ */
 export const EDIT = {
 	ENTITIES: {
 		FOUNDATION: {
@@ -2314,6 +2318,15 @@ export const EDIT = {
 	PATTERNS: {
 		FULL_FACTORY_ZONE: {
 			TYPE_PATH: '/Game/FactoryGame/Buildable/-Shared/Customization/Patterns/Zones/PatternDesc_ZoneFull.PatternDesc_ZoneFull_C'
+		},
+		ARROW_LEFT: {
+			TYPE_PATH: '/Game/FactoryGame/Buildable/-Shared/Customization/Patterns/Arrows/PatternDesc_ArrowLeft.PatternDesc_ArrowLeft_C'
+		},
+		ARROW_STRAIGHT: {
+			TYPE_PATH: "/Game/FactoryGame/Buildable/-Shared/Customization/Patterns/Arrows/PatternDesc_ArrowStraight.PatternDesc_ArrowStraight_C"
+		},
+		NO_ARROW_RIGHT: {
+			TYPE_PATH: "/Game/FactoryGame/Buildable/-Shared/Customization/Patterns/Arrows/PatternDesc_NO_ArrowRight.PatternDesc_NO_ArrowRight_C"
 		}
 	},
 	EMOTES: {

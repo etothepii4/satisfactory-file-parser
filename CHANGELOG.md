@@ -3,6 +3,7 @@
 #### Internal Cleanup
 * Renamed sample test saves to not include whitespaces.
 * Made some function return types explicit instead of implicit.
+* added publishing the package on jsr
 
 ### [3.0.2] (2025-06-25)
 #### Bugfix for Dismantled Crashsites and Map Markers

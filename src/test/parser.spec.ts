@@ -142,8 +142,6 @@ it.each([
 	}
 });
 
-
-
 const saveList = [
 
 	'Release-001',			// 1.0 Save, almost empty.
@@ -239,7 +237,7 @@ it.each(saveList)('can write a synchronous save', async (savename) => {
 	const filepath = path.join(__dirname, savename + '.sync.json');
 	const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
 	WriteSaveSync(save, binary => {
-		fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), Buffer.from(binary));
+		fs.writeFileSync(path.join(__dirname, savename + '_on-writing.bin'), new Uint8Array(Buffer.from(binary)));
 	});
 });
 
@@ -279,12 +277,12 @@ it.each([
 		},
 		{
 			onMainFileBinaryBeforeCompressing: binary => {
-				fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), Buffer.from(binary));
+				fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), new Uint8Array(Buffer.from(binary)));
 			},
 		});
 
 	// write complete .sbp file back to disk
-	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbp_modified'), Buffer.concat([mainFileHeader!, ...mainFileBodyChunks]));
+	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbp_modified'), new Uint8Array(Buffer.concat([mainFileHeader!, ...mainFileBodyChunks])));
 
-	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'), Buffer.from(response.configFileBinary));
+	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'), new Uint8Array(Buffer.from(response.configFileBinary)));
 });

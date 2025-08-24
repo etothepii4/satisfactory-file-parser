@@ -2,6 +2,7 @@
 export * from './parser/satisfactory/blueprint/blueprint-config';
 export * from './parser/satisfactory/blueprint/blueprint-config-version';
 export * from './parser/satisfactory/blueprint/blueprint-header';
+export * from './parser/satisfactory/blueprint/blueprint-header-version';
 export * from './parser/satisfactory/blueprint/blueprint.types';
 export * from './parser/satisfactory/save/factory-game-custom-version';
 export * from './parser/satisfactory/save/level';

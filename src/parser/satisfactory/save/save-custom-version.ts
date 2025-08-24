@@ -160,6 +160,9 @@ export enum SaveCustomVersion {
     // 2025-03-28: Serialize per Streamable Level TOC version rather than using the persistent level version for all streamable levels TOC serialization
     SerializePerStreamableLevelTOCVersion,
 
+    // 2025-04-23: Cleaning up invalid train track connections for saves prior to 1.1. Clears out ghost / teleporting connections and adds railroad switches where needed if there's a junction that doesn't have them.
+    RailroadTrackConnectionCleanup,
+
     // -----<new versions can be added above this line>-------------------------------------------------
     VersionPlusOne,
     LatestVersion = VersionPlusOne - 1
