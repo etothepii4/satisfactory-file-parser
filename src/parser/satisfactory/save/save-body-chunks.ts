@@ -105,6 +105,7 @@ export namespace SaveBodyChunks {
     export const CompressDataIntoChunks = (
         bufferArray: ArrayBuffer,
         compressionInfo: ChunkCompressionInfo,
+        blueprintOrSave: 'blueprint' | 'save',
         onBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
         onChunk: (chunk: Uint8Array) => void,
         alignment: Alignment = Alignment.LITTLE_ENDIAN
@@ -113,7 +114,7 @@ export namespace SaveBodyChunks {
         const totalUncompressedSize = bufferArray.byteLength;
         const chunkHeaderSize = compressionInfo.chunkHeaderVersion === SaveBodyChunks.HEADER_V1 ? 48 : 49;
 
-        const saveBody = new Uint8Array(bufferArray.byteLength + 8);
+        const saveBody = new Uint8Array(bufferArray.byteLength + (blueprintOrSave === 'blueprint' ? 4 : 8));
         saveBody.set(new Uint8Array(bufferArray), 4);
         const miniView = new DataView(saveBody.buffer);
         miniView.setInt32(0, totalUncompressedSize, alignment === Alignment.LITTLE_ENDIAN);

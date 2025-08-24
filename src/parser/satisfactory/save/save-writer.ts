@@ -51,12 +51,13 @@ export class SaveWriter extends ContextWriter {
 	public static GenerateCompressedChunksFromData(
 		bufferArray: ArrayBuffer,
 		compressionInfo: ChunkCompressionInfo,
+		blueprintOrSave: 'blueprint' | 'save',
 		onBinaryBeforeCompressing: (binary: ArrayBuffer) => void,
 		onChunk: (chunk: Uint8Array) => void,
 		alignment: Alignment = Alignment.LITTLE_ENDIAN
 	): ChunkSummary[] {
 
-		return SaveBodyChunks.CompressDataIntoChunks(bufferArray, compressionInfo, onBinaryBeforeCompressing, onChunk, alignment);
+		return SaveBodyChunks.CompressDataIntoChunks(bufferArray, compressionInfo, blueprintOrSave, onBinaryBeforeCompressing, onChunk, alignment);
 	}
 
 	public generateChunks(
@@ -78,7 +79,7 @@ export class SaveWriter extends ContextWriter {
 
 		// create save body
 		this.bufferArray = this.bufferArray.slice(posAfterHeader);
-		const chunkSummary = SaveWriter.GenerateCompressedChunksFromData(this.bufferArray, compressionInfo, onBinaryBeforeCompressing, onChunk, this.alignment);
+		const chunkSummary = SaveWriter.GenerateCompressedChunksFromData(this.bufferArray, compressionInfo, 'save', onBinaryBeforeCompressing, onChunk, this.alignment);
 
 		return chunkSummary;
 	}

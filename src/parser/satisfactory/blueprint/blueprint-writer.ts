@@ -38,7 +38,7 @@ export class BlueprintWriter extends ContextWriter {
 
 		// create save body
 		this.bufferArray = this.bufferArray.slice(posAfterHeader);
-		const chunkSummary = SaveWriter.GenerateCompressedChunksFromData(this.bufferArray, compressionInfo, options.onBinaryBeforeCompressing ?? (() => { }), options.onChunk ?? (() => { }), this.alignment);
+		const chunkSummary = SaveWriter.GenerateCompressedChunksFromData(this.bufferArray, compressionInfo, 'blueprint', options.onBinaryBeforeCompressing ?? (() => { }), options.onChunk ?? (() => { }), this.alignment);
 		return chunkSummary;
 	}
 

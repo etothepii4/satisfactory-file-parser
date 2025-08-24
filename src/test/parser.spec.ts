@@ -259,8 +259,10 @@ it.each([
 	const file = new Uint8Array(fs.readFileSync(filepathBlueprint)).buffer;
 	const configFileBuffer = new Uint8Array(fs.readFileSync(filepathBlueprintConfig)).buffer;
 
+	let binaryBodyLength = 0;
 	const blueprint = Parser.ParseBlueprintFiles(blueprintname, file, configFileBuffer, {
 		onDecompressedBlueprintBody: (decompressedBody) => {
+			binaryBodyLength = decompressedBody.byteLength;
 			fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBody));
 		}
 	});
@@ -277,12 +279,21 @@ it.each([
 		},
 		{
 			onMainFileBinaryBeforeCompressing: binary => {
+				expect(binary.byteLength).toEqual(binaryBodyLength);
 				fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), new Uint8Array(Buffer.from(binary)));
 			},
 		});
 
 	// write complete .sbp file back to disk
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbp_modified'), new Uint8Array(Buffer.concat([mainFileHeader!, ...mainFileBodyChunks])));
-
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'), new Uint8Array(Buffer.from(response.configFileBinary)));
+
+	// test reading modified blueprint again.
+	const mainFileNew = new Uint8Array(fs.readFileSync(path.join(__dirname, blueprintname + '.sbp_modified'))).buffer;
+	const configFileNew = new Uint8Array(fs.readFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'))).buffer;
+	const blueprintNew = Parser.ParseBlueprintFiles(blueprintname, mainFileNew, configFileNew, {
+		onDecompressedBlueprintBody: (decompressedBody) => {
+			expect(decompressedBody.byteLength).toEqual(binaryBodyLength);
+		},
+	});
 });
