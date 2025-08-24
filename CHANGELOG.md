@@ -1,4 +1,9 @@
 # Changelog
+### [3.1.1] (2025-08-24)
+#### Internal Cleanup
+* Fixed a bug where serialized blueprints would have 4 bytes too much and would cause issues when reading again.
+* provided complete enums for custom versions `BlueprintHeaderVersion`, `SaveCustomVersion`, `SaveHeaderType`
+
 ### [3.0.3] (2025-08-08)
 #### Internal Cleanup
 * Renamed sample test saves to not include whitespaces.
