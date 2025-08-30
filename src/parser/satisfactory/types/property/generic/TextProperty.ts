@@ -68,6 +68,11 @@ export namespace TextProperty {
                 prop.sourceText = ReadValue(reader);
                 prop.transformType = reader.readByte();
                 break;
+            // HISTORYTYPE_STRING_TABLE_ENTRY
+            case 11:
+                prop.tableId = reader.readString();
+                prop.textKey = reader.readString();
+                break;
             // HISTORYTYPE_NONE
             case 255:
                 // See: https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/Text.cpp#L894
@@ -80,7 +85,7 @@ export namespace TextProperty {
                 break;
 
             default:
-                throw new Error('Unimplemented historyType `' + prop.historyType);
+                throw new Error('Unimplemented TextProperty historyType ' + prop.historyType);
         }
 
         return prop;
@@ -136,6 +141,11 @@ export namespace TextProperty {
                 SerializeValue(writer, value.sourceText!);
                 writer.writeByte(value.transformType!);
                 break;
+            // HISTORYTYPE_STRING_TABLE_ENTRY
+            case 11:
+                writer.writeString(value.tableId!);
+                writer.writeString(value.textKey!);
+                break;
             // HISTORYTYPE_NONE
             case 255:
                 // See: https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/Text.cpp#L894
@@ -168,6 +178,10 @@ export type TextPropertyValue = {
     // flag 10
     sourceText?: TextPropertyValue;
     transformType?: number;
+
+    // flag 11
+    tableId?: string;
+    textKey?: string;
 
     // flag 255, reusing value
     hasCultureInvariantString?: boolean;

@@ -1,7 +1,12 @@
 # Changelog
+### [3.1.2] (2025-08-30)
+#### Extending Mod Support
+* Added Support for Circuitry Mod
+
 ### [3.1.1] (2025-08-24)
-#### Internal Cleanup
+#### Bugfix for writing Blueprints
 * Fixed a bug where serialized blueprints would have 4 bytes too much and would cause issues when reading again.
+#### Internal Cleanup
 * provided complete enums for custom versions `BlueprintHeaderVersion`, `SaveCustomVersion`, `SaveHeaderType`
 
 ### [3.0.3] (2025-08-08)

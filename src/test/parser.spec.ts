@@ -165,7 +165,7 @@ const saveList = [
 	// Mods
 	'ficsitcam-1',
 	'structuralsolutions-1',
-	'x3-roads-signs'
+	'x3-roads-signs',
 ];
 
 it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
@@ -212,7 +212,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 
 	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
 
-
 	// parse sync as well.
 	const start2 = performance.now();
 	const save = ParseSaveSync(savename, file, decompressedBody => {
@@ -243,6 +242,7 @@ it.each(saveList)('can write a synchronous save', async (savename) => {
 
 
 it.each([
+
 	'U1-1-Single-Container',	// U1.1
 	'U1-1-Single-Container-2',	// U1.1
 
@@ -252,6 +252,8 @@ it.each([
 	'release-storage-mk1',					// U1
 	'release-storage-mk2-blueprintmk2',		// U1
 	'release-two-foundations',				// U1
+
+	'mod-circuitry'							// U1.1 mod circuitry
 ])('can read and write a synchronous blueprint: %s', async (blueprintname) => {
 	const filepathBlueprint = path.join(__dirname, blueprintname + '.sbp');
 	const filepathBlueprintConfig = path.join(__dirname, blueprintname + '.sbpcfg');
