@@ -3,13 +3,18 @@ import { ContextWriter } from '../../../context/context-writer';
 import { vec3 } from './vec3';
 import { vec4 } from './vec4';
 
-
+/**
+ * An object's transform in saves/blueprints.
+ */
 export type Transform = {
     rotation: vec4;
     translation: vec3;
     scale3d: vec3;
 };
 
+/**
+ * An object's transform in saves/blueprints.
+ */
 export namespace Transform {
     export const ParseF = (reader: ContextReader): Transform => {
         return {

@@ -1,6 +1,9 @@
 import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 
+/**
+ * UE Guid structure, 4 uints.
+ */
 export type GUID = [number, number, number, number];
 
 export namespace GUID {

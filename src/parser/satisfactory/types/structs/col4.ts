@@ -2,6 +2,9 @@ import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 
 
+/**
+ * a 4-component color. can be encoded as 16 bytes RGBA or 4 bytes BGRA.
+ */
 export type col4 = {
     r: number;
     g: number;

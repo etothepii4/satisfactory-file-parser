@@ -2,6 +2,10 @@ import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 import { GUID } from './GUID';
 
+
+/**
+ * contains a flag whether the Guid is valid, and the Guid itself if valid.
+ */
 export type GUIDInfo = undefined | GUID;
 
 export namespace GUIDInfo {

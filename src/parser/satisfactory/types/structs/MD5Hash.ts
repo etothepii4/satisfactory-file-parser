@@ -1,7 +1,9 @@
 import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 
-
+/**
+ * a UE MD5 hash. consists of 16 bytes and a validity byte.
+ */
 export type MD5Hash = {
     isValid: boolean;
     hash?: number[];

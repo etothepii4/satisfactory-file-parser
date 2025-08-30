@@ -1,7 +1,9 @@
 import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 
-
+/**
+ * 2D vector.
+ */
 export type vec2 = {
     x: number;
     y: number;

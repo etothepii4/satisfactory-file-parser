@@ -1,6 +1,10 @@
 import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 
+
+/**
+ * Reference to an object in saves/blueprints.
+ */
 export type ObjectReference = {
 	levelName: string;
 	pathName: string;

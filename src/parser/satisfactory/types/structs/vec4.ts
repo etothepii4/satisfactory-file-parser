@@ -2,7 +2,9 @@ import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 import { vec3 } from './vec3';
 
-
+/**
+ * 4D vector.
+ */
 export type vec4 = vec3 & {
     w: number;
 };

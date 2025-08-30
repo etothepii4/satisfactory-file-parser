@@ -2,7 +2,9 @@ import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
 import { vec2 } from './vec2';
 
-
+/**
+ * 3D vector.
+ */
 export type vec3 = vec2 & {
     z: number;
 };
