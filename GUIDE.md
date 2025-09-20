@@ -79,3 +79,9 @@ Objects without any special properties, will always have `EmptySpecialProperties
 Collectibles in Satisfactory are only stored as objects in the save file, once they are visible to you.
 If you collected them, they are instead in the `collectibles` array of a level.
 So therefore you CAN NOT know the total list of collectibles alone from the save file, unless you uncovered everything in your save.
+
+## FAQ on Game Object Values
+ - `Where do i find buildables?` - They are just an object like every other object. Most objects are in the `Persistent_Level`.
+ - `Where does a buildable hold the selected recipe?` - Pretty much every producing buildable has `mCurrentRecipe` as the property name, to hold a reference to the specific recipe that is selected.
+ - `Where does a buildable hold power shards?` - In the `mInventoryPotential` property. Which in turn references just an InventoryComponent, you would have to search for it by `instanceName`
+ - `Where does a buildable hold somersloops?` - In the `mCurrentProductionBoost` property. Which is a float, representing the amount of somer-slooping the producing building does.
