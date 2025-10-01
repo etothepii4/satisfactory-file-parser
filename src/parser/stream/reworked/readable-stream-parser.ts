@@ -164,11 +164,9 @@ export class ReadableStreamParser {
 			let gridHash = save.gridHash;
 			let grids = save.grids;
 			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-				// grid hash i guess
-				gridHash = reader.readSaveBodyHash();
-
-				// parse grids
-				grids = reader.readGrids();
+				const result = reader.readSaveBodyValidationAndGrids();
+				grids = result.grids;
+				gridHash = result.gridHash;
 			}
 
 			await ReadableStreamParser.WriteHeaderAndGrids(write, name, inflateResult.compressionInfo, header, grids, gridHash);

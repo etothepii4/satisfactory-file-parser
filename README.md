@@ -1,4 +1,7 @@
 # Satisfactory File Parser
+
+[![Run Tests](https://github.com/etothepii4/satisfactory-file-parser/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/etothepii4/satisfactory-file-parser/actions/workflows/tests.yml)
+
 This is a TypeScript [github project](https://github.com/etothepii4/satisfactory-file-parser) to parse Satisfactory Saves/Blueprints. Satisfactory is a game released by Coffee Stain Studios.
 The reporitory is written entirely in TypeScript and is bundled on [NPM](https://www.npmjs.com/package/@etothepii/satisfactory-file-parser).
 The examples listed here are Node.js. Should work in browser as well.

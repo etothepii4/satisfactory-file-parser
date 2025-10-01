@@ -37,7 +37,7 @@ export class SaveReader extends ContextReader {
 
 	public expect = (value: any, expected: any): void => {
 		if (value !== expected) {
-			console.warn(`Read a value that's usually ${expected}, but this time ${value}. Meaning unclear. Raise an issue or contact me if you want.`);
+			console.warn(`Read a value that's usually '${expected}', but this time '${value}'. Meaning unclear. Especially if you use mods. Raise an issue or contact me if you want.`);
 		}
 	};
 
@@ -79,31 +79,42 @@ export class SaveReader extends ContextReader {
 		};
 	}
 
-	public readSaveBodyHash = (): SaveBodyValidation => {
+	
+	public readSaveBodyValidationAndGrids = (): { gridHash: SaveBodyValidation; grids: Grids } => {
 
+		let gridHash: SaveBodyValidation;
+		let grids: Grids;
 		this.expect(this.readInt32(), 0);
 
-		const saveBodyValidationVersion = this.readInt32(); // seems constant, always 06 00 00 00
+		// ingame map has version 6, custom maps have version 0 apparently
+		const version = this.readInt32(); 
+		if (version > 0) {
 
-		this.expect(this.readString(), 'None');
-		this.expect(this.readInt32(), 0);
+			this.expect(this.readString(), 'None');
+			this.expect(this.readInt32(), 0);
 
-		const hash1 = Array.from(this.readBytes(4)) as ByteArray4; // some weird binary hash - 67 21 E7 F7 / DC 7E 81 48 / 59 E4 1E 1B  -- changes not when collecting a slug or dismantling an object. Grids havent changed. So it must depend on grid-related things.
+			const hash1 = Array.from(this.readBytes(4)) as ByteArray4; // some weird binary hash - 67 21 E7 F7 / DC 7E 81 48 / 59 E4 1E 1B  -- changes not when collecting a slug or dismantling an object. Grids havent changed. So it must depend on grid-related things.
 
-		this.expect(this.readInt32(), 1);
-		this.expect(this.readString(), 'None');
+			this.expect(this.readInt32(), 1);
+			this.expect(this.readString(), 'None');
 
-		// TODO: check
-		const hash2 = Array.from(this.readBytes(4)) as ByteArray4; // no idea, changes somehow when level content changes. So we save it for now. -- 8B 08 EB 00
+			const hash2 = Array.from(this.readBytes(4)) as ByteArray4; // no idea, changes somehow when level content changes. So we save it for now. -- 8B 08 EB 00
 
-		return {
-			version: saveBodyValidationVersion,
-			hash1,
-			hash2
-		} satisfies SaveBodyValidation;
+			gridHash = {
+				version,
+				hash1,
+				hash2
+			};
+			grids = this.readGrids();
+		} else {
+			gridHash = { version, hash1: [0, 0, 0, 0], hash2: [0, 0, 0, 0] };
+			grids = {};
+		}
+
+		return { gridHash, grids };
 	};
 
-	public readGrids = (): Grids => {
+	private readGrids = (): Grids => {
 		const grids: Grids = {};
 
 		const readGrid = () => {

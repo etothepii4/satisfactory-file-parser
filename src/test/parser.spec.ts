@@ -146,17 +146,18 @@ const saveList = [
 
 	'Release-001',			// 1.0 Save, almost empty.
 	'Release-032',			// 1.0 Save
-	'265',					// U8 save ported to 1.0 - we have no ambition to support U8 in later versions, but it works for this save.
+	'265',					// U8 save ported to 1.0
 	'269',					// U8 save ported to 1.0
 
 	'Fresh-1.1-Dismantled',	// 1.1 with Dismantled Crashsite.
 	'Unlock-1.1',			// 1.1 Save
 	'Unlock-1.1-2',			// 1.1 Save
 
+
 	'FreshStartU8001-vehicles-2',	// U8 save
 
 	'FreshStart001',		// U6/U7 save
-	'FreshStart002',		// U6/U7 save
+	'FreshStart002',		// U6/U7 save, even lower saveVersion
 
 	'Release-Ported-U1-to-U1.1',							// U1 ported to U1.1
 	'Release-Ported-U1-to-U1.1-Collected-Nuts-and-Berry',	// U1 ported to U1.1
@@ -166,6 +167,7 @@ const saveList = [
 	'ficsitcam-1',
 	'structuralsolutions-1',
 	'x3-roads-signs',
+	'pep-modtest-1',
 ];
 
 it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
@@ -180,7 +182,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
-
 	const outJsonStream = fs.createWriteStream(outJsonPathStream, { highWaterMark: 1024 * 1024 * 200 });
 
 	const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson(savename, file, {
@@ -242,7 +243,6 @@ it.each(saveList)('can write a synchronous save', async (savename) => {
 
 
 it.each([
-
 	'U1-1-Single-Container',	// U1.1
 	'U1-1-Single-Container-2',	// U1.1
 

@@ -52,13 +52,11 @@ export class Parser {
 			options.onDecompressedSaveBody(reader.getBuffer());
 		}
 
+		// world partition
 		if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-
-			// save body validation hash
-			save.gridHash = reader.readSaveBodyHash();
-
-			// parse grids
-			save.grids = reader.readGrids();
+			const {gridHash, grids} = reader.readSaveBodyValidationAndGrids();
+			save.gridHash = gridHash;
+			save.grids = grids;
 		}
 
 
@@ -75,7 +73,6 @@ export class Parser {
 		}
 
 		reader.onProgressCallback(reader.getBufferProgress(), 'finished parsing.');
-
 
 		return save;
 	}
@@ -106,8 +103,7 @@ export class Parser {
 		const posAfterHeader = writer.getBufferPosition();
 
 		if (writer.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-			SaveWriter.WriteSaveBodyHash(writer, save.gridHash);
-			SaveWriter.WriteGrids(writer, save.grids);
+			SaveWriter.WriteSaveBodyHashAndGrids(writer, save.gridHash, save.grids);
 		}
 
 		SaveWriter.WriteLevels(writer, save);

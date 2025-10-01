@@ -13,18 +13,23 @@ export class SaveWriter extends ContextWriter {
 		super(Alignment.LITTLE_ENDIAN);
 	}
 
-	public static WriteSaveBodyHash = (writer: ContextWriter, saveBodyValidation: SaveBodyValidation): void => {
+	public static WriteSaveBodyHashAndGrids = (writer: ContextWriter, saveBodyValidation: SaveBodyValidation, grids: Grids): void => {
 		writer.writeInt32(0);
 		writer.writeInt32(saveBodyValidation.version);
-		writer.writeString('None');
-		writer.writeInt32(0);
-		writer.writeBytesArray(saveBodyValidation.hash1);
-		writer.writeInt32(1);
-		writer.writeString('None');
-		writer.writeBytesArray(saveBodyValidation.hash2);
+
+		if (saveBodyValidation.version > 0) {
+			writer.writeString('None');
+			writer.writeInt32(0);
+			writer.writeBytesArray(saveBodyValidation.hash1);
+			writer.writeInt32(1);
+			writer.writeString('None');
+			writer.writeBytesArray(saveBodyValidation.hash2);
+
+			SaveWriter.WriteGrids(writer, grids);
+		}
 	}
 
-	public static WriteGrids = (writer: ContextWriter, grids: Grids): void => {
+	private static WriteGrids = (writer: ContextWriter, grids: Grids): void => {
 		for (const gridEntry of Object.entries(grids)) {
 			writer.writeString(gridEntry[0]);
 			writer.writeInt32(gridEntry[1].cellSize);
