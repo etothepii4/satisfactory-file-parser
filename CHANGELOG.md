@@ -1,4 +1,8 @@
 # Changelog
+### [3.1.3] (2025-10-01)
+#### Extending Mod Support
+* Added Support for Mods that have custom levels/maps. Like the Platform Expansion Program
+
 ### [3.1.2] (2025-08-30)
 #### Extending Mod Support
 * Added Support for Circuitry Mod
