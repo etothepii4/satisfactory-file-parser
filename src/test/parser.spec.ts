@@ -143,7 +143,6 @@ it.each([
 });
 
 const saveList = [
-
 	'Release-001',			// 1.0 Save, almost empty.
 	'Release-032',			// 1.0 Save
 	'265',					// U8 save ported to 1.0
@@ -228,8 +227,11 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
 	const thing1 = JSON.parse(json1) as SatisfactorySave;
 	const thing2 = JSON.parse(json2) as SatisfactorySave;
-
 	expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
+
+	// check reading back written save
+	const saveSerializedAndRead = () => ParseSaveSync(savename, file);
+	expect(saveSerializedAndRead).not.toThrow();
 });
 
 
