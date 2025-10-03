@@ -26,7 +26,13 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          git diff ${{ github.event.before }} ${{ github.sha }} > changes.diff
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            # First push to a branch - diff against parent commit
+            git diff HEAD^ HEAD > changes.diff
+          else
+            # Normal push - diff between previous and current
+            git diff ${{ github.event.before }} ${{ github.sha }} > changes.diff
+          fi
           cat changes.diff
           if [ -s changes.diff ]; then 
             node --no-deprecation .github/scripts/gemini-review.js changes.diff > review-output.txt
