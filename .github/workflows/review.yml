@@ -1,0 +1,42 @@
+name: Code Review
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          node-version: '22'
+          
+      - run: npm ci
+        
+      - name: Generate diff and review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          git diff ${{ github.event.before }} ${{ github.sha }} > changes.diff
+          cat changes.diff
+          if [ -s changes.diff ]; then 
+            node --no-deprecation .github/scripts/gemini-review.js changes.diff > review-output.txt
+          else 
+            echo "No changes detected, skipping review."
+          fi
+          
+      - name: Upload review results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review
+          path: review-output.txt
