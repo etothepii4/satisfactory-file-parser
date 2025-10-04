@@ -1,12 +1,12 @@
 import { WritableStreamDefaultWriter } from "stream/web";
 import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
 import { ChunkCompressionInfo } from "../../satisfactory/save/save-body-chunks";
-import { Grids, SaveBodyValidation } from '../../satisfactory/save/save-reader';
 import { SaveObject } from "../../satisfactory/types/objects/SaveObject";
 import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
+import { Grids, SaveBodyValidation } from "../../satisfactory/types/structs/SaveBodyValidation";
 
 type Mode = 'BEFORE_START' | 'OPENED_SAVE' | 'FINISHED_HEADER' | 'OPENED_LEVELS' | 'FINISHED_LEVELS' | 'OPENED_LEVEL' | 'FINISHED_LEVEL' | 'FINISHED_SAVE'
-	| 'WROTE_COMPRESSION_INFO' | 'WROTE_OBJECT' | 'SWITCH_TO_COLLECTABLES' | 'WROTE_COLLECTABLE' | 'WROTE_GRID_HASH' | 'WROTE_GRIDS';
+	| 'WROTE_COMPRESSION_INFO' | 'WROTE_OBJECT' | 'SWITCH_TO_COLLECTABLES' | 'WROTE_COLLECTABLE' | 'WROTE_SAVE_BODY_VALIDATION';
 
 class ModeStateTracker {
 	constructor(public mode: Mode) {
@@ -78,24 +78,17 @@ export class SaveStreamWriter {
 		'WROTE_COMPRESSION_INFO'
 	);
 
-	public writeGridHash = (gridHash: SaveBodyValidation): Promise<void> => this.createExecutionFunction(
+	public writeSaveBodyValidation = (saveBodyValidation: SaveBodyValidation): Promise<void> => this.createExecutionFunction(
 		['WROTE_COMPRESSION_INFO'],
 		async () => {
-			await this.writer.write(`, "gridHash": ${JSON.stringify(gridHash)}`);
+			await this.writer.write(`, "saveBodyValidation": ${JSON.stringify(saveBodyValidation)}`);
 		},
-		'WROTE_GRID_HASH'
+		'WROTE_SAVE_BODY_VALIDATION'
 	);
 
-	public writeGrids = (grids: Grids): Promise<void> => this.createExecutionFunction(
-		['WROTE_GRID_HASH'],
-		async () => {
-			await this.writer.write(`, "grids": ${JSON.stringify(grids)}`);
-		},
-		'WROTE_GRIDS'
-	);
 
 	public openLevels = (): Promise<void> => this.createExecutionFunction(
-		['WROTE_GRIDS'],
+		['WROTE_SAVE_BODY_VALIDATION'],
 		async () => {
 			await this.writer.write(`, "levels": [`);
 		},

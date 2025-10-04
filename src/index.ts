@@ -70,6 +70,7 @@ export * from './parser/satisfactory/types/structs/DynamicStructPropertyValue';
 export * from './parser/satisfactory/types/structs/FGDynamicStruct';
 export * from './parser/satisfactory/types/structs/GUID';
 export * from './parser/satisfactory/types/structs/GUIDInfo';
+export * from './parser/satisfactory/types/structs/SaveBodyValidation';
 export * from './parser/satisfactory/types/structs/MD5Hash';
 export * from './parser/satisfactory/types/structs/mods/FicsItCam/FICFrameRange';
 export * from './parser/satisfactory/types/structs/ObjectReference';
