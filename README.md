@@ -43,6 +43,7 @@ If you parse a U8 save/blueprint, the parser will also serialize it back to a U8
 
 # Bug Reports or Feedback
 You can always raise an issue on the linked [github project](https://github.com/etothepii4/satisfactory-file-parser) or hit me up in discord  [`etothepii`](https://discordapp.com/users/268751901212803074).
+Every mistake that i know of makes the parser more robust. It wouldnt be where it is now, without the help of a lot of people!
 
 # Mod Support ✅
 By Default, most Mods just reuse Properties and Structs of the base game.
