@@ -12,9 +12,9 @@ import { StrProperty } from './StrProperty';
 import { GENERIC_STRUCT_PROPERTY_VALUE } from './StructProperty';
 
 
-export type MAP_STRUCT_KEY_PROXY = [number, number, number, number, number, number, number, number, number, number, number, number];
-export type GENERIC_MAP_KEY_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | MAP_STRUCT_KEY_PROXY;
-export type GENERIC_MAP_VALUE_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE;
+export type MAP_STRUCT_PROXY = [number, number, number, number, number, number, number, number, number, number, number, number];
+export type GENERIC_MAP_KEY_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | MAP_STRUCT_PROXY;
+export type GENERIC_MAP_VALUE_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | MAP_STRUCT_PROXY;
 
 export const isMapProperty = (property: any): property is MapProperty => !Array.isArray(property) && property.type === 'MapProperty';
 
@@ -66,7 +66,7 @@ export namespace MapProperty {
                     // FD FF FF FF 2B 00 00 00 FF FF FF FF - another Save started in U8
                     // 11 00 00 00 EF FF FF FF 02 00 00 00 - Save ported from U5 -> U8
                     if (propertyName === 'mSaveData' || propertyName === 'mUnresolvedSaveData') {
-                        key = Array.from(reader.readBytes(12)) as MAP_STRUCT_KEY_PROXY;
+                        key = Array.from(reader.readBytes(12)) as MAP_STRUCT_PROXY;
                     } else {
                         key = DynamicStructPropertyValue.read(reader, property.keyType);
                     }
@@ -98,7 +98,11 @@ export namespace MapProperty {
 
             switch (property.valueType) {
                 case 'StructProperty':
-                    value = DynamicStructPropertyValue.read(reader, property.valueType);
+                    if (propertyName === 'mIndexMapping' && reader.context.mods.MLBAlternates !== undefined) {
+                        value = Array.from(reader.readBytes(12)) as MAP_STRUCT_PROXY;
+                    } else {
+                        value = DynamicStructPropertyValue.read(reader, property.valueType);
+                    }
                     break;
                 case 'ObjectProperty':
                     value = ObjectProperty.ReadValue(reader);
@@ -149,7 +153,7 @@ export namespace MapProperty {
                 case 'StructProperty':
 
                     if (property.name === 'mSaveData' || property.name === 'mUnresolvedSaveData') {
-                        writer.writeBytesArray(entry[0] as MAP_STRUCT_KEY_PROXY);
+                        writer.writeBytesArray(entry[0] as MAP_STRUCT_PROXY);
                     } else {
                         DynamicStructPropertyValue.write(writer, entry[0] as DynamicStructPropertyValue);
                     }
@@ -181,7 +185,13 @@ export namespace MapProperty {
 
             switch (property.valueType) {
                 case 'StructProperty':
-                    DynamicStructPropertyValue.write(writer, entry[1] as DynamicStructPropertyValue);
+
+                    if (property.name === 'mIndexMapping' && writer.context.mods.MLBAlternates !== undefined) {
+                        writer.writeBytesArray(entry[1] as MAP_STRUCT_PROXY);
+                    } else {
+                        DynamicStructPropertyValue.write(writer, entry[1] as DynamicStructPropertyValue);
+                    }
+
                     break;
                 case 'ObjectProperty':
                     ObjectProperty.SerializeValue(writer, entry[1] as ObjectReference);

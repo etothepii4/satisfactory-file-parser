@@ -97,6 +97,7 @@ export class Parser {
 		writer.context.saveVersion = save.header.saveVersion;
 		writer.context.buildVersion = save.header.buildVersion;
 		writer.context.mapName = save.header.mapName;
+		writer.context.mods = Object.fromEntries(save.header.modMetadata?.Mods?.map(mod => [mod.Reference, mod.Version]) ?? []);
 
 		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
