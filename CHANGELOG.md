@@ -1,6 +1,10 @@
 # Changelog
 Make sure to use the same version, when parsing and serializing saves.
 
+### [3.2.2] (2025-11-29)
+#### Bugfix
+* Explicit return type for function
+
 ### [3.2.1] (2025-11-29)
 #### SaveBodyValidation moved slightly
 * `save.grids` and `save.gridHash` merged together in a `save.saveBodyValidation` property. This will not affect you, unless you specifically used them. But will break parsing/serializing saves of earlier parser versions.
