@@ -168,7 +168,7 @@ export namespace PropertiesList {
 				break;
 
 			default:
-				throw new Error(`Unimplemented type ${propertyType}`);
+				throw new Error(`Unimplemented type ${propertyType}, at byte position ${reader.getBufferPosition()}`);
 		}
 
 		currentProperty.name = propertyName;

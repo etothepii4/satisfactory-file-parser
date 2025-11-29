@@ -47,11 +47,6 @@ export namespace SatisfactorySaveHeader {
         header.saveVersion = reader.readInt32();
         header.buildVersion = reader.readInt32();
 
-        // set context
-        reader.context.saveHeaderType = header.saveHeaderType;
-        reader.context.saveVersion = header.saveVersion;
-        reader.context.buildVersion = header.buildVersion;
-
         // 14 is 1.1
         if (header.saveHeaderType >= SaveHeaderType.AddedSaveName) {
             header.saveName = reader.readString();
@@ -80,6 +75,12 @@ export namespace SatisfactorySaveHeader {
             }
             header.isModdedSave = reader.readInt32();
         }
+
+        // set context
+        reader.context.saveHeaderType = header.saveHeaderType;
+        reader.context.saveVersion = header.saveVersion;
+        reader.context.buildVersion = header.buildVersion;
+        reader.context.mods = Object.fromEntries(header.modMetadata?.Mods?.map(mod => [mod.Reference, mod.Version]) ?? []);
 
         //10 is U7
         if (header.saveHeaderType >= SaveHeaderType.AddedSaveIdentifier) {
