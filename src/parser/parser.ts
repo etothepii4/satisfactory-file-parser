@@ -11,6 +11,7 @@ import { SaveCustomVersion } from './satisfactory/save/save-custom-version';
 import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
 import { ObjectReference } from './satisfactory/types/structs/ObjectReference';
+import { SaveBodyValidation } from './satisfactory/types/structs/SaveBodyValidation';
 
 
 /** @public */
@@ -52,11 +53,9 @@ export class Parser {
 			options.onDecompressedSaveBody(reader.getBuffer());
 		}
 
-		// world partition
+		// world partition and validation
 		if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-			const {gridHash, grids} = reader.readSaveBodyValidationAndGrids();
-			save.gridHash = gridHash;
-			save.grids = grids;
+			save.saveBodyValidation = SaveBodyValidation.Parse(reader);
 		}
 
 
@@ -98,12 +97,13 @@ export class Parser {
 		writer.context.saveVersion = save.header.saveVersion;
 		writer.context.buildVersion = save.header.buildVersion;
 		writer.context.mapName = save.header.mapName;
+		writer.context.mods = Object.fromEntries(save.header.modMetadata?.Mods?.map(mod => [mod.Reference, mod.Version]) ?? []);
 
 		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
 
 		if (writer.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-			SaveWriter.WriteSaveBodyHashAndGrids(writer, save.gridHash, save.grids);
+			SaveBodyValidation.Serialize(writer, save.saveBodyValidation);
 		}
 
 		SaveWriter.WriteLevels(writer, save);

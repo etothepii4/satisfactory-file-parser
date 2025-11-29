@@ -1,6 +1,7 @@
 import { Alignment } from '../../byte/alignment.enum';
 import { ContextReader } from '../../context/context-reader';
 import { CorruptSaveError, ParserError, UnsupportedVersionError } from '../../error/parser.error';
+import { Grids } from '../types/structs/SaveBodyValidation';
 import { Level } from './level';
 import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
 import { SaveCustomVersion } from './save-custom-version';
@@ -9,23 +10,8 @@ import { RoughSaveVersion } from './save.types';
 
 export const DEFAULT_SATISFACTORY_CHUNK_HEADER_SIZE = 49;
 
-export type ByteArray4 = [number, number, number, number];
 
-export type SaveBodyValidation = {
-	version: number;
-	hash1: ByteArray4;
-	hash2: ByteArray4;
-}
 
-export type Grids = {
-	[parentName: string]: {
-		cellSize: number;
-		gridHash: number;
-		children: {
-			[name: string]: number;	// children object contains names and their binary size.
-		}
-	}
-};
 export class SaveReader extends ContextReader {
 
 	// the number of .net ticks at the unix epoch
@@ -78,76 +64,6 @@ export class SaveReader extends ContextReader {
 			compressionInfo: result.compressionInfo
 		};
 	}
-
-	
-	public readSaveBodyValidationAndGrids = (): { gridHash: SaveBodyValidation; grids: Grids } => {
-
-		let gridHash: SaveBodyValidation;
-		let grids: Grids;
-		this.expect(this.readInt32(), 0);
-
-		// ingame map has version 6, custom maps have version 0 apparently
-		const version = this.readInt32(); 
-		if (version > 0) {
-
-			this.expect(this.readString(), 'None');
-			this.expect(this.readInt32(), 0);
-
-			const hash1 = Array.from(this.readBytes(4)) as ByteArray4; // some weird binary hash - 67 21 E7 F7 / DC 7E 81 48 / 59 E4 1E 1B  -- changes not when collecting a slug or dismantling an object. Grids havent changed. So it must depend on grid-related things.
-
-			this.expect(this.readInt32(), 1);
-			this.expect(this.readString(), 'None');
-
-			const hash2 = Array.from(this.readBytes(4)) as ByteArray4; // no idea, changes somehow when level content changes. So we save it for now. -- 8B 08 EB 00
-
-			gridHash = {
-				version,
-				hash1,
-				hash2
-			};
-			grids = this.readGrids();
-		} else {
-			gridHash = { version, hash1: [0, 0, 0, 0], hash2: [0, 0, 0, 0] };
-			grids = {};
-		}
-
-		return { gridHash, grids };
-	};
-
-	private readGrids = (): Grids => {
-		const grids: Grids = {};
-
-		const readGrid = () => {
-			const gridName = this.readString();
-			const cellSize = this.readInt32();
-			const gridHash = this.readUint32();
-			grids[gridName] = { children: {}, cellSize, gridHash };
-
-			const childrenCount = this.readUint32();
-			for (let i = 0; i < childrenCount; i++) {
-				const levelInstanceName = this.readString();
-				const cellHash = this.readUint32();
-				grids[gridName].children[levelInstanceName] = cellHash;
-			}
-		};
-
-		// main grid
-		readGrid();
-
-		// landscape grid
-		readGrid();
-
-		// exploration grid
-		readGrid();
-
-		// foliage grid
-		readGrid();
-
-		// hlod0
-		readGrid();
-
-		return grids;
-	};
 
 	public readLevels(): { [levelName: string]: Level; } {
 

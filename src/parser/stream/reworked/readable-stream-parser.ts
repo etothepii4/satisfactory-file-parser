@@ -7,8 +7,9 @@ import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
 import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-save-header';
 import { ChunkCompressionInfo } from "../../satisfactory/save/save-body-chunks";
 import { SaveCustomVersion } from '../../satisfactory/save/save-custom-version';
-import { Grids, SaveBodyValidation, SaveReader } from '../../satisfactory/save/save-reader';
+import { SaveReader } from '../../satisfactory/save/save-reader';
 import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
+import { SaveBodyValidation } from "../../satisfactory/types/structs/SaveBodyValidation";
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
 const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): QueuingStrategy<string> => ({
@@ -161,15 +162,12 @@ export class ReadableStreamParser {
 				options.onDecompressedSaveBody(reader.getBuffer());
 			}
 
-			let gridHash = save.gridHash;
-			let grids = save.grids;
+			let saveBodyValidation = save.saveBodyValidation;
 			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-				const result = reader.readSaveBodyValidationAndGrids();
-				grids = result.grids;
-				gridHash = result.gridHash;
+				saveBodyValidation = SaveBodyValidation.Parse(reader);
 			}
 
-			await ReadableStreamParser.WriteHeaderAndGrids(write, name, inflateResult.compressionInfo, header, grids, gridHash);
+			await ReadableStreamParser.WriteHeaderAndSaveBodyValidation(write, name, inflateResult.compressionInfo, header, saveBodyValidation);
 
 			// parse levels
 			await ReadableStreamParser.ReadWriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
@@ -202,15 +200,14 @@ export class ReadableStreamParser {
 	}
 
 
-	private static WriteHeaderAndGrids = async (
+	private static WriteHeaderAndSaveBodyValidation = async (
 		write: (value: string, waitTilConsumingEndIsReady?: boolean) => Promise<void>,
 		name: string,
 		compressionInfo: ChunkCompressionInfo,
 		header: SatisfactorySaveHeader,
-		grids: Grids,
-		gridHash: SaveBodyValidation
+		saveBodyValidation: SaveBodyValidation
 	) => {
-		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", "compressionInfo": ${JSON.stringify(compressionInfo)}, "gridHash": ${JSON.stringify(gridHash)}, "grids": ${JSON.stringify(grids)}, "levels": {`, false);
+		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", "compressionInfo": ${JSON.stringify(compressionInfo)}, "saveBodyValidation": ${JSON.stringify(saveBodyValidation)}, "levels": {`, false);
 	}
 
 	private static async ReadWriteLevels(

@@ -167,6 +167,7 @@ const saveList = [
 	'structuralsolutions-1',
 	'x3-roads-signs',
 	'pep-modtest-1',
+	'Modding-Testing-MLB-003'	// 1.1 modular LBs and alternates
 ];
 
 it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {

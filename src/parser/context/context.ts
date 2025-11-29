@@ -7,11 +7,14 @@ export type ReaderWriterContext = SaveReaderWriterContext & BlueprintReaderWrite
 
 /**
  * Context for reading/writing save files.
+ * 
+ * @param mods describes a list of mod names to their versions. Some mods have special needs.
  */
 export type SaveReaderWriterContext = {
     saveHeaderType: number;
     saveVersion: number;
     buildVersion: number;
+    mods: Record<string, string>;
     mapName?: string;
     compressionInfo?: ChunkCompressionInfo;
 }

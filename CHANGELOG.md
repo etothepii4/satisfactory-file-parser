@@ -1,4 +1,14 @@
 # Changelog
+Make sure to use the same version, when parsing and serializing saves.
+
+### [3.2.1] (2025-11-29)
+#### SaveBodyValidation moved slightly
+* `save.grids` and `save.gridHash` merged together in a `save.saveBodyValidation` property. This will not affect you, unless you specifically used them. But will break parsing/serializing saves of earlier parser versions.
+#### SaveBodyValidation moved slightly
+* Types exported by `MapProperty` changed slightly. The `MAP_STRUCT_KEY_PROXY` got renamed to `MAP_STRUCT_PROXY`. Values in MapProperties can be struct proxies too.
+#### Extending Mod Support
+* Added support for Modular Load Balancer Mod and Alternates
+
 ### [3.1.3] (2025-10-01)
 #### Extending Mod Support
 * Added Support for Mods that have custom levels/maps. Like the Platform Expansion Program

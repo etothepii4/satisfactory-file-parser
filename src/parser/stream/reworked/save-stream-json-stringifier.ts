@@ -2,7 +2,6 @@ import { WritableStream } from "stream/web";
 import { SatisfactorySave } from '../../satisfactory/save/satisfactory-save';
 import { SaveStreamWriter } from "./save-stream-writer.class";
 
-
 /**
  * @deprecated use ReadableStreamParser instead.
  * simply streams a whole satisfactorySave without backpressure to Json.
@@ -17,11 +16,8 @@ export class SaveStreamJsonStringifier {
 			await writer.writeCompressionInfo(save.compressionInfo);
 		}
 
-		// save body grid hash
-		await writer.writeGridHash(save.gridHash);
-
-		// grids
-		await writer.writeGrids(save.grids);
+		// save body validation
+		await writer.writeSaveBodyValidation(save.saveBodyValidation);
 
 		// stream level objects in batches.
 		await writer.openLevels();
