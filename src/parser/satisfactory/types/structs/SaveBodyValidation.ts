@@ -4,7 +4,7 @@ import { ContextWriter } from "../../../context/context-writer";
 
 
 export type SaveBodyValidation = {
-	grids: Grids;
+    grids: Grids;
 };
 
 export type Grids = {
@@ -26,31 +26,31 @@ export namespace SaveBodyValidation {
     export const Parse = (reader: ContextReader): SaveBodyValidation => {
 
         reader.readInt32Zero();
-		const grids: Grids = {};
+        const grids: Grids = {};
 
-		// normal game map has 6 grids: None, main grid, landscape grid, exploration grid, foliage grid, hlod0
-		const count = reader.readInt32(); 
-		for (let i=0; i<count; i++) {
-			const gridName = reader.readString();
+        // normal game map has 6 grids: None, main grid, landscape grid, exploration grid, foliage grid, hlod0
+        const count = reader.readInt32();
+        for (let i = 0; i < count; i++) {
+            const gridName = reader.readString();
 
-			const cellSize = reader.readInt32();
-			const gridHash = reader.readUint32();
-			grids[gridName] = { children: {}, cellSize, gridHash };
+            const cellSize = reader.readInt32();
+            const gridHash = reader.readUint32();
+            grids[gridName] = { children: {}, cellSize, gridHash };
 
-			const childrenCount = reader.readUint32();
-			for (let i = 0; i < childrenCount; i++) {
-				const levelInstanceName = reader.readString();
-				const cellHash = reader.readUint32();
-				grids[gridName].children[levelInstanceName] = cellHash;
-			}
-		}
+            const childrenCount = reader.readUint32();
+            for (let i = 0; i < childrenCount; i++) {
+                const levelInstanceName = reader.readString();
+                const cellHash = reader.readUint32();
+                grids[gridName].children[levelInstanceName] = cellHash;
+            }
+        }
 
         return {
             grids
         } satisfies SaveBodyValidation;
     }
 
-    export const Serialize = (writer: ContextWriter, saveBodyValidation: SaveBodyValidation) => {
+    export const Serialize = (writer: ContextWriter, saveBodyValidation: SaveBodyValidation): void => {
         writer.writeInt32(0);
         writer.writeInt32(Object.entries(saveBodyValidation.grids).length);
         for (const gridEntry of Object.entries(saveBodyValidation.grids)) {
