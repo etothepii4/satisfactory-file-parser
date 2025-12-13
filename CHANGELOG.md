@@ -1,6 +1,13 @@
 # Changelog
 Make sure to use the same version, when parsing and serializing saves.
 
+### [3.2.3] (2025-12-14)
+#### Extending Mod Support
+* Added FicsItNetworks mod support
+#### Bugfix
+* Made `AbstractBaseProperty` more robust, accepting any type extension.
+#### Dependency Updates
+
 ### [3.2.2] (2025-11-29)
 #### Bugfix
 * Explicit return type for function
@@ -8,7 +15,7 @@ Make sure to use the same version, when parsing and serializing saves.
 ### [3.2.1] (2025-11-29)
 #### SaveBodyValidation moved slightly
 * `save.grids` and `save.gridHash` merged together in a `save.saveBodyValidation` property. This will not affect you, unless you specifically used them. But will break parsing/serializing saves of earlier parser versions.
-#### SaveBodyValidation moved slightly
+#### MapProperty updated slightly
 * Types exported by `MapProperty` changed slightly. The `MAP_STRUCT_KEY_PROXY` got renamed to `MAP_STRUCT_PROXY`. Values in MapProperties can be struct proxies too.
 #### Extending Mod Support
 * Added support for Modular Load Balancer Mod and Alternates
