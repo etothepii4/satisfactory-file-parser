@@ -2,7 +2,7 @@ import { GUIDInfo } from '../../structs/GUIDInfo';
 
 
 export type PropertiesMap = {
-	[name: string]: AbstractBaseProperty | AbstractBaseProperty[];
+	[name: string]: (AbstractBaseProperty & any) | (AbstractBaseProperty & any)[];
 };
 
 
@@ -27,7 +27,7 @@ export type AbstractBaseProperty = {
 	name: string;
 	index?: number;
 	guidInfo?: GUIDInfo;
-}
+};
 
 export namespace AbstractBaseProperty {
 	export const Create = (options: AbstractBasePropertyOptions): AbstractBaseProperty => (
