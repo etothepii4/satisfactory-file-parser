@@ -28,7 +28,7 @@ export namespace FGDynamicStruct {
             struct.structReference = ObjectReference.read(reader);
 
             if (reader.context.mods.FicsItNetworks !== undefined && FINItemStateFileSystem.IsFINItemStateFileSystem(struct)) {
-                struct.rawBytes = FINItemStateFileSystem.Parse(reader);
+                struct.rawBytes = FINItemStateFileSystem.read(reader);
             } else {
                 const binarySize = reader.readInt32();
                 struct.properties = PropertiesList.ParseList(reader);
@@ -47,7 +47,7 @@ export namespace FGDynamicStruct {
             const before = writer.getBufferPosition();
             writer.writeInt32Zero();
             if (FINItemStateFileSystem.IsFINItemStateFileSystem(struct)) {
-                FINItemStateFileSystem.Serialize(writer, struct.rawBytes!);
+                FINItemStateFileSystem.write(writer, struct.rawBytes!);
             } else {
                 PropertiesList.SerializeList(writer, struct.properties!);
             }

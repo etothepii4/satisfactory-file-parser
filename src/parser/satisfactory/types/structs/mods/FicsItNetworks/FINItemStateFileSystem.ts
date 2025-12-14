@@ -19,12 +19,12 @@ export namespace FINItemStateFileSystem {
         return ObjectReference.IsEqual(struct.structReference!, ExactStructReference);
     }
 
-    export const Parse = (reader: ContextReader): FINItemStateFileSystem => {
+    export const read = (reader: ContextReader): FINItemStateFileSystem => {
         const numBytes = reader.readInt32();
         return Array.from(reader.readBytes(numBytes));
     }
 
-    export const Serialize = (writer: ContextWriter, rawBytes: FINItemStateFileSystem): void => {
+    export const write = (writer: ContextWriter, rawBytes: FINItemStateFileSystem): void => {
         writer.writeBytesArray(rawBytes);
     }
 }
