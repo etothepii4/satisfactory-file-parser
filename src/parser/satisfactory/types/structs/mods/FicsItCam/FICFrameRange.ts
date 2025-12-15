@@ -6,16 +6,19 @@ export type FICFrameRange = {
     end: string;
 };
 
+/**
+ * declared at https://github.com/Panakotta00/FicsIt-Cam/blob/master/Source/FicsItCam/Public/Data/FICTypes.h#35
+ */
 export namespace FICFrameRange {
 
-    export const Parse = (reader: ContextReader): FICFrameRange => {
+    export const read = (reader: ContextReader): FICFrameRange => {
         return {
             begin: reader.readInt64().toString(),
             end: reader.readInt64().toString(),
         };
     };
 
-    export const Serialize = (writer: ContextWriter, value: FICFrameRange): void => {
+    export const write = (writer: ContextWriter, value: FICFrameRange): void => {
         writer.writeInt64(BigInt(value.begin));
         writer.writeInt64(BigInt(value.end));
     };
