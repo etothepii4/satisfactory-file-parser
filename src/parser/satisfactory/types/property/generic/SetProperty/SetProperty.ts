@@ -18,9 +18,8 @@ export namespace SetProperty {
 
     export type AvailableSetPropertyTypes = Uint32SetProperty | Int32SetProperty | ObjectSetProperty | StrSetProperty | StructSetProperty;
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number, propertyName: string): AvailableSetPropertyTypes => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number, propertyName: string, subtype: string): AvailableSetPropertyTypes => {
 
-        const subtype = reader.readString();
         reader.skipBytes(1); // 0
         const numElementsToRemove = reader.readInt32();
         if (numElementsToRemove > 0) {
@@ -59,8 +58,8 @@ export namespace SetProperty {
         return property;
     }
 
-    export const CalcOverhead = (property: AvailableSetPropertyTypes): number => {
-        return property.subtype.length + 5 + 1;
+    export const CalcOverhead = (property: AvailableSetPropertyTypes, subtype: string): number => {
+        return subtype.length + 5 + 1;
     }
 
     export const Serialize = (writer: ContextWriter, property: AvailableSetPropertyTypes): void => {

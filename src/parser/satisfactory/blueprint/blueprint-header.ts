@@ -20,7 +20,7 @@ export namespace BlueprintHeader {
         const headerVersion = reader.readInt32();
         const saveVersion = reader.readInt32();
         const buildVersion = reader.readInt32();
-        const dimensions = vec3.ParseInt(reader); // e.g. 4,4,4 - dimensions in foundation size
+        const designerDimension = vec3.ParseInt(reader); // e.g. 4,4,4 - dimensions in foundation size
 
         // set context
         reader.context.headerVersion = headerVersion;
@@ -40,18 +40,18 @@ export namespace BlueprintHeader {
 
         // list of recipes
         let recipeCount = reader.readInt32();
-        const recipeRefs = new Array<ObjectReference>(recipeCount).fill({ levelName: '', pathName: '' });
+        const recipeReferences = new Array<ObjectReference>(recipeCount).fill({ levelName: '', pathName: '' });
         for (let i = 0; i < recipeCount; i++) {
             const recipeName = ObjectReference.read(reader);
-            recipeRefs[i] = recipeName;
+            recipeReferences[i] = recipeName;
         }
 
         return {
             headerVersion,
             saveVersion,
             buildVersion,
-            designerDimension: dimensions,
-            recipeReferences: recipeRefs,
+            designerDimension,
+            recipeReferences,
             itemCosts
         } satisfies BlueprintHeader;
 

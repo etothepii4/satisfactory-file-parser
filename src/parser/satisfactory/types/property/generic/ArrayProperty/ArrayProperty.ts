@@ -32,8 +32,7 @@ export namespace ArrayProperty {
 
     export type AvailableArrayPropertyTypes = BoolArrayProperty | ByteArrayProperty | DoubleArrayProperty | EnumArrayProperty | FloatArrayProperty | Int32ArrayProperty | Int64ArrayProperty | ObjectArrayProperty | SoftObjectArrayProperty | StrArrayProperty | StructArrayProperty | TextArrayProperty;
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number): AvailableArrayPropertyTypes => {
-        const subtype = reader.readString();
+    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number, subtype: string): AvailableArrayPropertyTypes => {
         reader.skipBytes(1); // 0
 
         let property: AvailableArrayPropertyTypes;
@@ -97,8 +96,8 @@ export namespace ArrayProperty {
         return property;
     }
 
-    export const CalcOverhead = (property: AvailableArrayPropertyTypes): number => {
-        return property.subtype.length + 5 + 1;
+    export const CalcOverhead = (property: AvailableArrayPropertyTypes, subtype: string): number => {
+        return subtype.length + 5 + 1;
     }
 
     export const Serialize = (writer: ContextWriter, property: AvailableArrayPropertyTypes): void => {

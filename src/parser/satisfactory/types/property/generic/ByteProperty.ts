@@ -13,11 +13,9 @@ export type ByteProperty = AbstractBaseProperty & {
 
 export namespace ByteProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): ByteProperty => {
+    export const Parse = (reader: ContextReader, ueType: string, index: number = 0, type: string): ByteProperty => {
 
-        const type = reader.readString();
         const guidInfo = GUIDInfo.read(reader);
-
 
         let value;
         if (type === 'None') {
@@ -44,8 +42,8 @@ export namespace ByteProperty {
         return reader.readByte();
     }
 
-    export const CalcOverhead = (property: ByteProperty): number => {
-        return property.value.type.length + 5 + 1;
+    export const CalcOverhead = (property: ByteProperty, type: string): number => {
+        return type.length + 5 + 1;
     }
 
     export const Serialize = (writer: ContextWriter, property: ByteProperty): void => {

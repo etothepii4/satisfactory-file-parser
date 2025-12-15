@@ -50,7 +50,6 @@ export abstract class SaveObject implements SaveObjectHeader {
 		const start = reader.getBufferPosition();
 
 		obj.properties = PropertiesList.ParseList(reader);
-
 		reader.readInt32Zero();
 
 		let remainingSize = length - (reader.getBufferPosition() - start);
@@ -60,7 +59,13 @@ export abstract class SaveObject implements SaveObjectHeader {
 		if (remainingSize > 0) {
 			obj.trailingData = Array.from(reader.readBytes(remainingSize));
 		} else if (remainingSize < 0) {
-			throw new ParserError('ParserError', `Unexpected. Read more bytes than are indicated for entity ${obj.instanceName}. bytes left to read is ${remainingSize}`);
+			const error = new ParserError('ParserError', `Unexpected. Read more bytes than are indicated for entity ${obj.instanceName}. bytes left to read is ${remainingSize}`);
+			if (reader.context.throwErrors) {
+				throw error;
+			} else {
+				reader.skipBytes(-remainingSize);
+				console.warn(error);
+			}
 		}
 	}
 

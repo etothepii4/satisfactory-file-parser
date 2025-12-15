@@ -1,7 +1,7 @@
 import { ContextReader } from '../../../../../context/context-reader';
 import { ContextWriter } from '../../../../../context/context-writer';
 import { UnimplementedError } from '../../../../../error/parser.error';
-import { GUID } from '../../../structs/GUID';
+import { GUID } from '../../../structs/binary/GUID';
 import { vec3 } from '../../../structs/vec3';
 import { AbstractBaseProperty } from '../AbstractBaseProperty';
 

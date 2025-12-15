@@ -39,10 +39,25 @@ const ParseSaveSync = (savename: string, file: ArrayBufferLike, onDecompressedSa
 		onDecompressedSaveBody,
 		onProgressCallback: (progress, msg) => {
 			console.log(`${savename} parsing progress`, progress, msg);
-		}
+		},
+		throwErrors: true
 	});
 	return save;
 };
+
+
+const ParseBlueprintSync = (
+	blueprintname: string,
+	file: ArrayBufferLike,
+	configFileBuffer: ArrayBufferLike,
+	onDecompressedBlueprintBody: NonNullable<Parameters<typeof Parser.ParseBlueprintFiles>[3]>['onDecompressedBlueprintBody']
+) => {
+	console.log('## parsing blueprint', blueprintname);
+	return Parser.ParseBlueprintFiles(blueprintname, file, configFileBuffer, {
+		onDecompressedBlueprintBody,
+		throwErrors: true
+	});
+}
 
 const WriteSaveSync = (save: SatisfactorySave, onBinaryBeforeCompressing?: (binary: ArrayBuffer) => void) => {
 	let mainFileHeader: Uint8Array;
@@ -168,7 +183,7 @@ const saveList = [
 	'x3-roads-signs',
 	'pep-modtest-1',
 	'Modding-Testing-MLB-003',	// 1.1 modular LBs and alternates
-	'Dunarr-019'				// 1.1 FicsItNetworks
+	'Dunarr-027'				// 1.1 FicsItNetworks
 ];
 
 it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
@@ -179,7 +194,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 	const file = new Uint8Array(fs.readFileSync(filepath)).buffer;
 	const outJsonPathStream = path.join(__dirname, savename + '.stream.json');
 	const outJsonPathSync = path.join(__dirname, savename + '.sync.json');
-
 
 	// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 	// However, the write speed of the writestream is still a limit for consumption.
@@ -211,7 +225,6 @@ it.each(saveList)('can parse a binary save (%s) to json with stream and with syn
 				return reject();
 			});
 	});
-
 	console.log(`Streaming took ${(end - start) / 1000} seconds.`);
 
 	// parse sync as well.
@@ -266,11 +279,9 @@ it.each([
 	const configFileBuffer = new Uint8Array(fs.readFileSync(filepathBlueprintConfig)).buffer;
 
 	let binaryBodyLength = 0;
-	const blueprint = Parser.ParseBlueprintFiles(blueprintname, file, configFileBuffer, {
-		onDecompressedBlueprintBody: (decompressedBody) => {
-			binaryBodyLength = decompressedBody.byteLength;
-			fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBody));
-		}
+	const blueprint = ParseBlueprintSync(blueprintname, file, configFileBuffer, (decompressedBody) => {
+		binaryBodyLength = decompressedBody.byteLength;
+		fs.writeFileSync(binaryFilepath, Buffer.from(decompressedBody));
 	});
 
 	fs.writeFileSync(path.join(__dirname, blueprintname + '.json'), JSON.stringify(blueprint, null, 4));
@@ -297,9 +308,8 @@ it.each([
 	// test reading modified blueprint again.
 	const mainFileNew = new Uint8Array(fs.readFileSync(path.join(__dirname, blueprintname + '.sbp_modified'))).buffer;
 	const configFileNew = new Uint8Array(fs.readFileSync(path.join(__dirname, blueprintname + '.sbpcfg_modified'))).buffer;
-	const blueprintNew = Parser.ParseBlueprintFiles(blueprintname, mainFileNew, configFileNew, {
-		onDecompressedBlueprintBody: (decompressedBody) => {
-			expect(decompressedBody.byteLength).toEqual(binaryBodyLength);
-		},
+
+	const blueprintNew = ParseBlueprintSync(blueprintname, mainFileNew, configFileNew, (decompressedBody) => {
+		expect(decompressedBody.byteLength).toEqual(binaryBodyLength);
 	});
 });

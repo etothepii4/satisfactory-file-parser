@@ -41,6 +41,14 @@ export abstract class ByteWriter implements BinaryWritable {
 		this.extendBufferIfNeeded(bytes.length);
 		bytes.forEach(byte => this.bufferView.setUint8(this.currentByte++, byte));
 	}
+	public hexStringRepresentationToBytes(hex: string, hexSeparator: string = ' '): number[] {
+		const cleanHex = hex.split(hexSeparator).join('').replace(/\s+/g, '');
+		const bytes = Array.from({ length: cleanHex.length / 2 }, (_, i) => parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16));
+		return bytes;
+	}
+	public writeHex(hex: string, hexSeparator: string = ' '): void {
+		this.writeBytesArray(this.hexStringRepresentationToBytes(hex, hexSeparator));
+	}
 	public writeInt8(value: number): void {
 		this.extendBufferIfNeeded(1);
 		this.bufferView.setInt8(this.currentByte, value);

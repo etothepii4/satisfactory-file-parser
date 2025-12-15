@@ -62,7 +62,7 @@ export namespace StructArrayProperty {
         });
         const readBytes = reader.getBufferPosition() - before;
         if (readBytes !== binarySize) {
-            throw new Error('possibly corrupt in array of struct.');
+            throw new Error(`possibly corrupt in array of struct. read ${readBytes} bytes but ${binarySize} were indicated. ${elementCount} elements of struct subtype ${allStructType}.`);
         }
 
         return {

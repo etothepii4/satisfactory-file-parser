@@ -1,6 +1,14 @@
 # Changelog
 Make sure to use the same version, when parsing and serializing saves.
 
+### [3.3.1] (2025-12-??)
+#### Error Handling
+* The parser will no longer throw errors on encountering unknown properties or objects. Only if you explicitly specify `throwErrors: true` when calling the parser. Major errors on the overall save structure still get thrown.
+* Made `AbstractBaseProperty` include `rawBytes`, in case properties can not be parsed. When you specify `throwErrors: false` when calling the parser, unparsed property data lands in there.
+#### Bugfix
+* Bugfix for Mods FicsItNetworks and Modular Load Balancers
+* Some Internal types / functions got moved a bit
+
 ### [3.2.3] (2025-12-14)
 #### Extending Mod Support
 * Added FicsItNetworks mod support

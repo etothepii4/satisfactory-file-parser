@@ -30,6 +30,7 @@ export namespace PropertiesList {
 		const properties: PropertiesMap = {};
 		let propertyName: string = reader.readString();
 		while (propertyName !== 'None') {
+
 			const parsedProperty = PropertiesList.ParseSingleProperty(reader, propertyName);
 
 			// if it already exists, make it an array.
@@ -65,124 +66,153 @@ export namespace PropertiesList {
 
 		const index = reader.readInt32();
 		const before = reader.getBufferPosition();
-
 		let overhead = 0;
-		switch (propertyType) {
-			case 'BoolProperty':
-				currentProperty = BoolProperty.Parse(reader, propertyType, index);
-				overhead = BoolProperty.CalcOverhead(currentProperty);
-				break;
 
-			case 'ByteProperty':
-				currentProperty = ByteProperty.Parse(reader, propertyType, index);
-				overhead = ByteProperty.CalcOverhead(currentProperty);
-				break;
+		let subtype = '';
 
-			case 'Int8Property':
-				currentProperty = Int8Property.Parse(reader, propertyType, index);
-				overhead = Int8Property.CalcOverhead(currentProperty);
-				break;
+		try {
+			switch (propertyType) {
+				case 'BoolProperty':
+					overhead = BoolProperty.CalcOverhead(currentProperty);
+					currentProperty = BoolProperty.Parse(reader, propertyType, index);
+					break;
+
+				case 'ByteProperty':
+					const type = reader.readString();
+					overhead = ByteProperty.CalcOverhead(currentProperty, type);
+					currentProperty = ByteProperty.Parse(reader, propertyType, index, type);
+					break;
+
+				case 'Int8Property':
+					overhead = Int8Property.CalcOverhead(currentProperty);
+					currentProperty = Int8Property.Parse(reader, propertyType, index);
+					break;
 
 
-			case 'UInt8Property':
-				currentProperty = Uint8Property.Parse(reader, propertyType, index);
-				overhead = Uint8Property.CalcOverhead(currentProperty);
-				break;
+				case 'UInt8Property':
+					overhead = Uint8Property.CalcOverhead(currentProperty);
+					currentProperty = Uint8Property.Parse(reader, propertyType, index);
+					break;
 
-			case 'IntProperty':
-			case 'Int32Property':
-				currentProperty = Int32Property.Parse(reader, propertyType, index);
-				overhead = Int32Property.CalcOverhead(currentProperty);
-				break;
+				case 'IntProperty':
+				case 'Int32Property':
+					overhead = Int32Property.CalcOverhead(currentProperty);
+					currentProperty = Int32Property.Parse(reader, propertyType, index);
+					break;
 
-			case 'UInt32Property':
-				currentProperty = Uint32Property.Parse(reader, propertyType, index);
-				overhead = Uint32Property.CalcOverhead(currentProperty);
-				break;
+				case 'UInt32Property':
+					overhead = Uint32Property.CalcOverhead(currentProperty);
+					currentProperty = Uint32Property.Parse(reader, propertyType, index);
+					break;
 
-			case 'Int64Property':
-				currentProperty = Int64Property.Parse(reader, propertyType, index);
-				overhead = Int64Property.CalcOverhead(currentProperty);
-				break;
+				case 'Int64Property':
+					overhead = Int64Property.CalcOverhead(currentProperty);
+					currentProperty = Int64Property.Parse(reader, propertyType, index);
+					break;
 
-			case 'UInt64Property':
-				currentProperty = Uint64Property.Parse(reader, propertyType, index);
-				break;
+				case 'UInt64Property':
+					overhead = Uint64Property.CalcOverhead(currentProperty);
+					currentProperty = Uint64Property.Parse(reader, propertyType, index);
+					break;
 
-			case 'SingleProperty':
-			case 'FloatProperty':
-				currentProperty = FloatProperty.Parse(reader, propertyType, index);
-				overhead = FloatProperty.CalcOverhead(currentProperty);
-				break;
+				case 'SingleProperty':
+				case 'FloatProperty':
+					overhead = FloatProperty.CalcOverhead(currentProperty);
+					currentProperty = FloatProperty.Parse(reader, propertyType, index);
+					break;
 
-			case 'DoubleProperty':
-				currentProperty = DoubleProperty.Parse(reader, propertyType, index);
-				overhead = DoubleProperty.CalcOverhead(currentProperty);
-				break;
+				case 'DoubleProperty':
+					overhead = DoubleProperty.CalcOverhead(currentProperty);
+					currentProperty = DoubleProperty.Parse(reader, propertyType, index);
+					break;
 
-			case 'StrProperty':
-			case 'NameProperty':
-				currentProperty = StrProperty.Parse(reader, propertyType, index);
-				overhead = StrProperty.CalcOverhead(currentProperty);
-				break;
+				case 'StrProperty':
+				case 'NameProperty':
+					overhead = StrProperty.CalcOverhead(currentProperty);
+					currentProperty = StrProperty.Parse(reader, propertyType, index);
+					break;
 
-			case 'ObjectProperty':
-			case 'InterfaceProperty':
-				currentProperty = ObjectProperty.Parse(reader, propertyType, index);
-				overhead = ObjectProperty.CalcOverhead(currentProperty);
-				break;
+				case 'ObjectProperty':
+				case 'InterfaceProperty':
+					overhead = ObjectProperty.CalcOverhead(currentProperty);
+					currentProperty = ObjectProperty.Parse(reader, propertyType, index);
+					break;
 
-			case 'SoftObjectProperty':
-				currentProperty = SoftObjectProperty.Parse(reader, propertyType, index);
-				overhead = SoftObjectProperty.CalcOverhead(currentProperty);
-				break;
+				case 'SoftObjectProperty':
+					overhead = SoftObjectProperty.CalcOverhead(currentProperty);
+					currentProperty = SoftObjectProperty.Parse(reader, propertyType, index);
+					break;
 
-			case 'EnumProperty':
-				currentProperty = EnumProperty.Parse(reader, propertyType, index);
-				overhead = EnumProperty.CalcOverhead(currentProperty);
-				break;
+				case 'EnumProperty':
+					const name = reader.readString();
+					overhead = EnumProperty.CalcOverhead(currentProperty, name);
+					currentProperty = EnumProperty.Parse(reader, propertyType, name, index);
+					break;
 
-			case 'StructProperty':
-				currentProperty = StructProperty.Parse(reader, propertyType, index, binarySize);
-				overhead = StructProperty.CalcOverhead(currentProperty);
-				break;
+				case 'StructProperty':
+					subtype = reader.readString();
+					overhead = StructProperty.CalcOverhead(currentProperty, subtype);
+					currentProperty = StructProperty.Parse(reader, propertyType, index, binarySize, subtype);
+					break;
 
-			case 'ArrayProperty':
-				currentProperty = ArrayProperty.Parse(reader, propertyType, index, binarySize);
-				overhead = ArrayProperty.CalcOverhead(currentProperty);
-				break;
+				case 'ArrayProperty':
+					subtype = reader.readString();
+					overhead = ArrayProperty.CalcOverhead(currentProperty, subtype);
+					currentProperty = ArrayProperty.Parse(reader, propertyType, index, binarySize, subtype);
+					break;
 
-			case 'MapProperty':
-				currentProperty = MapProperty.Parse(reader, propertyName, binarySize);
-				overhead = MapProperty.CalcOverhead(currentProperty);
-				break;
+				case 'MapProperty':
+					const keyType = reader.readString();
+					const valueType = reader.readString();
+					overhead = MapProperty.CalcOverhead(currentProperty, keyType, valueType);
+					currentProperty = MapProperty.Parse(reader, propertyName, binarySize, keyType, valueType);
+					break;
 
-			case 'TextProperty':
-				currentProperty = TextProperty.Parse(reader, propertyType, index);
-				overhead = TextProperty.CalcOverhead(currentProperty);
-				break;
+				case 'TextProperty':
+					overhead = TextProperty.CalcOverhead(currentProperty);
+					currentProperty = TextProperty.Parse(reader, propertyType, index);
+					break;
 
-			case 'SetProperty':
-				currentProperty = SetProperty.Parse(reader, propertyType, index, propertyName);
-				overhead = SetProperty.CalcOverhead(currentProperty);
-				break;
+				case 'SetProperty':
+					subtype = reader.readString();
+					overhead = SetProperty.CalcOverhead(currentProperty, subtype);
+					currentProperty = SetProperty.Parse(reader, propertyType, index, propertyName, subtype);
+					break;
 
-			default:
-				throw new Error(`Unimplemented type ${propertyType}, at byte position ${reader.getBufferPosition()}`);
-		}
+				default:
+					throw new Error(`Unimplemented type ${propertyType}, at byte position ${reader.getBufferPosition()}`);
+			}
 
-		currentProperty.name = propertyName;
+			currentProperty.name = propertyName;
 
-		const readBytes = reader.getBufferPosition() - before - overhead;
-		if (readBytes !== binarySize) {
-			console.warn(`possibly corrupt. Read ${readBytes} for ${propertyType} ${propertyName}, but ${binarySize} were indicated.`);
-			throw new ParserError('ParserError', `possibly corrupt. Read ${readBytes} bytes for ${propertyType} ${propertyName}, but ${binarySize} bytes were indicated.`);
+			const readBytes = reader.getBufferPosition() - before - overhead;
+			if (readBytes !== binarySize) {
+				throw new ParserError('ParserError', `Property possibly corrupt. Read ${readBytes} bytes for ${propertyType} ${propertyName}, but ${binarySize} bytes were indicated.`);
+			}
+		} catch (error) {
+			if (reader.context.throwErrors) {
+				throw error;
+			} else {
+
+				// we inform about the error and dump the calculated byte content of the property.
+				console.warn(error);
+				console.warn(`property ${propertyName} of type ${propertyType} is therefore dumped as raw bytes.`);
+
+				reader.skipBytes(before - reader.getBufferPosition());
+				(currentProperty as AbstractBaseProperty).rawBytes = Array.from(reader.readBytes(binarySize + overhead));
+			}
 		}
 
 		return currentProperty;
 	}
 
 	export const SerializeSingleProperty = (writer: ContextWriter, property: AbstractBaseProperty): void => {
+
+		// in case we have a property that we could not parse before.
+		if (property.rawBytes !== undefined) {
+			writer.writeBytesArray(property.rawBytes);
+			return;
+		}
 
 		writer.writeString(property.ueType);
 
@@ -202,7 +232,7 @@ export namespace PropertiesList {
 				break;
 
 			case 'ByteProperty':
-				overhead = ByteProperty.CalcOverhead(property as ByteProperty);
+				overhead = ByteProperty.CalcOverhead(property as ByteProperty, (property as ByteProperty).value.type);
 				ByteProperty.Serialize(writer, property as ByteProperty);
 				break;
 
@@ -266,27 +296,22 @@ export namespace PropertiesList {
 				break;
 
 			case 'EnumProperty':
-				overhead = EnumProperty.CalcOverhead(property as EnumProperty);
+				overhead = EnumProperty.CalcOverhead(property as EnumProperty, (property as EnumProperty).value.name);
 				EnumProperty.Serialize(writer, property as EnumProperty);
 				break;
 
-			case 'ByteProperty':
-				overhead = ByteProperty.CalcOverhead(property as ByteProperty);
-				ByteProperty.Serialize(writer, property as ByteProperty);
-				break;
-
 			case 'StructProperty':
-				overhead = StructProperty.CalcOverhead(property as StructProperty);
+				overhead = StructProperty.CalcOverhead(property as StructProperty, (property as StructProperty).subtype);
 				StructProperty.Serialize(writer, property as StructProperty);
 				break;
 
 			case 'ArrayProperty':
-				overhead = ArrayProperty.CalcOverhead(property as ArrayProperty.AvailableArrayPropertyTypes);
+				overhead = ArrayProperty.CalcOverhead(property as ArrayProperty.AvailableArrayPropertyTypes, (property as ArrayProperty.AvailableArrayPropertyTypes).subtype);
 				ArrayProperty.Serialize(writer, property as ArrayProperty.AvailableArrayPropertyTypes);
 				break;
 
 			case 'MapProperty':
-				overhead = MapProperty.CalcOverhead(property as MapProperty);
+				overhead = MapProperty.CalcOverhead(property as MapProperty, (property as MapProperty).keyType, (property as MapProperty).valueType);
 				MapProperty.Serialize(writer, property as MapProperty);
 				break;
 
@@ -296,7 +321,7 @@ export namespace PropertiesList {
 				break;
 
 			case 'SetProperty':
-				overhead = SetProperty.CalcOverhead(property as SetProperty.AvailableSetPropertyTypes);
+				overhead = SetProperty.CalcOverhead(property as SetProperty.AvailableSetPropertyTypes, (property as SetProperty.AvailableSetPropertyTypes).subtype);
 				SetProperty.Serialize(writer, property as SetProperty.AvailableSetPropertyTypes);
 				break;
 
