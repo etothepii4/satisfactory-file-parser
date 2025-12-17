@@ -1,6 +1,6 @@
 {
     "name": "@etothepii/satisfactory-file-parser",
-    "version": "3.2.3",
+    "version": "3.3.0",
     "license": "MIT",
     "exports": "./src/index.ts"
 }

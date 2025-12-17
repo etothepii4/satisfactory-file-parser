@@ -1,4 +1,8 @@
 // types & classes for convenience
+export * from './parser/byte/alignment.enum';
+export * from './parser/context/context';
+export * from './parser/context/context-reader';
+export * from './parser/context/context-writer';
 export * from './parser/satisfactory/blueprint/blueprint-config';
 export * from './parser/satisfactory/blueprint/blueprint-config-version';
 export * from './parser/satisfactory/blueprint/blueprint-header';
@@ -65,15 +69,22 @@ export * from './parser/satisfactory/types/property/special/runtime-buildable-in
 export * from './parser/satisfactory/types/property/special/SpecialDroneActionProperties';
 export * from './parser/satisfactory/types/property/special/SpecialProperties';
 export * from './parser/satisfactory/types/property/special/VehicleSpecialProperties';
+export * from './parser/satisfactory/types/structs/binary/FClientIdentityInfo';
+export * from './parser/satisfactory/types/structs/binary/FColor';
+export * from './parser/satisfactory/types/structs/binary/FLinearColor';
+export * from './parser/satisfactory/types/structs/binary/GUID';
 export * from './parser/satisfactory/types/structs/col4';
 export * from './parser/satisfactory/types/structs/DynamicStructPropertyValue';
 export * from './parser/satisfactory/types/structs/FGDynamicStruct';
-export * from './parser/satisfactory/types/structs/GUID';
 export * from './parser/satisfactory/types/structs/GUIDInfo';
-export * from './parser/satisfactory/types/structs/SaveBodyValidation';
 export * from './parser/satisfactory/types/structs/MD5Hash';
 export * from './parser/satisfactory/types/structs/mods/FicsItCam/FICFrameRange';
+export * from './parser/satisfactory/types/structs/mods/FicsItNetworks/FINGPUT1BufferPixel';
+export * from './parser/satisfactory/types/structs/mods/FicsItNetworks/FINItemStateFileSystem';
+export * from './parser/satisfactory/types/structs/mods/FicsItNetworks/FINNetworkTrace';
+export * from './parser/satisfactory/types/structs/mods/ModularLoadBalancers/FLBBalancerIndexing';
 export * from './parser/satisfactory/types/structs/ObjectReference';
+export * from './parser/satisfactory/types/structs/SaveBodyValidation';
 export * from './parser/satisfactory/types/structs/SoftObjectReference';
 export * from './parser/satisfactory/types/structs/Transform';
 export * from './parser/satisfactory/types/structs/vec2';
@@ -83,7 +94,6 @@ export * from './parser/satisfactory/types/structs/VehiclePhysicsData';
 
 // should better be removed in a future update to prevent shenanigans.
 export { BlueprintConfigReader, BlueprintReader } from './parser/satisfactory/blueprint/blueprint-reader';
-export { BlueprintConfigWriter, BlueprintWriter } from './parser/satisfactory/blueprint/blueprint-writer';
 export * from './parser/satisfactory/save/save-reader';
 export { SaveWriter } from './parser/satisfactory/save/save-writer';
 export { SaveStreamJsonStringifier } from './parser/stream/reworked/save-stream-json-stringifier';

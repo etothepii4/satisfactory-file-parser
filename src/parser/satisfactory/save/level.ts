@@ -13,14 +13,13 @@ import { SaveReader } from './save-reader';
 
 /**
  * type for levels
- * @param fiftyOne Use unclear. Added in Update 1.1
  */
 export type Level = {
 	name: string;
 	objects: (SaveEntity | SaveComponent)[];
 	collectables: ObjectReference[];
 	saveCustomVersion?: number;
-	destroyedActorsMap?: LevelToDestroyedActorsMap
+	destroyedActorsMap?: LevelToDestroyedActorsMap;
 }
 export type Levels = { [levelName: string]: Level };
 
@@ -32,6 +31,7 @@ export namespace Level {
 			objects: [],
 			collectables: []
 		}
+		const isPersistentLevel = reader.context.mapName === levelName;
 
 		// checksum object headers.
 		const headersBinLen = reader.readInt32(); // object headers + binary length
@@ -47,7 +47,7 @@ export namespace Level {
 		let remainingSize = headersBinLen - (reader.getBufferPosition() - posBeforeHeaders);
 		if (remainingSize > 0) {
 
-			if (levelName === reader.context.mapName) {
+			if (isPersistentLevel) {
 				level.destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 			} else {
 				level.collectables = ObjectReferencesList.ReadList(reader);
@@ -72,15 +72,15 @@ export namespace Level {
 		// objects contents
 		const posBeforeContents = reader.getBufferPosition();
 		ReadAllObjectContents(levelName, reader, level.objects, reader.onProgressCallback);
+		level.objects = level.objects.filter(Boolean);
 		const posAfterContents = reader.getBufferPosition();
 		if (posAfterContents - posBeforeContents !== objectContentsBinLen) {
-			//WARNING
-			console.warn('save seems corrupt.', level.name);
+			console.warn(`save seems corrupt. Level ${level.name} is not even obeying the object count checksum.`, level.name);
 		}
 
 
 		// only NOT in the persistent level, we have saveVersion
-		if (levelName !== reader.context.mapName) {
+		if (!isPersistentLevel) {
 			if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
 				level.saveCustomVersion = reader.readInt32();
 			}
@@ -89,7 +89,7 @@ export namespace Level {
 		// 2nd time.
 		// for persistent level, we have LevelToDestroyedActorsMap, else collectibles
 		// Listed here since < U8 and in U8 as well. So this is the best list you can rely on.
-		if (levelName === reader.context.mapName) {
+		if (isPersistentLevel) {
 			level.destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 		} else {
 			level.collectables = ObjectReferencesList.ReadList(reader);
@@ -99,6 +99,7 @@ export namespace Level {
 	}
 
 	export const SerializeLevel = (writer: ContextWriter, level: Level): void => {
+		const isPersistentLevel = level.name === writer.context.mapName;
 		const lenIndicatorHeaderAndDestroyedEntitiesSize = writer.getBufferPosition();
 		writer.writeInt32(0);	// len indicator
 
@@ -109,9 +110,9 @@ export namespace Level {
 		SerializeAllObjectHeaders(writer, level.objects);
 
 		// <--- destroyed actors is the same as collectables list. Seems like its not there if count 0.
-		if (level.name === writer.context.mapName && level.destroyedActorsMap !== undefined && Object.keys(level.destroyedActorsMap).length > 0) {
+		if (isPersistentLevel && level.destroyedActorsMap !== undefined && Object.keys(level.destroyedActorsMap).length > 0) {
 			LevelToDestroyedActorsMap.write(writer, level.destroyedActorsMap);
-		} else if (level.name !== writer.context.mapName && level.collectables.length > 0) {
+		} else if (!isPersistentLevel && level.collectables.length > 0) {
 			ObjectReferencesList.SerializeList(writer, level.collectables);
 		}
 
@@ -123,7 +124,7 @@ export namespace Level {
 
 
 		// only NOT in the persistent level, we have saveVersion
-		if (level.name !== writer.context.mapName) {
+		if (!isPersistentLevel) {
 			if (writer.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
 				writer.writeInt32(level.saveCustomVersion ?? SaveCustomVersion.SerializePerStreamableLevelTOCVersion);
 			}
@@ -131,7 +132,7 @@ export namespace Level {
 
 		// 2nd time.
 		// for persistent level, we have LevelToDestroyedActorsMap, else collectibles
-		if (level.name === writer.context.mapName) {
+		if (isPersistentLevel) {
 			LevelToDestroyedActorsMap.write(writer, level.destroyedActorsMap ?? {});
 		} else {
 			ObjectReferencesList.SerializeList(writer, level.collectables);
@@ -169,17 +170,27 @@ export namespace Level {
 			}
 
 			const binarySize = reader.readInt32();
-
 			const before = reader.getBufferPosition();
-			if (isSaveEntity(objects[i + objectListOffset])) {
-				SaveEntity.ParseData(objects[i + objectListOffset] as SaveEntity, binarySize, reader, objects[i + objectListOffset].typePath);
-			} else if (isSaveComponent(objects[i + objectListOffset])) {
-				SaveComponent.ParseData(objects[i + objectListOffset] as SaveComponent, binarySize, reader, objects[i + objectListOffset].typePath);
-			}
 
-			const after = reader.getBufferPosition();
-			if (after - before !== binarySize) {
-				throw new CorruptSaveError(`Could not read entity ${objects[i + objectListOffset].instanceName}, as ${after - before} bytes were read, but ${binarySize} bytes were indicated.`);
+			try {
+				if (isSaveEntity(objects[i + objectListOffset])) {
+					SaveEntity.ParseData(objects[i + objectListOffset] as SaveEntity, binarySize, reader, objects[i + objectListOffset].typePath);
+				} else if (isSaveComponent(objects[i + objectListOffset])) {
+					SaveComponent.ParseData(objects[i + objectListOffset] as SaveComponent, binarySize, reader, objects[i + objectListOffset].typePath);
+				}
+
+				const after = reader.getBufferPosition();
+				if (after - before !== binarySize) {
+					throw new CorruptSaveError(`Could not read entity ${objects[i + objectListOffset].instanceName}, as ${after - before} bytes were read, but ${binarySize} bytes were indicated.`);
+				}
+			} catch (error) {
+				if (reader.context.throwErrors) {
+					throw error;
+				} else {
+					console.warn(`Could not read object ${objects[i + objectListOffset].instanceName} of type ${objects[i + objectListOffset].typePath} as a whole. will be removed from level's object list.`);
+					reader.skipBytes(before - reader.getBufferPosition() + binarySize);
+					objects[i + objectListOffset] = null as unknown as SaveObject;
+				}
 			}
 		}
 	}

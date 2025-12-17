@@ -228,6 +228,7 @@ export class ReadableStreamParser {
 		let destroyedActorsMap: LevelToDestroyedActorsMap = {};
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
+			const isPersistentLevel = levelName === mapName;
 
 			if (j % 500 === 0) {
 				reader.onProgressCallback(reader.getBufferProgress(), `reading level [${(j + 1)}/${(levelCount + 1)}] ${levelName}`);
@@ -269,7 +270,7 @@ export class ReadableStreamParser {
 				if (countObjectHeaders === totalReadObjectsInLevel + objects.length) {
 					const bytesLeft = afterAllHeaders - reader.getBufferPosition();
 					if (bytesLeft > 0) {
-						if (levelName === reader.context.mapName) {
+						if (isPersistentLevel) {
 							destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 						} else {
 							collectables = ObjectReferencesList.ReadList(reader);
@@ -311,7 +312,7 @@ export class ReadableStreamParser {
 					shouldWait = true;
 					writtenTotalObjectsSinceConsumerSync = 0;
 				}
-				await write(`${writtenObjectsInLevel > 0 ? ', ' : ''}${objects.map(obj => JSON.stringify(obj)).join(', ')}`, shouldWait);
+				await write(`${writtenObjectsInLevel > 0 ? ', ' : ''}${objects.filter(Boolean).map(obj => JSON.stringify(obj)).join(', ')}`, shouldWait);
 				writtenTotalObjectsSinceConsumerSync += objectCountToRead;
 				writtenObjectsInLevel += objectCountToRead;
 
@@ -321,7 +322,7 @@ export class ReadableStreamParser {
 			await write('], ', false);
 
 			// only NOT in the persistent level, we have saveVersion
-			if (levelName !== reader.context.mapName) {
+			if (!isPersistentLevel) {
 				if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
 					const saveCustomVersion = reader.readInt32();
 					await write(`"saveCustomVersion": ${saveCustomVersion}, `, false);
@@ -329,7 +330,7 @@ export class ReadableStreamParser {
 			}
 
 			// only in persistent level, we have LevelToDestroyedActorsMap
-			if (levelName === reader.context.mapName) {
+			if (isPersistentLevel) {
 				destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 				await write(`"destroyedActorsMap": ${JSON.stringify(destroyedActorsMap)}, `, false);
 			}
@@ -337,7 +338,7 @@ export class ReadableStreamParser {
 			await write('"collectables": [', false);
 
 			// only NOT in the persistent level, we have 2nd collectables.
-			if (levelName !== reader.context.mapName) {
+			if (!isPersistentLevel) {
 				collectables = ObjectReferencesList.ReadList(reader);
 			}
 

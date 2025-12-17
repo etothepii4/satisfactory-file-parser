@@ -29,11 +29,13 @@ export class Parser {
 		bytes: ArrayBufferLike,
 		options?: Partial<{
 			onDecompressedSaveBody: (buffer: ArrayBufferLike) => void,
-			onProgressCallback: (progress: number, msg?: string) => void
+			onProgressCallback: (progress: number, msg?: string) => void,
+			throwErrors: boolean
 		}>
 	): SatisfactorySave {
 
 		const reader = new SaveReader(bytes, options?.onProgressCallback);
+		reader.context.throwErrors = options?.throwErrors !== undefined ? options.throwErrors : false;
 
 		const header = SatisfactorySaveHeader.Parse(reader);
 		const save = new SatisfactorySave(name, header);
@@ -191,7 +193,8 @@ export class Parser {
 		blueprintFile: ArrayBufferLike,
 		blueprintConfigFile: ArrayBufferLike,
 		options?: Partial<{
-			onDecompressedBlueprintBody: (buffer: ArrayBufferLike) => void
+			onDecompressedBlueprintBody: (buffer: ArrayBufferLike) => void;
+			throwErrors: boolean;
 		}>
 	): Blueprint {
 
@@ -202,6 +205,8 @@ export class Parser {
 		// read actual blueprint file. with context from config
 		const blueprintReader = new BlueprintReader(blueprintFile);
 		blueprintReader.context.blueprintConfigVersion = config.configVersion;
+
+		blueprintReader.context.throwErrors = options?.throwErrors !== undefined ? options.throwErrors : false;
 		const header = BlueprintHeader.Parse(blueprintReader);
 		const inflateResult = blueprintReader.inflateChunks();
 

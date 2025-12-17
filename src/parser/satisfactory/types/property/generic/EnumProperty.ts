@@ -12,8 +12,7 @@ export type EnumProperty = AbstractBaseProperty & {
 
 export namespace EnumProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): EnumProperty => {
-        let name = reader.readString();
+    export const Parse = (reader: ContextReader, ueType: string, name: string, index: number = 0): EnumProperty => {
         const guidInfo = GUIDInfo.read(reader);
         const value = ReadValue(reader);
 
@@ -28,8 +27,8 @@ export namespace EnumProperty {
         return reader.readString();
     }
 
-    export const CalcOverhead = (property: EnumProperty): number => {
-        return property.value.name.length + 5 + 1;
+    export const CalcOverhead = (property: EnumProperty, name: EnumProperty['value']['name']): number => {
+        return name.length + 5 + 1;
     }
 
     export const Serialize = (writer: ContextWriter, property: EnumProperty): void => {

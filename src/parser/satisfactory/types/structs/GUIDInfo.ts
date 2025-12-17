@@ -1,6 +1,6 @@
 import { ContextReader } from '../../../context/context-reader';
 import { ContextWriter } from '../../../context/context-writer';
-import { GUID } from './GUID';
+import { GUID } from './binary/GUID';
 
 
 /**

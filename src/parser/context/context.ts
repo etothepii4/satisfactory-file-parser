@@ -11,6 +11,7 @@ export type ReaderWriterContext = SaveReaderWriterContext & BlueprintReaderWrite
  * @param mods describes a list of mod names to their versions. Some mods have special needs.
  */
 export type SaveReaderWriterContext = {
+    throwErrors: boolean;
     saveHeaderType: number;
     saveVersion: number;
     buildVersion: number;
@@ -23,6 +24,7 @@ export type SaveReaderWriterContext = {
  * Context for reading/writing blueprint files.
  */
 export type BlueprintReaderWriterContext = {
+    throwErrors: boolean;
     headerVersion: number;
     saveVersion: number;
     buildVersion: number;

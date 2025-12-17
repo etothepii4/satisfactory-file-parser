@@ -7,11 +7,11 @@ export type PropertiesMap = {
 
 
 /**
- * @type denotes the parser's internal type.
- * @ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
- * @name property name
- * @guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
- * @index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
+ * @param type denotes the parser's internal type.
+ * @param ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
+ * @param name property name
+ * @param guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
+ * @param index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
  */
 type AbstractBasePropertyOptions = {
 	type: string;
@@ -21,12 +21,21 @@ type AbstractBasePropertyOptions = {
 	index?: number;
 };
 
+/**
+ * @param type denotes the parser's internal type.
+ * @param ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
+ * @param name property name
+ * @param guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
+ * @param index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
+ * @param rawBytes if the property could not be parsed, it fills the rawBytes array instead.
+ */
 export type AbstractBaseProperty = {
 	type: string;
 	ueType: string;
 	name: string;
 	index?: number;
 	guidInfo?: GUIDInfo;
+	rawBytes?: number[];
 };
 
 export namespace AbstractBaseProperty {

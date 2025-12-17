@@ -32,13 +32,13 @@ export type MapProperty = AbstractBaseProperty & {
 
 export namespace MapProperty {
 
-    export const Parse = (reader: ContextReader, propertyName: string, size: number, ueType: string = 'MapProperty', index: number = 0): MapProperty => {
+    export const Parse = (reader: ContextReader, propertyName: string, size: number, keyType: string, valueType: string, ueType: string = 'MapProperty', index: number = 0): MapProperty => {
         const start = reader.getBufferPosition();
         const property: MapProperty = {
             ...AbstractBaseProperty.Create({ index, ueType, type: '' }),
             type: 'MapProperty',
-            keyType: reader.readString(),
-            valueType: reader.readString(),
+            keyType,
+            valueType,
             guidInfo: undefined,
             modeType: 0,
             values: [],
@@ -100,6 +100,9 @@ export namespace MapProperty {
                 case 'StructProperty':
                     if (propertyName === 'mIndexMapping' && reader.context.mods.MLBAlternates !== undefined) {
                         value = Array.from(reader.readBytes(12)) as MAP_STRUCT_PROXY;
+                    } else if (propertyName === 'Senders' && reader.context.mods.FicsItNetworks !== undefined) {
+                        //value = 0;  // TODO fix
+                        value = DynamicStructPropertyValue.read(reader, property.valueType);
                     } else {
                         value = DynamicStructPropertyValue.read(reader, property.valueType);
                     }
@@ -134,8 +137,8 @@ export namespace MapProperty {
         return property;
     }
 
-    export const CalcOverhead = (property: MapProperty): number => {
-        return property.keyType.length + 5 + property.valueType.length + 5 + 1;
+    export const CalcOverhead = (property: MapProperty, keyType: string, valueType: string): number => {
+        return keyType.length + 5 + valueType.length + 5 + 1;
     }
 
     export const Serialize = (writer: ContextWriter, property: MapProperty): void => {

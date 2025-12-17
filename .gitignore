@@ -40,7 +40,7 @@
 !src/test/x3-roads-signs-1.sav
 !src/test/pep-modtest-1.sav
 !src/test/Modding-Testing-MLB-003.sav
-!src/test/Dunarr-019.sav
+!src/test/Dunarr-027.sav
 
 !src/test/BlueprintWithHeaderV1.sbp
 !src/test/BlueprintWithHeaderV1.sbpcfg
@@ -58,3 +58,5 @@
 !src/test/U1-1-Single-Container-2.sbpcfg
 !src/test/mod-circuitry.sbp
 !src/test/mod-circuitry.sbpcfg
+
+/src/test/*.binsala
