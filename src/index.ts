@@ -1,4 +1,8 @@
 // types & classes for convenience
+export * from './parser/byte/alignment.enum';
+export * from './parser/context/context';
+export * from './parser/context/context-reader';
+export * from './parser/context/context-writer';
 export * from './parser/satisfactory/blueprint/blueprint-config';
 export * from './parser/satisfactory/blueprint/blueprint-config-version';
 export * from './parser/satisfactory/blueprint/blueprint-header';
@@ -90,7 +94,6 @@ export * from './parser/satisfactory/types/structs/VehiclePhysicsData';
 
 // should better be removed in a future update to prevent shenanigans.
 export { BlueprintConfigReader, BlueprintReader } from './parser/satisfactory/blueprint/blueprint-reader';
-export { BlueprintConfigWriter, BlueprintWriter } from './parser/satisfactory/blueprint/blueprint-writer';
 export * from './parser/satisfactory/save/save-reader';
 export { SaveWriter } from './parser/satisfactory/save/save-writer';
 export { SaveStreamJsonStringifier } from './parser/stream/reworked/save-stream-json-stringifier';
