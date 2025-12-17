@@ -159,10 +159,12 @@ fs.writeFileSync('./MyBlueprint.sbpcfg', new Uint8Array(summary.configFileBinary
 ## Additional Options on the Parser Methods
 For every parser call, you can pass optional callbacks to receive additional info.
 Like a callback on the decompressed save body. Parsing saves provides a callback for reporting progress [0,1] and an occasional message.
+if `throwErrors` is set to true, the parser will abort immediately on unparseable data.
 ```js
 const save = Parser.ParseSave('MySave', file.buffer, {
     onDecompressedSaveBody: (body) => console.log('on decompressed body', body.byteLength),
-    onProgressCallback: (progress, msg) => console.log(progress, msg)
+    onProgressCallback: (progress, msg) => console.log(progress, msg),
+    throwErrors: false
 });
 ```
 ```js
@@ -173,6 +175,7 @@ const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFrom
 ```js
 const blueprint = Parser.ParseBlueprintFiles('Myblueprint', file, configFile, {
     onDecompressedBlueprintBody: (body) => console.log('on decompressed body', body.byteLength),
+    throwErrors: false
 });
 ```
 
@@ -249,6 +252,18 @@ const firstStack = inventoryStacks.values[0];
 // modify original save object
 modifyObjects(inventory);
 ```
+
+# Error Handling (From 3.3.1 on)
+From version `3.3.1`, the parser will no longer throw every error by default.
+Only if you explicitly specify `throwErrors: true` when calling the parser on saves/blueprints, the parser will immediately abort when unparseable data is encountered.
+Else, `throwErrors: false` is the default.
+
+When `throwErrors` is `false` the behavior is as follows:
+- for unknown properties, their data lands in the `rawBytes` field of every property.
+- if the error is more severe, affecting the overall property structure: objects have a `trailingData` field where data gets put.
+- Else, objects on a whole scale might be corrupt and will be left out of the parsed JSON entirely.
+- Errors on the broader save structure (order of header, body, structure of body) still get thrown no matter what. Then your save cant be interpreted no matter what.
+
 # [Auto-Generated TypeDoc Reference](https://raw.githack.com/etothepii4/satisfactory-file-parser/main/docs/index.html).
 
 # [Basic Guide](https://github.com/etothepii4/satisfactory-file-parser/blob/main/GUIDE.md).

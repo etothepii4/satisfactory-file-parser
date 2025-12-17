@@ -48,12 +48,22 @@ export abstract class SaveObject implements SaveObjectHeader {
 
 	public static ParseData(obj: SaveObject, length: number, reader: ContextReader, typePath: string): void {
 		const start = reader.getBufferPosition();
+		let remainingSize = length;
 
-		obj.properties = PropertiesList.ParseList(reader);
-		reader.readInt32Zero();
+		try {
+			obj.properties = PropertiesList.ParseList(reader);
+			reader.readInt32Zero();
 
-		let remainingSize = length - (reader.getBufferPosition() - start);
-		obj.specialProperties = SpecialProperties.ParseClassSpecificSpecialProperties(reader, typePath, remainingSize);
+			remainingSize = length - (reader.getBufferPosition() - start);
+			obj.specialProperties = SpecialProperties.ParseClassSpecificSpecialProperties(reader, typePath, remainingSize);
+		} catch (error) {
+			if (reader.context.throwErrors) {
+				throw error;
+			} else {
+				console.warn(error);
+				console.warn(`data of object ${obj.instanceName} could not be read fully. Trailing data will be filled with raw bytes.`);
+			}
+		}
 
 		remainingSize = length - (reader.getBufferPosition() - start);
 		if (remainingSize > 0) {
@@ -63,8 +73,8 @@ export abstract class SaveObject implements SaveObjectHeader {
 			if (reader.context.throwErrors) {
 				throw error;
 			} else {
-				reader.skipBytes(-remainingSize);
 				console.warn(error);
+				reader.skipBytes(-remainingSize);
 			}
 		}
 	}
