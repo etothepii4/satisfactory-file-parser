@@ -1,7 +1,7 @@
 # Changelog
 Make sure to use the same version, when parsing and serializing saves.
 
-### [3.3.1] (2025-12-17)
+### [3.3.0] (2025-12-17)
 #### Changed Behavior on Errors! see ([README.md](https://github.com/etothepii4/satisfactory-file-parser?tab=readme-ov-file#error-handling-from-331-on))
 * The parser will no longer throw errors on encountering unknown properties or objects. Only if you explicitly specify `throwErrors: true` when calling the parser. Major errors on the overall save structure still get thrown.
 * Made `AbstractBaseProperty` include `rawBytes`, in case properties can not be parsed. When you specify `throwErrors: false` when calling the parser, unparsed property data lands in there.
