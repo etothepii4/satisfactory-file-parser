@@ -253,8 +253,8 @@ const firstStack = inventoryStacks.values[0];
 modifyObjects(inventory);
 ```
 
-# Error Handling (From 3.3.1 on)
-From version `3.3.1`, the parser will no longer throw every error by default.
+# Error Handling (From 3.3.0 on)
+From version `3.3.0`, the parser will no longer throw every error by default.
 Only if you explicitly specify `throwErrors: true` when calling the parser on saves/blueprints, the parser will immediately abort when unparseable data is encountered.
 Else, `throwErrors: false` is the default.
 
