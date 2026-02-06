@@ -115,8 +115,8 @@ export class Parser {
 		// unresolved data
 		// TODO: check if we ever encounter it.
 		if (save.unresolvedWorldSaveData && save.unresolvedWorldSaveData.length > 0) {
-			writer.writeInt32(save.unresolvedWorldSaveData?.length ?? 0);
-			for (const actor of save.unresolvedWorldSaveData ?? []) {
+			writer.writeInt32(save.unresolvedWorldSaveData.length);
+			for (const actor of save.unresolvedWorldSaveData) {
 				ObjectReference.write(writer, actor);
 			}
 		}

@@ -174,13 +174,15 @@ export class ReadableStreamParser {
 			await write(`}`, false);
 
 			// unresolved data
-			const countUnresolvedWorldSaveData = reader.readInt32();
-			if (countUnresolvedWorldSaveData) {
-				save.unresolvedWorldSaveData = [];
-				for (let i = 0; i < countUnresolvedWorldSaveData; i++) {
-					save.unresolvedWorldSaveData.push(ObjectReference.read(reader));
+			if (reader.getBufferPosition() < reader.getBufferLength()) {
+				const countUnresolvedWorldSaveData = reader.readInt32();
+				if (countUnresolvedWorldSaveData) {
+					save.unresolvedWorldSaveData = [];
+					for (let i = 0; i < countUnresolvedWorldSaveData; i++) {
+						save.unresolvedWorldSaveData.push(ObjectReference.read(reader));
+					}
+					await write(`, "unresolvedWorldSaveData": ${JSON.stringify(save.unresolvedWorldSaveData)} `, false);
 				}
-				await write(`, "unresolvedWorldSaveData": ${JSON.stringify(save.unresolvedWorldSaveData)} `, false);
 			}
 
 			if (save.name !== undefined) {
