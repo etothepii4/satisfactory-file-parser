@@ -1,5 +1,11 @@
 # Changelog
-Make sure to use the same version, when parsing and serializing saves.
+Make sure to use the same version for parsing and serializing saves, if possible.
+
+### [3.3.1] (2026-02-08)
+#### Quick Bugfixes
+* Fix parsing a bit more of Mod FicsItNetworks.
+* Fixed a bug where the parser would expect a list of unresolved save data at the end of the save, even though there is none.
+* Fix exporting SoftObjectProperty
 
 ### [3.3.0] (2025-12-17)
 #### Changed Behavior on Errors! see ([README.md](https://github.com/etothepii4/satisfactory-file-parser?tab=readme-ov-file#error-handling-from-331-on))

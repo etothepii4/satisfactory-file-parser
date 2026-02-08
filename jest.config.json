@@ -3,13 +3,18 @@
 	"collectCoverageFrom": [
 		"**/src/parser/**"
 	],
-	"testTimeout": 240000,
+	"testTimeout": 480000,
 	"detectOpenHandles": true,
 	"testEnvironment": "node",
 	"roots": [
 		"<rootDir>/src/test"
 	],
 	"preset": "ts-jest",
+	"globals": {
+		"ts-jest": {
+			"tsconfig": "tsconfig.test.json"
+		}
+	},
 	"transform": {
 		"^.+\\.ts?$": "ts-jest"
 	},

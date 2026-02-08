@@ -11,6 +11,7 @@ import { FGDynamicStruct } from '../../structs/FGDynamicStruct';
 import { GUIDInfo } from '../../structs/GUIDInfo';
 import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
 import { FINGPUT1BufferPixel } from '../../structs/mods/FicsItNetworks/FINGPUT1BufferPixel';
+import { FINLuaRuntimePersistenceState } from '../../structs/mods/FicsItNetworks/FINLuaRuntimePersistenceState';
 import { FINNetworkTrace } from '../../structs/mods/FicsItNetworks/FINNetworkTrace';
 import { FLBBalancerIndexing } from '../../structs/mods/ModularLoadBalancers/FLBBalancerIndexing';
 import { ObjectReference } from '../../structs/ObjectReference';
@@ -54,7 +55,7 @@ export type FICFrameRangeStructPropertyValue = {
 
 export type GENERIC_STRUCT_PROPERTY_VALUE = BasicMultipleStructPropertyValue | BasicStructPropertyValue | BoxStructPropertyValue | RailroadTrackPositionStructPropertyValue |
     InventoryItemStructPropertyValue | FICFrameRangeStructPropertyValue | FClientIdentityInfo | DynamicStructPropertyValue | col4 | vec2 | vec3 | vec4 | string |
-    FINNetworkTrace | FINGPUT1BufferPixel | FLBBalancerIndexing;
+    FINNetworkTrace | FINGPUT1BufferPixel | FLBBalancerIndexing | FINLuaRuntimePersistenceState;
 
 export const isStructProperty = (property: any): property is StructProperty => !Array.isArray(property) && property.type === 'StructProperty';
 
@@ -119,6 +120,7 @@ export namespace StructProperty {
     export const ParseValue = (reader: ContextReader, subtype: string, size: number): GENERIC_STRUCT_PROPERTY_VALUE => {
 
         let value: GENERIC_STRUCT_PROPERTY_VALUE;
+        const start = reader.getBufferPosition();
 
         switch (subtype) {
             case 'Color':
@@ -229,6 +231,11 @@ export namespace StructProperty {
 
             case 'FINGPUT1BufferPixel':
                 value = FINGPUT1BufferPixel.read(reader);
+                break;
+
+            case 'FINLuaProcessorStateStorage':
+            case 'FINLuaRuntimePersistenceState':
+                value = FINLuaRuntimePersistenceState.read(reader, size);
                 break;
 
             default:
@@ -381,6 +388,11 @@ export namespace StructProperty {
             case 'FINGPUT1BufferPixel':
                 value = value as FINGPUT1BufferPixel;
                 FINGPUT1BufferPixel.write(writer, value);
+                break;
+
+            case 'FINLuaProcessorStateStorage':
+            case 'FINLuaRuntimePersistenceState':
+                FINLuaRuntimePersistenceState.write(writer, value as FINLuaRuntimePersistenceState);
                 break;
 
             default:
