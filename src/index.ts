@@ -50,6 +50,7 @@ export * from './parser/satisfactory/types/property/generic/SetProperty/SetPrope
 export * from './parser/satisfactory/types/property/generic/SetProperty/StrSetProperty';
 export * from './parser/satisfactory/types/property/generic/SetProperty/StructSetProperty';
 export * from './parser/satisfactory/types/property/generic/SetProperty/Uint32SetProperty';
+export * from './parser/satisfactory/types/property/generic/SoftObjectProperty';
 export * from './parser/satisfactory/types/property/generic/StrProperty';
 export * from './parser/satisfactory/types/property/generic/StructProperty';
 export * from './parser/satisfactory/types/property/generic/TextProperty';

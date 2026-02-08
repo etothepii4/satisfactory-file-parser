@@ -27,7 +27,6 @@
 !src/test/265.sav
 !src/test/269.sav
 !src/test/Fresh-1.1-Dismantled.sav
-!src/test/Unlock-1.1.sav
 !src/test/Unlock-1.1-2.sav
 !src/test/FreshStartU8001-vehicles-2.sav
 !src/test/FreshStart001.sav
@@ -41,6 +40,8 @@
 !src/test/pep-modtest-1.sav
 !src/test/Modding-Testing-MLB-003.sav
 !src/test/Dunarr-027.sav
+!src/test/Dunarr-076.sav
+!src/test/EmptySave10WithoutDestroyedActors.sav
 
 !src/test/BlueprintWithHeaderV1.sbp
 !src/test/BlueprintWithHeaderV1.sbpcfg
@@ -60,3 +61,5 @@
 !src/test/mod-circuitry.sbpcfg
 
 /src/test/*.binsala
+
+/.vscode/settings.json

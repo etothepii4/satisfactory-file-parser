@@ -52,6 +52,8 @@ If however a Mod should not be working or have just objects with a lot of traili
 Some explicitly tested mods include:
 Ficsit-Cam, Structural Solutions, Linear Motion, Container Screens, Conveyor Wall Hole, X3-Signs, X3-Roads
 
+⚠️ Exception: `Ficsit Networks` is more complex and not everything is mapped out yet. The data is saved as raw bytes array. if you want, i can have a look at your save.
+
 # Reading a Save
 Reading a Save in Memory.
 

@@ -1,3 +1,6 @@
+/// <reference types="jest" />
+/// <reference types="node" />
+
 import * as fs from 'fs';
 import * as path from 'path';
 import { Writable } from 'stream';
@@ -165,13 +168,14 @@ describe('modification of saves', () => {
 
 describe('parsing of saves', () => {
 	const saveList = [
+
+		'EmptySave10WithoutDestroyedActors',				// 1.0 Empty Save without destroyed actors.
 		'Release-001',			// 1.0 Save, almost empty.
 		'Release-032',			// 1.0 Save
 		'265',					// U8 save ported to 1.0
 		'269',					// U8 save ported to 1.0
 
 		'Fresh-1.1-Dismantled',	// 1.1 with Dismantled Crashsite.
-		'Unlock-1.1',			// 1.1 Save
 		'Unlock-1.1-2',			// 1.1 Save
 
 
@@ -190,7 +194,9 @@ describe('parsing of saves', () => {
 		'x3-roads-signs',
 		'pep-modtest-1',
 		'Modding-Testing-MLB-003',	// 1.1 modular LBs and alternates
-		'Dunarr-027'				// 1.1 FicsItNetworks
+
+		'Dunarr-027',				// 1.1 FicsItNetworks
+		'Dunarr-076'				// 1.1 FicsItNetworks
 	];
 
 	it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
@@ -205,7 +211,6 @@ describe('parsing of saves', () => {
 		// a high highwatermark can help in not having so many "pull"-requests to the readablesource, so less calls on consumer side.
 		// However, the write speed of the writestream is still a limit for consumption.
 		const outJsonStream = fs.createWriteStream(outJsonPathStream, { highWaterMark: 1024 * 1024 * 200 });
-
 		const { stream, startStreaming } = ReadableStreamParser.CreateReadableStreamFromSaveToJson(savename, file, {
 			onDecompressedSaveBody: decompressedBody => {
 				fs.writeFileSync(binaryFilepathStream, Buffer.from(decompressedBody));
@@ -233,7 +238,6 @@ describe('parsing of saves', () => {
 				});
 		});
 		console.log(`Streaming took ${(end - start) / 1000} seconds.`);
-
 		// parse sync as well.
 		const start2 = performance.now();
 		const save = ParseSaveSync(savename, file, decompressedBody => {
