@@ -1,7 +1,8 @@
 import { Alignment } from '../../byte/alignment.enum';
 import { ContextReader } from '../../context/context-reader';
+import { HierarchyVersion } from '../../context/hierarchical-version-context';
 import { CorruptSaveError, ParserError, UnsupportedVersionError } from '../../error/parser.error';
-import { Grids } from '../types/structs/SaveBodyValidation';
+import { EUnrealEngineObjectUE5Version } from '../../unreal-engine/EUnrealEngineObjectUE5Version';
 import { Level } from './level';
 import { ChunkCompressionInfo, SaveBodyChunks } from './save-body-chunks';
 import { SaveCustomVersion } from './save-custom-version';
@@ -19,17 +20,14 @@ export class SaveReader extends ContextReader {
 
 	constructor(fileBuffer: ArrayBufferLike, public onProgressCallback: (progress: number, msg?: string) => void = () => { }) {
 		super(fileBuffer, Alignment.LITTLE_ENDIAN);
+		this.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(EUnrealEngineObjectUE5Version.INITIAL_VERSION);
 	}
 
-	public expect = (value: any, expected: any): void => {
-		if (value !== expected) {
-			console.warn(`Read a value that's usually '${expected}', but this time '${value}'. Meaning unclear. Especially if you use mods. Raise an issue or contact me if you want.`);
-		}
-	};
-
-	public static GetRoughSaveVersion = (saveVersion: number): RoughSaveVersion => {
-		if (SaveReader.IsGameVersionAtLeast_U1_1(saveVersion)) {
-			return 'U1.1+';
+	public static GetApproximateSaveVersion = (saveVersion: number): RoughSaveVersion => {
+		if (SaveReader.IsGameVersionAtLeast_U1_2(saveVersion)) {
+			return 'U1.2+';
+		} else if (SaveReader.IsGameVersionAtLeast_U1_1(saveVersion)) {
+			return 'U1.1';
 		} else if (SaveReader.IsGameVersionAtLeast_U1(saveVersion)) {
 			return 'U1.0';
 		} else if (SaveReader.IsGameVersionAtLeast_U8(saveVersion)) {
@@ -40,6 +38,8 @@ export class SaveReader extends ContextReader {
 			return '<U6';
 		}
 	};
+
+	public static IsGameVersionAtLeast_U1_2 = (saveVersion: number) => saveVersion >= SaveCustomVersion.FixNewPlayerInfoHandleSerializationFormat;
 	public static IsGameVersionAtLeast_U1_1 = (saveVersion: number) => saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion;
 	public static IsGameVersionAtLeast_U1 = (saveVersion: number) => saveVersion >= SaveCustomVersion.Version1;
 	public static IsGameVersionAtLeast_U8 = (saveVersion: number) => saveVersion >= SaveCustomVersion.UnrealEngine5;	// Could be anywhere from UnrealEngine5 (37) to ResetBrokenBlueprintSplinnes (42)
@@ -56,8 +56,9 @@ export class SaveReader extends ContextReader {
 		this.bufferView = new DataView(this.fileBuffer);
 
 		const totalBodyRestSize = this.readInt32();
-		if (result.uncompressedData.byteLength !== (totalBodyRestSize + (this.context.saveVersion >= SaveCustomVersion.UnrealEngine5 ? 8 : 4))) {
-			throw new CorruptSaveError(`Possibly corrupt. Indicated size of total save body (${totalBodyRestSize + 8}) does not match the uncompressed real size of ${result.uncompressedData.byteLength}.`);
+		const extraBytes = (this.context.saveVersion.header >= SaveCustomVersion.UnrealEngine5 ? 8 : 4);
+		if (result.uncompressedData.byteLength !== (totalBodyRestSize + extraBytes)) {
+			throw new CorruptSaveError(`Possibly corrupt. Indicated size of total save body (${totalBodyRestSize + extraBytes}) does not match the uncompressed real size of ${result.uncompressedData.byteLength}.`);
 		}
 
 		return {
@@ -72,8 +73,8 @@ export class SaveReader extends ContextReader {
 		}
 
 		// guard save version
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(this.context.saveVersion);
-		if (roughSaveVersion === '<U6') {
+		const approximateSaveVersion = SaveReader.GetApproximateSaveVersion(this.context.saveVersion.header);
+		if (approximateSaveVersion === '<U6') {
 			throw new UnsupportedVersionError('Game Version < U6 is not supported in the parser. Please save the file in a newer game version.');
 		}
 
@@ -87,7 +88,7 @@ export class SaveReader extends ContextReader {
 				this.onProgressCallback(this.getBufferProgress(), `reading level [${(i + 1)}/${(levelCount + 1)}] ${levelSingleName}`);
 			}
 
-			levels[levelSingleName] = Level.ReadLevel(this, levelSingleName);
+			levels[levelSingleName] = Level.Read(this, levelSingleName);
 		}
 
 		return levels;

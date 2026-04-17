@@ -1,42 +1,19 @@
 /// <reference types="jest" />
 /// <reference types="node" />
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { Writable } from 'stream';
-import { isDeepStrictEqual } from 'util';
-import { ContextReader } from '../parser/context/context-reader';
-import { Parser } from '../parser/parser';
-import { Level } from '../parser/satisfactory/save/level';
-import { SatisfactorySave } from '../parser/satisfactory/save/satisfactory-save';
-import { SaveComponent } from '../parser/satisfactory/types/objects/SaveComponent';
-import { SaveEntity } from '../parser/satisfactory/types/objects/SaveEntity';
-import { SaveObject } from '../parser/satisfactory/types/objects/SaveObject';
-import { StructArrayProperty } from '../parser/satisfactory/types/property/generic/ArrayProperty/StructArrayProperty';
-import { Int32Property } from '../parser/satisfactory/types/property/generic/Int32Property';
-import { ObjectProperty } from '../parser/satisfactory/types/property/generic/ObjectProperty';
-import { InventoryItemStructPropertyValue, StructProperty } from '../parser/satisfactory/types/property/generic/StructProperty';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { Writable } from 'node:stream';
+import { format, isDeepStrictEqual } from 'node:util';
+import { ArrayProperty, ContextReader, DynamicStructPropertyValue, IntProperty, InventoryItemStructPropertyValue, Level, ObjectProperty, Parser, ReadableStreamParser, SatisfactorySave, SaveComponent, SaveEntity, SaveObject, StructProperty } from '../index';
 import * as PropertiesListMod from '../parser/satisfactory/types/property/PropertiesList';
-import { DynamicStructPropertyValue } from '../parser/satisfactory/types/structs/DynamicStructPropertyValue';
 import * as FINNetworkTraceMod from '../parser/satisfactory/types/structs/mods/FicsItNetworks/FINNetworkTrace';
-import { ReadableStreamParser } from '../parser/stream/reworked/readable-stream-parser';
-const util = require('util');
-
-let fileLog: fs.WriteStream;
 
 beforeAll(() => {
-	fileLog = fs.createWriteStream(path.join(__dirname, './test-log.txt'), { flags: 'w' });
 	const logOutput = process.stdout;
 	console.log = (...e: any[]) => {
-		fileLog.write(e.map(el => util.format(el)).join(' ') + '\n');
-		logOutput.write(e.map(el => util.format(el)).join(' ') + '\n');
+		logOutput.write(e.map(el => format(el)).join(' ') + '\n');
 	};
-});
-
-afterAll(() => {
-	if (fileLog !== undefined) {
-		fileLog.close();
-	}
 });
 
 const ParseSaveSync = (savename: string, file: ArrayBufferLike, onDecompressedSaveBody?: (body: ArrayBufferLike) => void, throwErrors: boolean = true): SatisfactorySave => {
@@ -58,7 +35,6 @@ const ParseBlueprintSync = (
 	configFileBuffer: ArrayBufferLike,
 	onDecompressedBlueprintBody: NonNullable<Parameters<typeof Parser.ParseBlueprintFiles>[3]>['onDecompressedBlueprintBody']
 ) => {
-	console.log('## parsing blueprint', blueprintname);
 	return Parser.ParseBlueprintFiles(blueprintname, file, configFileBuffer, {
 		onDecompressedBlueprintBody,
 		throwErrors: true
@@ -123,15 +99,15 @@ describe('modification of saves', () => {
 
 		const inventoryReference = firstContainer.object.properties.mStorageInventory as ObjectProperty;
 		const inventory = Object.values(save.levels).flatMap(level => level.objects).find(obj => obj.instanceName === inventoryReference.value.pathName) as SaveComponent;
-		const inventoryStacks = inventory.properties.mInventoryStacks as StructArrayProperty;
+		const inventoryStacks = inventory.properties.mInventoryStacks as ArrayProperty;
 		const firstStack = inventoryStacks.values[0];
 
 		// modify first item stack
-		(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemReference = {
+		(((firstStack as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemReference = {
 			levelName: '',
 			pathName: '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C'
 		};
-		((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
+		((firstStack as DynamicStructPropertyValue).properties.NumItems as IntProperty).value = 5;
 
 		return [firstContainer];
 	};
@@ -167,7 +143,7 @@ describe('modification of saves', () => {
 });
 
 describe('parsing of saves', () => {
-	const saveList = [
+	const saveList: string[] = [
 
 		'EmptySave10WithoutDestroyedActors',				// 1.0 Empty Save without destroyed actors.
 		'Release-001',			// 1.0 Save, almost empty.
@@ -176,27 +152,29 @@ describe('parsing of saves', () => {
 		'269',					// U8 save ported to 1.0
 
 		'Fresh-1.1-Dismantled',	// 1.1 with Dismantled Crashsite.
+
 		'Unlock-1.1-2',			// 1.1 Save
-
-
 		'FreshStartU8001-vehicles-2',	// U8 save
-
 		'FreshStart001',		// U6/U7 save
-		'FreshStart002',		// U6/U7 save, even lower saveVersion
+		'FreshStart002',		// U6/U7 save, even lower saveVersion (36)
 
 		'Release-Ported-U1-to-U1.1',							// U1 ported to U1.1
 		'Release-Ported-U1-to-U1.1-Collected-Nuts-and-Berry',	// U1 ported to U1.1
 		'Release-Ported-U1-to-U1.1-Collected-Blue-Slug',		// U1 ported to U1.1
 
-		// Mods
+		// Mods in 1.1
 		'ficsitcam-1',
 		'structuralsolutions-1',
 		'x3-roads-signs',
 		'pep-modtest-1',
 		'Modding-Testing-MLB-003',	// 1.1 modular LBs and alternates
 
-		'Dunarr-027',				// 1.1 FicsItNetworks
-		'Dunarr-076'				// 1.1 FicsItNetworks
+		'Dunarr-076',				// 1.1 FicsItNetworks
+
+		'Modding-Experimental-01',		// 1.1 SaveCustomVersion 53. Already has annoying changes to properties.
+		'Empty-Save-Before-1.2',		// 1.1 jsut before 1.2 release
+		'Empty-1-2-Save',				// 1.2 Fresh Release
+		'Ported-11-to-12-Exp'
 	];
 
 	it.each(saveList)('can parse a binary save (%s) to json with stream and with sync', async (savename: string) => {
@@ -238,6 +216,7 @@ describe('parsing of saves', () => {
 				});
 		});
 		console.log(`Streaming took ${(end - start) / 1000} seconds.`);
+
 		// parse sync as well.
 		const start2 = performance.now();
 		const save = ParseSaveSync(savename, file, decompressedBody => {
@@ -248,9 +227,11 @@ describe('parsing of saves', () => {
 		const end2 = performance.now();
 		console.log(`Sync Parsing took ${(end2 - start2) / 1000} seconds.`);
 
+		const json1 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
+		const json2 = fs.readFileSync(outJsonPathStream, { encoding: 'utf-8' });
+
 		// check that the minified jsons of stream and sync parsing are equal.
-		const json1 = fs.readFileSync(outJsonPathStream, { encoding: 'utf-8' });
-		const json2 = fs.readFileSync(outJsonPathSync, { encoding: 'utf-8' });
+
 		const thing1 = JSON.parse(json1) as SatisfactorySave;
 		const thing2 = JSON.parse(json2) as SatisfactorySave;
 		expect(JSON.stringify(thing1).length).toEqual(JSON.stringify(thing2).length);
@@ -261,7 +242,7 @@ describe('parsing of saves', () => {
 	});
 
 
-	it.each(saveList)('can write a synchronous save', async (savename) => {
+	it.each(saveList)('can write a synchronous save (%s)', async (savename) => {
 		const filepath = path.join(__dirname, savename + '.sync.json');
 		const save = JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' })) as SatisfactorySave;
 		WriteSaveSync(save, binary => {
@@ -272,7 +253,8 @@ describe('parsing of saves', () => {
 
 describe('parsing of blueprints', () => {
 	it.each([
-		'U1-1-Single-Container',	// U1.1
+
+		'U1-1-Single-Container',	// U1.1 
 		'U1-1-Single-Container-2',	// U1.1
 
 		'BlueprintWithHeaderV1',	// blueprint saved before v2 header was introduced (in U8 i think)
@@ -282,7 +264,10 @@ describe('parsing of blueprints', () => {
 		'release-storage-mk2-blueprintmk2',		// U1
 		'release-two-foundations',				// U1
 
+		'two-foundations-1-2',					// U1.2
+
 		'mod-circuitry'							// U1.1 mod circuitry
+
 	])('parser can read and write a synchronous blueprint: %s', async (blueprintname) => {
 		const filepathBlueprint = path.join(__dirname, blueprintname + '.sbp');
 		const filepathBlueprintConfig = path.join(__dirname, blueprintname + '.sbpcfg');
@@ -298,6 +283,7 @@ describe('parsing of blueprints', () => {
 
 		fs.writeFileSync(path.join(__dirname, blueprintname + '.json'), JSON.stringify(blueprint, null, 4));
 
+		// write again
 		let mainFileHeader: Uint8Array;
 		const mainFileBodyChunks: Uint8Array[] = [];
 		const response = Parser.WriteBlueprintFiles(blueprint,
@@ -308,8 +294,8 @@ describe('parsing of blueprints', () => {
 			},
 			{
 				onMainFileBinaryBeforeCompressing: binary => {
-					expect(binary.byteLength).toEqual(binaryBodyLength);
 					fs.writeFileSync(path.join(__dirname, blueprintname + '.bins_modified'), new Uint8Array(Buffer.from(binary)));
+					expect(binary.byteLength).toEqual(binaryBodyLength);
 				},
 			});
 

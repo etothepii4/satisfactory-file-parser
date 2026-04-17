@@ -1,52 +1,45 @@
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTag } from '../../structs/binary/FPropertyTag';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
+import { GUID } from '../../structs/binary/GUID';
 
 
 export type PropertiesMap = {
 	[name: string]: (AbstractBaseProperty & any) | (AbstractBaseProperty & any)[];
 };
 
-
 /**
- * @param type denotes the parser's internal type.
- * @param ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
- * @param name property name
- * @param guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
- * @param index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
- */
-type AbstractBasePropertyOptions = {
-	type: string;
-	ueType: string;
-	name?: string;
-	guidInfo?: GUIDInfo;
-	index?: number;
-};
-
-/**
- * @param type denotes the parser's internal type.
- * @param ueType denotes the type like Unreal Engine calls it, like IntProperty. Several UE Types can be mapped to a single type in the parsers view.
- * @param name property name
- * @param guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
- * @param index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
- * @param rawBytes if the property could not be parsed, it fills the rawBytes array instead.
+ * @propertyTagType present in late 1.1 saves and later. more precisely describes the "type" of property than just the "type" field.
+ * @type denotes the property type, which maps 1:1 now with parser types. "ueType" was removed.
+ * @name property name
+ * @guidInfo denotes the GUID info of this property, i think there never was one observed. they always were not defined.
+ * @index index of a property, in case it is part of an array (NOT to confuse with ArrayProperty).
+ * @rawBytes if the property could not be parsed, it fills the rawBytes array instead.
  */
 export type AbstractBaseProperty = {
+	[key: string]: any;
 	type: string;
-	ueType: string;
 	name: string;
+	propertyTagType: FPropertyTagNode;
 	index?: number;
-	guidInfo?: GUIDInfo;
+	flags?: number;
+	propertyGuid?: GUID;
+	structGuid?: GUID;
 	rawBytes?: number[];
 };
 
 export namespace AbstractBaseProperty {
-	export const Create = (options: AbstractBasePropertyOptions): AbstractBaseProperty => (
-		{
-			type: options.type,
-			ueType: options.ueType,
-			name: (options.name !== undefined && options.name !== null) ? options.name : '',
-			...((options.index !== undefined && options.index !== null && options.index !== 0) ? { index: options.index } : {}),
-			...((options.guidInfo !== undefined) ? { guidInfo: options.guidInfo } : {})
-
+	/**
+	 * creates a basic property with all metadata from the tag. but without value yet.
+	 */
+	export function CreateFromTag(tag: FPropertyTag): AbstractBaseProperty {
+		return {
+			type: tag.propertyTagType.name,
+			name: tag.propertyName,
+			propertyTagType: tag.propertyTagType,
+			...(tag.index && tag.index !== 0 && { index: tag.index }),
+			...(tag.propertyGuid !== undefined && tag.propertyGuid.some(number => number !== 0) && { propertyGuid: tag.propertyGuid }),
+			...(tag.structGuid !== undefined && tag.structGuid.some(number => number !== 0) && { structGuid: tag.structGuid }),
+			...(tag.flags !== undefined && tag.flags !== 0 && { flags: tag.flags }),
 		} satisfies AbstractBaseProperty
-	);
+	}
 }

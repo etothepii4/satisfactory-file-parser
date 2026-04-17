@@ -1,69 +1,63 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTag } from '../../structs/binary/FPropertyTag';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isByteProperty = (property: any): property is ByteProperty => !Array.isArray(property) && property.type === 'ByteProperty';
+export const isByteProperty = (property: any): property is ByteProperty => !Array.isArray(property) && property.propertyTagType.name === 'ByteProperty';
 
 export type ByteProperty = AbstractBaseProperty & {
     type: 'ByteProperty';
+    propertyTagType: { name: 'ByteProperty', children: FPropertyTagNode[] };
     value: BytePropertyValue;
 };
 
 export namespace ByteProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0, type: string): ByteProperty => {
+    export function Parse(reader: ContextReader, property: ByteProperty, tag: FPropertyTag): void {
 
-        const guidInfo = GUIDInfo.read(reader);
-
-        let value;
-        if (type === 'None') {
-            value = {
-                type,
-                value: ReadValue(reader)
-            };
+        if (FPropertyTag.IsCompletePropertyTagType(reader)) {
+            property.value = {
+                value: reader.readUint8()
+            }
+        } else {
+            if (tag.byteValueEnumName === 'None') {
+                property.value = {
+                    type: tag.byteValueEnumName,
+                    value: ReadValue(reader)
+                };
+            } else {
+                property.value = {
+                    type: tag.byteValueEnumName,
+                    value: reader.readString()
+                };
+            }
         }
-        else {
-            value = {
-                type,
-                value: reader.readString()
-            };
-        }
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'ByteProperty',
-            value
-        } satisfies ByteProperty;
     }
 
-    export const ReadValue = (reader: ContextReader): number => {
+    export function ReadValue(reader: ContextReader): number {
         return reader.readByte();
     }
 
-    export const CalcOverhead = (property: ByteProperty, type: string): number => {
-        return type.length + 5 + 1;
-    }
-
-    export const Serialize = (writer: ContextWriter, property: ByteProperty): void => {
-        writer.writeString(property.value.type);
-        GUIDInfo.write(writer, property.guidInfo);
-
-        if (property.value.type === 'None') {
+    export function Serialize(writer: ContextWriter, property: ByteProperty): void {
+        if (FPropertyTag.IsCompletePropertyTagType(writer)) {
             SerializeValue(writer, property.value.value as number);
-        }
-        else {
-            writer.writeString(property.value.value as string);
+        } else {
+            if (property.value.type === 'None') {
+                SerializeValue(writer, property.value.value as number);
+            } else {
+                writer.writeString(property.value.value as string);
+            }
         }
     }
 
-    export const SerializeValue = (writer: ContextWriter, value: number): void => {
+    export function SerializeValue(writer: ContextWriter, value: number): void {
         writer.writeByte(value);
     }
 }
 export type BytePropertyValue = {
-    type: string;
-    value: string | number;
+    type?: string;
+    value: number | string;
 };
 

@@ -6,6 +6,7 @@ import { BinaryOperable } from "./binary-operable.interface";
 export interface BinaryReadable extends BinaryOperable {
 
     skipBytes: (count?: number) => void;
+    jumpTo(position: number): void;
     readBytes: (count: number) => Uint8Array;
     readByte: () => number;
     readHex: (count: number) => string;

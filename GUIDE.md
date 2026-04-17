@@ -33,9 +33,9 @@ SaveObject {
 	instanceName: string;
     properties: PropertiesMap;
 	specialProperties: SpecialProperties.AvailableSpecialPropertiesTypes;
-	trailingData: number[] = [];
-	objectVersion: number;
-	unknownType2: number;
+	trailingData: number[];
+	saveCustomVersion: number;
+	objectVersionData: FSaveObjectVersionData;
 }
 
 SaveComponent = SaveObject & {
@@ -57,12 +57,16 @@ All generic properties inherit from [AbstractBaseProperty](https://github.com/et
 For a given name, an object has property of type `AbstractBaseProperty | AbstractBaseProperty[]`. Which just means, that the game on rare occasions serializes multiple properties with the same name, just different `index` as number. Often this `index` is just not relevant, but as mentioned on rare occasions, the game tries to represent an array (Not to be confused with ArrayProperty).
 Other properties such as `FloatProperty` inherit from the `AbstractBAseProperty`.
 ```js
-type AbstractBaseProperty = {
+export type AbstractBaseProperty = {
+	[key: string]: any;
 	type: string;
-	ueType: string;
-	name?: string;
-	guidInfo?: GUIDInfo;
+	name: string;
+	propertyTagType: FPropertyTagNode;
 	index?: number;
+	flags?: number;
+	propertyGuid?: GUID;
+	structGuid?: GUID;
+	rawBytes?: number[];
 };
 
 type FloatProperty = AbstractBaseProperty & {

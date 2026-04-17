@@ -1,6 +1,31 @@
 # Changelog
 Make sure to use the same version for parsing and serializing saves, if possible.
 
+### [4.0.0] (2026-04-18)
+## 1.2 Support, Breaking Changes
+* Supporting 1.2 Saves and Blueprints. Usage from parsing did not change, but properties quite a bit. Taking the chance to trim some fat. Reach out if you still find bugs or have other ideas.
+### Types
+* Properties no longer have a `subtype`. instead check a property's `propertyTagType`. it more accurately describes nested subtypes. And would only be doubled with a `subtype` field. Technically the `propertyTagType` only exists in saves from late 1.1 on, but the parser constructs it artificially for older saves.
+* Properties no longer have a `ueType`, since it now maps 1:1 on to the parsers `type` and the `propertyTagType`.
+* ArrayProperties will have a `type=ArrayProperty`, no matter the subtype. So no longer `StrArrayProperty`. I keep type definitions and type guards for e.g. `StrArrayProperty, isStrArrayProperty(property)`, but they just evaluate on the `propertyTagType` anyway.
+### ArrayProperties of StructProperties
+* Their `structValueFields` moved over to -> `structTag`. But those are only present for saves 1.1 or lower.
+* And the values of that ArrayProperty are now actual values of structproperties, no longer `StructProperty[]` as a whole. Which was inconsistent with other properties to be fair and a bug.
+#### Parsed Output
+* Shortened the resulting JSON. fields like `index`, `flag`, `propertyGuid` of a property are only included if they are not entirely 0.
+### Blueprints
+* `lastEditedBy` is called `lastEditedByLegacy` in blueprints from <= 1.1 saves. since its structure changes there.
+#### Smaller Bugfixes & Renamings
+* `ArrayProperty/SetProperty .AvailablePropertyTypes` -> is handled by `ArrayProperty/SetProperty`. check for type guards if you need them like `isStrArrayProperty()` or `isStrSetProperty()`
+* fixed confusing `flags` with `guid` of a property. which was a bug.
+* Rename `SoftObjectReference`'s `unk` -> `subPathString`.
+* Rename `Int32Property` -> `IntProperty`to reflect the accuracte type.
+* Some new fields and smaller internal renamings.
+* the parsers internal context like `saveVersion` extended.
+* `SaveReader.GetRoughSaveVersion` -> `SaveReader.GetApproximateSaveVersion`
+* Removed deprecated `SaveStreamJsonStringifier` and `EDIT`.
+* Keeping The ReadableStreamParser for now, but has lower priority.
+
 ### [3.3.1] (2026-02-08)
 #### Quick Bugfixes
 * Fix parsing a bit more of Mod FicsItNetworks.

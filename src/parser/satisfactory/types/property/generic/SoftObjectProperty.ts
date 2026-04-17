@@ -1,44 +1,33 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isSoftObjectProperty = (property: any): property is SoftObjectProperty => !Array.isArray(property) && property.type === 'SoftObjectProperty';
+export const isSoftObjectProperty = (property: any): property is SoftObjectProperty => !Array.isArray(property) && property.propertyTagType.name === 'SoftObjectProperty';
 
 export type SoftObjectProperty = AbstractBaseProperty & {
     type: 'SoftObjectProperty';
+    propertyTagType: { name: 'SoftObjectProperty', children: FPropertyTagNode[] };
     value: SoftObjectReference;
 };
 
 export namespace SoftObjectProperty {
 
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): SoftObjectProperty => {
-        const guidInfo = GUIDInfo.read(reader);
-        const value = ReadValue(reader);
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'SoftObjectProperty',
-            value,
-        } satisfies SoftObjectProperty;
+    export function Parse(reader: ContextReader, property: SoftObjectProperty): void {
+        property.value = ReadValue(reader);
     }
 
-    export const ReadValue = (reader: ContextReader): SoftObjectReference => {
+    export function ReadValue(reader: ContextReader): SoftObjectReference {
         return SoftObjectReference.read(reader);
     }
 
-    export const CalcOverhead = (property: SoftObjectProperty): number => {
-        return 1;
-    }
-
-    export const Serialize = (writer: ContextWriter, property: SoftObjectProperty): void => {
-        GUIDInfo.write(writer, property.guidInfo);
+    export function Serialize(writer: ContextWriter, property: SoftObjectProperty): void {
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ContextWriter, value: SoftObjectReference): void => {
+    export function SerializeValue(writer: ContextWriter, value: SoftObjectReference): void {
         SoftObjectReference.write(writer, value);
     }
 }

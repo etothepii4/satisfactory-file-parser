@@ -5,6 +5,9 @@ import { SaveCustomVersion } from '../../save/save-custom-version';
 import { PropertiesMap } from "../property/generic/AbstractBaseProperty";
 import { PropertiesList } from '../property/PropertiesList';
 import { SpecialProperties } from '../property/special/SpecialProperties';
+import { FPropertyTag } from '../structs/binary/FPropertyTag';
+import { FSaveObjectVersionData } from '../structs/binary/FSaveObjectVersionData';
+import { GUID } from '../structs/binary/GUID';
 
 export interface SaveObjectHeader {
 	typePath: string;
@@ -16,10 +19,12 @@ export interface SaveObjectHeader {
 export abstract class SaveObject implements SaveObjectHeader {
 
 	public properties: PropertiesMap = {};
+	public guid?: GUID;
 	public specialProperties: SpecialProperties.AvailableSpecialPropertiesTypes = { type: 'EmptySpecialProperties' };
 	public trailingData: number[] = [];
 
 	public saveCustomVersion: number = 0;
+	public objectVersionData?: FSaveObjectVersionData;
 	public shouldMigrateObjectRefsToPersistent: boolean = false;
 
 	constructor(public typePath: string, public rootObject: string, public instanceName: string, public flags?: number) {
@@ -31,7 +36,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 		obj.rootObject = reader.readString();
 		obj.instanceName = reader.readString();
 
-		if (reader.context.saveVersion >= SaveCustomVersion.SerializeObjectFlags) {
+		if (reader.context.saveVersion.level >= SaveCustomVersion.SerializeObjectFlags) {
 			obj.flags = reader.readUint32();
 		}
 	}
@@ -41,7 +46,7 @@ export abstract class SaveObject implements SaveObjectHeader {
 		writer.writeString(obj.rootObject);
 		writer.writeString(obj.instanceName);
 
-		if (writer.context.saveVersion >= SaveCustomVersion.SerializeObjectFlags) {
+		if (writer.context.saveVersion.level >= SaveCustomVersion.SerializeObjectFlags) {
 			writer.writeUint32(obj.flags ?? 0);
 		}
 	}
@@ -50,9 +55,16 @@ export abstract class SaveObject implements SaveObjectHeader {
 		const start = reader.getBufferPosition();
 		let remainingSize = length;
 
+		if (FPropertyTag.IsCompletePropertyTagType(reader)) {
+			const serializationControl = reader.readByte();
+		}
+
 		try {
 			obj.properties = PropertiesList.ParseList(reader);
-			reader.readInt32Zero();
+			const hasGuid = reader.readInt32() > 0;
+			if (hasGuid) {
+				obj.guid = GUID.read(reader);
+			}
 
 			remainingSize = length - (reader.getBufferPosition() - start);
 			obj.specialProperties = SpecialProperties.ParseClassSpecificSpecialProperties(reader, typePath, remainingSize);
@@ -60,7 +72,6 @@ export abstract class SaveObject implements SaveObjectHeader {
 			if (reader.context.throwErrors) {
 				throw error;
 			} else {
-				console.warn(error);
 				console.warn(`data of object ${obj.instanceName} could not be read fully. Trailing data will be filled with raw bytes.`);
 			}
 		}
@@ -80,8 +91,16 @@ export abstract class SaveObject implements SaveObjectHeader {
 	}
 
 	public static SerializeData(writer: any, obj: SaveObject): void {
+		if (FPropertyTag.IsCompletePropertyTagType(writer)) {
+			writer.writeByte(0);	// serializationControl
+		}
+
 		PropertiesList.SerializeList(writer, obj.properties);
-		writer.writeInt32Zero();
+		const hasGuid = obj.guid !== undefined;
+		writer.writeInt32(hasGuid ? 1 : 0);
+		if (hasGuid) {
+			GUID.write(writer, obj.guid!);
+		}
 		SpecialProperties.SerializeClassSpecificSpecialProperties(writer, obj.typePath, obj.specialProperties);
 		writer.writeBytesArray(obj.trailingData);
 	}

@@ -1,9 +1,11 @@
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextWriter } from '../../context/context-writer';
+import { HierarchyVersion } from "../../context/hierarchical-version-context";
 import { ParserError } from "../../error/parser.error";
-import { Level } from '../save/level';
+import { EUnrealEngineObjectUE5Version } from "../../unreal-engine/EUnrealEngineObjectUE5Version";
 import { ChunkCompressionInfo, ChunkSummary } from "../save/save-body-chunks";
 import { SaveWriter } from "../save/save-writer";
+import { TOCBlob } from "../save/toc-blob";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 
@@ -13,6 +15,7 @@ export class BlueprintWriter extends ContextWriter {
 
 	constructor() {
 		super(Alignment.LITTLE_ENDIAN);
+		this.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(EUnrealEngineObjectUE5Version.INITIAL_VERSION);
 	}
 
 	public generateChunks(
@@ -47,7 +50,7 @@ export class BlueprintWriter extends ContextWriter {
 		// object headers
 		const headersLenIndicator = writer.getBufferPosition();
 		writer.writeInt32(0);
-		Level.SerializeAllObjectHeaders(writer, objects);
+		TOCBlob.SerializeAllObjectHeaders(writer, objects);
 		writer.writeBinarySizeFromPosition(headersLenIndicator, headersLenIndicator + 4);
 
 		// objects contents

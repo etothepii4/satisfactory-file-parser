@@ -1,10 +1,17 @@
 import { ContextReader } from '../../context/context-reader';
 import { ContextWriter } from '../../context/context-writer';
+import { FLocalUserNetIdBundle } from '../types/structs/binary/FLocalUserNetIdBundle';
+import { FPlayerInfoHandle } from '../types/structs/binary/FPlayerInfoHandle';
 import { col4 } from '../types/structs/col4';
 import { BlueprintConfigVersion } from './blueprint-config-version';
 
 
-/** @public */
+/**
+ * 
+ * @lastEditedByLegacy is only found in older blueprints below 1.2
+ * @lastEditedBy is found from 1.2 onwards.
+ * 
+ */
 export interface BlueprintConfig {
     configVersion: number;
     description: string;
@@ -12,11 +19,16 @@ export interface BlueprintConfig {
     iconID: number;
     referencedIconLibrary?: string;
     iconLibraryType?: string;
-    lastEditedBy?: {
-        accountId: string;
-        displayName: string;
-        platformName: string;
-    }[];
+
+    /**
+     *  is only found in older blueprints below 1.2
+     */
+    lastEditedByLegacy?: FLocalUserNetIdBundle[];
+
+    /**
+     *  is found from 1.2 onwards.
+     */
+    lastEditedBy?: FPlayerInfoHandle;
 }
 
 export namespace BlueprintConfig {
@@ -34,21 +46,19 @@ export namespace BlueprintConfig {
             iconID,
         };
 
-        if (configVersion >= BlueprintConfigVersion.AddedIconLibraryPath) {
+        if (reader.context.blueprintConfigVersion >= BlueprintConfigVersion.AddedIconLibraryPath) {
             config.referencedIconLibrary = reader.readString();
             config.iconLibraryType = reader.readString();
         }
 
-        if (configVersion >= BlueprintConfigVersion.AddedLastEditedBy) {
+        if (reader.context.blueprintConfigVersion == BlueprintConfigVersion.AddedLastEditedBy) {
             const count = reader.readInt32();
-            config.lastEditedBy = [];
+            config.lastEditedByLegacy = [];
             for (let i = 0; i < count; i++) {
-                config.lastEditedBy?.push({
-                    accountId: reader.readString(),
-                    displayName: reader.readString(),
-                    platformName: reader.readString()
-                });
+                config.lastEditedByLegacy.push(FLocalUserNetIdBundle.read(reader));
             }
+        } else if (reader.context.blueprintConfigVersion >= BlueprintConfigVersion.RemovedFilteredProfanityName) {
+            config.lastEditedBy = FPlayerInfoHandle.read(reader);
         }
 
         return config;
@@ -65,13 +75,13 @@ export namespace BlueprintConfig {
             writer.writeString(config.iconLibraryType ?? '');
         }
 
-        if (config.configVersion >= BlueprintConfigVersion.AddedLastEditedBy) {
-            writer.writeInt32(config.lastEditedBy!.length);
-            for (const account of config.lastEditedBy!) {
-                writer.writeString(account.accountId);
-                writer.writeString(account.displayName);
-                writer.writeString(account.platformName);
+        if (config.configVersion == BlueprintConfigVersion.AddedLastEditedBy) {
+            writer.writeInt32(config.lastEditedByLegacy!.length);
+            for (const account of config.lastEditedByLegacy!) {
+                FLocalUserNetIdBundle.write(writer, account);
             }
+        } else if (config.configVersion >= BlueprintConfigVersion.RemovedFilteredProfanityName) {
+            FPlayerInfoHandle.write(writer, config.lastEditedBy!);
         }
     }
 }

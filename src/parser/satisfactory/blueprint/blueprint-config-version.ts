@@ -8,6 +8,8 @@ export enum BlueprintConfigVersion {
     RemovedMD5Hash,
     AddedIconLibraryPath,
     AddedLastEditedBy,
+    AddedFilteredProfanityName,
+    RemovedFilteredProfanityName,
     VersionPlusOne,
     LatestVersion = VersionPlusOne - 1
 }

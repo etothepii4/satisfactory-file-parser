@@ -38,6 +38,10 @@ export abstract class ByteReader implements BinaryReadable {
 		this.currentByte += byteLength;
 		return;
 	}
+	public jumpTo(pos: number): void {
+		const count = pos - this.getBufferPosition();
+		this.skipBytes(count);
+	}
 	public readByte(): number {
 		return this.readUint8();
 	}
@@ -123,14 +127,14 @@ export abstract class ByteReader implements BinaryReadable {
 
 		// it uses UTF16 if text is non-ascii, even if it would fit into UTF8.
 		if (strLength < 0) {
-			const string = new Array(-strLength - 1).fill('').map(c => String.fromCharCode(this.readUint16()));
+			const string = new Array(-strLength - 1).fill('').map(c => String.fromCodePoint(this.readUint16()));
 			this.currentByte += 2;
 			return string.join('');
 		}
 
 		//default UTF-8
 		try {
-			const string = new Array(strLength - 1).fill('').map(c => String.fromCharCode(this.readUint8()));
+			const string = new Array(strLength - 1).fill('').map(c => String.fromCodePoint(this.readUint8()));
 			this.currentByte += 1;
 			return string.join('');
 		}

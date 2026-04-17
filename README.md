@@ -28,7 +28,7 @@ Game Version Files of U5 and below are NOT supported.
 | U8             |  ✅ compatible               |
 | U1.0           |  ✅ compatible               |
 | U1.1           |  ✅ compatible               |
-
+| U1.2           |  ✅ compatible               |
 
 
 # Version Migration
@@ -45,7 +45,7 @@ If you parse a U8 save/blueprint, the parser will also serialize it back to a U8
 You can always raise an issue on the linked [github project](https://github.com/etothepii4/satisfactory-file-parser) or hit me up in discord  [`etothepii`](https://discordapp.com/users/268751901212803074).
 Every mistake that i know of makes the parser more robust. It wouldnt be where it is now, without the help of a lot of people!
 
-# Mod Support ✅
+# Mod Support <= 1.1 ✅
 By Default, most Mods just reuse Properties and Structs of the base game.
 If however a Mod should not be working or have just objects with a lot of trailing unparseable data, Raise an issue or contact me.
 
@@ -245,11 +245,11 @@ const firstStack = inventoryStacks.values[0];
 
 // Items within ItemStacks are quite nested. And StructProperties can basically be anything.
 // overwrite first item stack with 5 Rotors.
-(((firstStack.value as DynamicStructPropertyValue).properties.Item as StructProperty).value as InventoryItemStructPropertyValue).itemReference = {
+((firstStack as DynamicStructPropertyValue).properties.Item as InventoryItemStructPropertyValue).itemReference = {
     levelName: '',
     pathName: '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C'
 };
-((firstStack.value as DynamicStructPropertyValue).properties.NumItems as Int32Property).value = 5;
+((firstStack as DynamicStructPropertyValue).properties.NumItems as IntProperty).value = 5;
 
 // modify original save object
 modifyObjects(inventory);

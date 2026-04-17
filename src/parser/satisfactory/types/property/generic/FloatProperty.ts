@@ -1,42 +1,31 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isFloatProperty = (property: any): property is FloatProperty => !Array.isArray(property) && property.type === 'FloatProperty';
+export const isFloatProperty = (property: any): property is FloatProperty => !Array.isArray(property) && property.propertyTagType.name === 'FloatProperty';
 
 export type FloatProperty = AbstractBaseProperty & {
     type: 'FloatProperty';
+    propertyTagType: { name: 'FloatProperty', children: FPropertyTagNode[] };
     value: number;
 };
 
 export namespace FloatProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): FloatProperty => {
-        const guidInfo = GUIDInfo.read(reader);
-        const value = ReadValue(reader);
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'FloatProperty',
-            value,
-        } satisfies FloatProperty;
+    export function Parse(reader: ContextReader, property: FloatProperty): void {
+        property.value = ReadValue(reader);
     }
 
-    export const CalcOverhead = (property: FloatProperty): number => {
-        return 1;
-    }
-
-    export const ReadValue = (reader: ContextReader): number => {
+    export function ReadValue(reader: ContextReader): number {
         return reader.readFloat32();
     }
 
-    export const Serialize = (writer: ContextWriter, property: FloatProperty): void => {
-        GUIDInfo.write(writer, property.guidInfo);
+    export function Serialize(writer: ContextWriter, property: FloatProperty): void {
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ContextWriter, value: number): void => {
+    export function SerializeValue(writer: ContextWriter, value: number): void {
         writer.writeFloat32(value);
     }
 }

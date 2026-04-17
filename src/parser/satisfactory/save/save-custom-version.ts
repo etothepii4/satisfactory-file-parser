@@ -163,6 +163,24 @@ export enum SaveCustomVersion {
     // 2025-04-23: Cleaning up invalid train track connections for saves prior to 1.1. Clears out ghost / teleporting connections and adds railroad switches where needed if there's a junction that doesn't have them.
     RailroadTrackConnectionCleanup,
 
+    // 2025-05-06: Serialize package file version (UE version) and custom versions for serialized object data
+    SerializeDataPackageVersionAndCustomVersions,
+
+    // 2025-06-26: This version was dropped on 2025-08-06 due to issues introduced internally.
+    DROPPED_RailroadSubsystemThirdRailConnectionsCleanup,
+
+    // 2025-08-06: Proper fix for third rails leaked into saves.
+    RailroadSubsystemThirdRailConnectionsCleanupRedone,
+
+    // 2025-12-02: Added available item descriptors system, and automatically unlock all items that are remebered as picked up
+    UnlockAvailableItemDescriptorsForPickedUpItems,
+
+    // 2025-12-11: Treat Null online services Player Info Handles as valid, use INDEX_NONE to refer to invalid handles instead. Switched to int32 to refer to player info index
+    NewPlayerInfoHandleSerializationFormat,
+
+    // 2025-12-12: Fix FPlayerInfoHandle serializing the data twice and not sticking to the old format in all cases
+    FixNewPlayerInfoHandleSerializationFormat,
+
     // -----<new versions can be added above this line>-------------------------------------------------
     VersionPlusOne,
     LatestVersion = VersionPlusOne - 1
