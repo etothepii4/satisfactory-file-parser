@@ -4,7 +4,7 @@ import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isObjectProperty = (property: any): property is ObjectProperty => !Array.isArray(property) && property.propertyTagType.name === 'ObjectProperty';
+export const isObjectProperty = (property: any): property is ObjectProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'ObjectProperty';
 
 export type ObjectProperty = AbstractBaseProperty & {
     type: 'ObjectProperty';

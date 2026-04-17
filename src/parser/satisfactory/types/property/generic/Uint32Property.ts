@@ -4,7 +4,7 @@ import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isUint32Property = (property: any): property is Uint32Property => !Array.isArray(property) && property.propertyTagType.name === 'UInt32Property';
+export const isUint32Property = (property: any): property is Uint32Property => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'UInt32Property';
 
 export type Uint32Property = AbstractBaseProperty & {
     type: 'Uint32Property';

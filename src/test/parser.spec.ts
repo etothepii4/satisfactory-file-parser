@@ -173,7 +173,7 @@ describe('parsing of saves', () => {
 
 		'Modding-Experimental-01',		// 1.1 SaveCustomVersion 53. Already has annoying changes to properties.
 		'Empty-Save-Before-1.2',		// 1.1 jsut before 1.2 release
-		'Empty-1-2-Save',				// 1.2 Fresh Release
+		'Another-1-2',				// 1.2 Fresh Release
 		'Ported-11-to-12-Exp'
 	];
 

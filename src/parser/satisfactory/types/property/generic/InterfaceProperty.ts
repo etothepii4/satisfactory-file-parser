@@ -4,7 +4,7 @@ import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { ObjectReference } from '../../structs/ObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isInterfaceProperty = (property: any): property is InterfaceProperty => !Array.isArray(property) && property.propertyTagType.name === 'InterfaceProperty';
+export const isInterfaceProperty = (property: any): property is InterfaceProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'InterfaceProperty';
 
 export type InterfaceProperty = AbstractBaseProperty & {
     type: 'InterfaceProperty';

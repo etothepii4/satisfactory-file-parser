@@ -4,7 +4,7 @@ import { ContextWriter } from '../../../context/context-writer';
 import { SaveObject, SaveObjectHeader } from "./SaveObject";
 
 export const isSaveComponent = (obj: any): obj is SaveComponent => {
-	return obj.type === 'SaveComponent';
+	return obj !== null && typeof obj === 'object' && 'type' in obj && obj.type === 'SaveComponent';
 }
 
 export interface SaveComponentHeader extends SaveObjectHeader {

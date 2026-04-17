@@ -4,7 +4,7 @@ import { FPropertyTag } from '../../structs/binary/FPropertyTag';
 import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isEnumProperty = (property: any): property is EnumProperty => !Array.isArray(property) && property.propertyTagType.name === 'EnumProperty';
+export const isEnumProperty = (property: any): property is EnumProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'EnumProperty';
 
 export type EnumProperty = AbstractBaseProperty & {
     type: 'EnumProperty';

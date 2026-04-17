@@ -18,7 +18,7 @@ import { GENERIC_STRUCT_PROPERTY_VALUE } from './StructProperty';
 export type GENERIC_MAP_KEY_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | vec3;
 export type GENERIC_MAP_VALUE_TYPE = number | ObjectReference | boolean | GENERIC_STRUCT_PROPERTY_VALUE | LBBalancerIndexing;
 
-export const isMapProperty = (property: any): property is MapProperty => !Array.isArray(property) && property.propertyTagType.name === 'MapProperty';
+export const isMapProperty = (property: any): property is MapProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'MapProperty';
 
 export type MapProperty = AbstractBaseProperty & {
     type: 'MapProperty';

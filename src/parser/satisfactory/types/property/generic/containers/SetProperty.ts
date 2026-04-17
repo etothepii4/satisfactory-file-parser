@@ -10,7 +10,7 @@ import { ObjectProperty } from '../ObjectProperty';
 import { StrProperty } from '../StrProperty';
 import { Uint32Property } from '../Uint32Property';
 
-export const isSetProperty = (property: any): property is SetProperty => !Array.isArray(property) && property.propertyTagType.name === 'SetProperty';
+export const isSetProperty = (property: any): property is SetProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'SetProperty';
 
 export type SetProperty = AbstractBaseProperty & {
     type: 'SetProperty';

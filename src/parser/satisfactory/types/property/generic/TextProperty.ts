@@ -4,7 +4,7 @@ import { ETextHistoryType } from '../../../../unreal-engine/ETextHistoryType';
 import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isTextProperty = (property: any): property is TextProperty => !Array.isArray(property) && property.propertyTagType.name === 'TextProperty';
+export const isTextProperty = (property: any): property is TextProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'TextProperty';
 
 export type TextProperty = AbstractBaseProperty & {
     type: 'TextProperty';

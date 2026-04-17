@@ -3,7 +3,7 @@ import { ContextWriter } from '../../../../context/context-writer';
 import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isSingleProperty = (property: any): property is SingleProperty => !Array.isArray(property) && property.propertyTagType.name === 'SingleProperty';
+export const isSingleProperty = (property: any): property is SingleProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'SingleProperty';
 
 export type SingleProperty = AbstractBaseProperty & {
     type: 'SingleProperty';
