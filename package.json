@@ -1,7 +1,7 @@
 {
 	"name": "@etothepii/satisfactory-file-parser",
 	"author": "etothepii",
-	"version": "3.3.1",
+	"version": "4.0.0",
 	"description": "A file parser for satisfactory files. Includes save files and blueprint files.",
 	"types": "./build/index.d.ts",
 	"main": "./build/index.js",
@@ -36,8 +36,8 @@
 		"jest": "^29.5.0",
 		"ts-jest": "^29.0.5",
 		"ts-node": "^10.9.1",
-		"typedoc": "^0.26.10",
-		"typescript": "^5.0.2"
+		"typedoc": "^0.28.19",
+		"typescript": "^5.6.0"
 	},
 	"dependencies": {
 		"pako": "^2.1.0"

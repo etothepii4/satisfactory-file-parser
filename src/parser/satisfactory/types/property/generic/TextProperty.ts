@@ -1,45 +1,38 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { ETextHistoryType } from '../../../../unreal-engine/ETextHistoryType';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isTextProperty = (property: any): property is TextProperty => !Array.isArray(property) && property.type === 'TextProperty';
+export const isTextProperty = (property: any): property is TextProperty => !Array.isArray(property) && property.propertyTagType.name === 'TextProperty';
 
 export type TextProperty = AbstractBaseProperty & {
     type: 'TextProperty';
+    propertyTagType: { name: 'TextProperty', children: FPropertyTagNode[] };
     value: TextPropertyValue;
 };
 
 export namespace TextProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): TextProperty => {
-        const guidInfo = GUIDInfo.read(reader);
-        const value = TextProperty.ReadValue(reader);
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'TextProperty',
-            value,
-        } satisfies TextProperty;
+    export function Parse(reader: ContextReader, property: TextProperty): void {
+        property.value = TextProperty.ReadValue(reader);
     }
 
-    export const ReadValue = (reader: ContextReader): TextPropertyValue => {
+    export function ReadValue(reader: ContextReader): TextPropertyValue {
         const prop: TextPropertyValue = {
-            flags: reader.readInt32(),
-            historyType: reader.readByte()
+            flags: reader.readUint32(),
+            historyType: reader.readInt8()
         };
 
         switch (prop.historyType) {
-            // HISTORYTYPE_BASE
-            case 0:
+            case ETextHistoryType.Base:
                 prop.namespace = reader.readString();
                 prop.key = reader.readString();
                 prop.value = reader.readString();
                 break;
-            // HISTORYTYPE_NAMEDFORMAT
-            case 1:
-            // HISTORYTYPE_ARGUMENTFORMAT
-            case 3:
+
+            case ETextHistoryType.NamedFormat:
+            case ETextHistoryType.ArgumentFormat:
                 prop.sourceFmt = ReadValue(reader);
 
                 const argumentsCount = reader.readInt32();
@@ -63,18 +56,15 @@ export namespace TextProperty {
                 }
                 break;
             // see https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/TextHistory.cpp#L2268
-            // HISTORYTYPE_TRANSFORM
-            case 10:
+            case ETextHistoryType.Transform:
                 prop.sourceText = ReadValue(reader);
                 prop.transformType = reader.readByte();
                 break;
-            // HISTORYTYPE_STRING_TABLE_ENTRY
-            case 11:
+            case ETextHistoryType.StringTableEntry:
                 prop.tableId = reader.readString();
                 prop.textKey = reader.readString();
                 break;
-            // HISTORYTYPE_NONE
-            case 255:
+            case ETextHistoryType.None:
                 // See: https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/Text.cpp#L894
 
                 prop.hasCultureInvariantString = reader.readInt32() === 1;
@@ -91,31 +81,24 @@ export namespace TextProperty {
         return prop;
     }
 
-    export const CalcOverhead = (property: TextProperty): number => {
-        return 1;
-    }
-
-    export const Serialize = (writer: ContextWriter, property: TextProperty): void => {
-        GUIDInfo.write(writer, property.guidInfo);
+    export function Serialize(writer: ContextWriter, property: TextProperty): void {
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ContextWriter, value: TextPropertyValue): void => {
-        writer.writeInt32(value.flags);
-        writer.writeByte(value.historyType);
+    export function SerializeValue(writer: ContextWriter, value: TextPropertyValue): void {
+        writer.writeUint32(value.flags);
+        writer.writeInt8(value.historyType);
 
 
         switch (value.historyType) {
-            // HISTORYTYPE_BASE
-            case 0:
+            case ETextHistoryType.Base:
                 writer.writeString(value.namespace!);
                 writer.writeString(value.key!);
                 writer.writeString(value.value!);
                 break;
-            // HISTORYTYPE_NAMEDFORMAT
-            case 1:
-            // HISTORYTYPE_ARGUMENTFORMAT
-            case 3:
+
+            case ETextHistoryType.NamedFormat:
+            case ETextHistoryType.ArgumentFormat:
                 SerializeValue(writer, value.sourceFmt!);
 
                 writer.writeInt32(value.arguments!.length);
@@ -136,18 +119,17 @@ export namespace TextProperty {
                 }
                 break;
             // see https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/TextHistory.cpp#L2268
-            // HISTORYTYPE_TRANSFORM
-            case 10:
+            case ETextHistoryType.Transform:
                 SerializeValue(writer, value.sourceText!);
                 writer.writeByte(value.transformType!);
                 break;
-            // HISTORYTYPE_STRING_TABLE_ENTRY
-            case 11:
+
+            case ETextHistoryType.StringTableEntry:
                 writer.writeString(value.tableId!);
                 writer.writeString(value.textKey!);
                 break;
-            // HISTORYTYPE_NONE
-            case 255:
+
+            case ETextHistoryType.None:
                 // See: https://github.com/EpicGames/UnrealEngine/blob/4.25/Engine/Source/Runtime/Core/Private/Internationalization/Text.cpp#L894
 
                 writer.writeInt32(value.hasCultureInvariantString ? 1 : 0);

@@ -14,4 +14,4 @@ export type SatisfactoryModMetadata = {
 }
 
 /** @public */
-export type RoughSaveVersion = '<U6' | 'U6/U7' | 'U8' | 'U1.0' | 'U1.1+';
+export type RoughSaveVersion = '<U6' | 'U6/U7' | 'U8' | 'U1.0' | 'U1.1' | 'U1.2+';

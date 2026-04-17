@@ -39,9 +39,12 @@
 !src/test/x3-roads-signs-1.sav
 !src/test/pep-modtest-1.sav
 !src/test/Modding-Testing-MLB-003.sav
-!src/test/Dunarr-027.sav
 !src/test/Dunarr-076.sav
 !src/test/EmptySave10WithoutDestroyedActors.sav
+!src/test/Empty-Save-Before-1.2.sav
+!src/test/Empty-1-2-Save.sav
+!src/test/Ported-11-to-12-Exp.sav
+!src/test/Modding-Experimental-01.sav
 
 !src/test/BlueprintWithHeaderV1.sbp
 !src/test/BlueprintWithHeaderV1.sbpcfg
@@ -59,6 +62,8 @@
 !src/test/U1-1-Single-Container-2.sbpcfg
 !src/test/mod-circuitry.sbp
 !src/test/mod-circuitry.sbpcfg
+!src/test/two-foundations-1-2.sbp
+!src/test/two-foundations-1-2.sbpcfg
 
 /src/test/*.binsala
 

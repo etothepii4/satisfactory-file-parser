@@ -1,6 +1,7 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
 import { SaveCustomVersion } from '../../../save/save-custom-version';
+import { FPlayerInfoHandle } from '../../structs/binary/FPlayerInfoHandle';
 import { col4 } from '../../structs/col4';
 import { FGDynamicStruct } from '../../structs/FGDynamicStruct';
 import { ObjectReference } from '../../structs/ObjectReference';
@@ -29,7 +30,7 @@ export namespace BuildableSubsystemSpecialProperties {
             currentLightweightVersion: 0
         };
 
-        if (reader.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
+        if (reader.context.saveVersion.object >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
             property.currentLightweightVersion = reader.readInt32();
         }
 
@@ -42,7 +43,7 @@ export namespace BuildableSubsystemSpecialProperties {
 
                 const instances: BuildableTypeInstance[] = [];
                 for (let j = 0; j < count; j++) {
-                    instances.push(BuildableTypeInstance.Parse(reader, property.currentLightweightVersion ?? 0));
+                    instances.push(BuildableTypeInstance.Parse(reader, property.currentLightweightVersion ?? 1));
                 }
 
                 property.buildables.push({
@@ -57,7 +58,7 @@ export namespace BuildableSubsystemSpecialProperties {
 
     export const Serialize = (writer: ContextWriter, property: BuildableSubsystemSpecialProperties): void => {
 
-        if (writer.context.saveVersion >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
+        if (writer.context.saveVersion.object >= SaveCustomVersion.LightweightBuildableSubsystemWritesRuntimeVersion) {
             writer.writeInt32(property.currentLightweightVersion ?? 1);
         }
 
@@ -69,7 +70,7 @@ export namespace BuildableSubsystemSpecialProperties {
                 ObjectReference.write(writer, buildable.typeReference);
                 writer.writeInt32(buildable.instances.length);
                 for (const instance of buildable.instances) {
-                    BuildableTypeInstance.Serialize(writer, instance, property.currentLightweightVersion ?? 0);
+                    BuildableTypeInstance.Serialize(writer, instance, property.currentLightweightVersion ?? 1);
                 }
             }
         }
@@ -89,6 +90,7 @@ export type BuildableTypeInstance = {
     usedRecipe: ObjectReference;
     blueprintProxy: ObjectReference;
     instanceSpecificData?: FGDynamicStruct;
+    builtBy?: FPlayerInfoHandle;
 };
 
 export namespace BuildableTypeInstance {
@@ -112,6 +114,10 @@ export namespace BuildableTypeInstance {
         if (lightWeightVersion >= RuntimeBuildableInstanceDataVersion.AddedTypeSpecificData) {
             instanceSpecificData = FGDynamicStruct.Parse(reader);
         }
+        let builtBy;
+        if (lightWeightVersion >= RuntimeBuildableInstanceDataVersion.AddedBuiltBy) {
+            builtBy = FPlayerInfoHandle.read(reader);
+        }
 
         return {
             transform,
@@ -125,7 +131,8 @@ export namespace BuildableTypeInstance {
             usedPaintFinish,
             patternRotation,
             blueprintProxy,
-            instanceSpecificData
+            instanceSpecificData,
+            builtBy
         } satisfies BuildableTypeInstance;
     }
 
@@ -147,6 +154,10 @@ export namespace BuildableTypeInstance {
 
         if (lightweightVersion >= RuntimeBuildableInstanceDataVersion.AddedTypeSpecificData) {
             FGDynamicStruct.Serialize(writer, instance.instanceSpecificData!);
+        }
+
+        if (lightweightVersion >= RuntimeBuildableInstanceDataVersion.AddedBuiltBy) {
+            FPlayerInfoHandle.write(writer, instance.builtBy!);
         }
     }
 };

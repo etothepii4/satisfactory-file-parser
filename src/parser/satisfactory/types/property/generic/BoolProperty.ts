@@ -1,43 +1,37 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTag } from '../../structs/binary/FPropertyTag';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isBoolProperty = (property: any): property is BoolProperty => !Array.isArray(property) && property.type === 'BoolProperty';
+export const isBoolProperty = (property: any): property is BoolProperty => !Array.isArray(property) && property.propertyTagType.name === 'BoolProperty';
 
 export type BoolProperty = AbstractBaseProperty & {
     type: 'BoolProperty';
+    propertyTagType: { name: 'BoolProperty', children: FPropertyTagNode[] };
     value: boolean;
 };
 
 export namespace BoolProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): BoolProperty => {
-        const value = ReadValue(reader);
-        const guidInfo = GUIDInfo.read(reader);
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'BoolProperty',
-            value
-        } satisfies BoolProperty;
+    export function Parse(reader: ContextReader, property: BoolProperty, tag: FPropertyTag): void {
+        if (FPropertyTag.IsCompletePropertyTagType(reader)) {
+            property.value = (tag.flags! & 0x10) === 1;
+        } else {
+            property.value = tag.boolValue!;
+        }
     }
 
-    export const ReadValue = (reader: ContextReader): boolean => {
+    export function ReadValue(reader: ContextReader): boolean {
         return reader.readByte() > 0;
     }
 
-    export const CalcOverhead = (property: BoolProperty): number => {
-        return 1 + 1;
+    export function Serialize(writer: ContextWriter, property: BoolProperty): void {
+        // done. value is written in tag.
     }
 
-    export const Serialize = (writer: ContextWriter, property: BoolProperty): void => {
-        SerializeValue(writer, property.value);
-        GUIDInfo.write(writer, property.guidInfo);
-    }
-
-    export const SerializeValue = (writer: ContextWriter, value: boolean): void => {
+    export function SerializeValue(writer: ContextWriter, value: boolean): void {
         writer.writeByte(value ? 1 : 0);
     }
 }

@@ -1,6 +1,8 @@
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextWriter } from '../../context/context-writer';
+import { HierarchyVersion } from "../../context/hierarchical-version-context";
 import { ParserError } from "../../error/parser.error";
+import { EUnrealEngineObjectUE5Version } from "../../unreal-engine/EUnrealEngineObjectUE5Version";
 import { Level } from './level';
 import { SatisfactorySave } from "./satisfactory-save";
 import { ChunkCompressionInfo, ChunkSummary, SaveBodyChunks } from "./save-body-chunks";
@@ -10,6 +12,7 @@ export class SaveWriter extends ContextWriter {
 
 	constructor() {
 		super(Alignment.LITTLE_ENDIAN);
+		this.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(EUnrealEngineObjectUE5Version.INITIAL_VERSION);
 	}
 
 	public static WriteLevels(writer: ContextWriter, save: SatisfactorySave): void {
@@ -18,7 +21,7 @@ export class SaveWriter extends ContextWriter {
 			if (level.name !== save.header.mapName) {
 				writer.writeString(level.name);
 			}
-			Level.SerializeLevel(writer, level);
+			Level.Serialize(writer, level);
 		}
 	}
 

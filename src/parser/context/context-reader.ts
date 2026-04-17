@@ -1,5 +1,5 @@
 import { ByteReader } from '../byte/byte-reader.class';
-import { ReaderWriterContext } from './context';
+import { ReaderWriterContext } from './reader-writer-context';
 
 
 export abstract class ContextReader extends ByteReader {

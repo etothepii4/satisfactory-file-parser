@@ -1,24 +1,27 @@
-import { ContextReader } from '../../../../context/context-reader';
-import { ContextWriter } from '../../../../context/context-writer';
-import { SaveCustomVersion } from '../../../save/save-custom-version';
-import { FClientIdentityInfo } from '../../structs/binary/FClientIdentityInfo';
-import { FColor } from '../../structs/binary/FColor';
-import { FLinearColor } from '../../structs/binary/FLinearColor';
-import { GUID } from '../../structs/binary/GUID';
-import { col4 } from '../../structs/col4';
-import { DynamicStructPropertyValue } from '../../structs/DynamicStructPropertyValue';
-import { FGDynamicStruct } from '../../structs/FGDynamicStruct';
-import { GUIDInfo } from '../../structs/GUIDInfo';
-import { FICFrameRange } from '../../structs/mods/FicsItCam/FICFrameRange';
-import { FINGPUT1BufferPixel } from '../../structs/mods/FicsItNetworks/FINGPUT1BufferPixel';
-import { FINLuaRuntimePersistenceState } from '../../structs/mods/FicsItNetworks/FINLuaRuntimePersistenceState';
-import { FINNetworkTrace } from '../../structs/mods/FicsItNetworks/FINNetworkTrace';
-import { FLBBalancerIndexing } from '../../structs/mods/ModularLoadBalancers/FLBBalancerIndexing';
-import { ObjectReference } from '../../structs/ObjectReference';
-import { vec2 } from '../../structs/vec2';
-import { vec3 } from '../../structs/vec3';
-import { vec4 } from '../../structs/vec4';
-import { AbstractBaseProperty } from './AbstractBaseProperty';
+import { ContextReader } from '../../../../../context/context-reader';
+import { ContextWriter } from '../../../../../context/context-writer';
+import { SaveCustomVersion } from '../../../../save/save-custom-version';
+import { FClientIdentityInfo } from '../../../structs/binary/FClientIdentityInfo';
+import { FColor } from '../../../structs/binary/FColor';
+import { FLinearColor } from '../../../structs/binary/FLinearColor';
+import { FPlayerInfoHandle } from '../../../structs/binary/FPlayerInfoHandle';
+import { FPropertyTag } from '../../../structs/binary/FPropertyTag';
+import { FPropertyTagNode } from '../../../structs/binary/FPropertyTagNode';
+import { FUniqueNetIdRepl } from '../../../structs/binary/FUniqueNetIdRepl';
+import { GUID } from '../../../structs/binary/GUID';
+import { col4 } from '../../../structs/col4';
+import { DynamicStructPropertyValue } from '../../../structs/DynamicStructPropertyValue';
+import { FGDynamicStruct } from '../../../structs/FGDynamicStruct';
+import { FICFrameRange } from '../../../structs/mods/FicsItCam/FICFrameRange';
+import { FINGPUT1BufferPixel } from '../../../structs/mods/FicsItNetworks/FINGPUT1BufferPixel';
+import { FINLuaRuntimePersistenceState } from '../../../structs/mods/FicsItNetworks/FINLuaRuntimePersistenceState';
+import { FINNetworkTrace } from '../../../structs/mods/FicsItNetworks/FINNetworkTrace';
+import { FLBBalancerIndexing } from '../../../structs/mods/ModularLoadBalancers/FLBBalancerIndexing';
+import { ObjectReference } from '../../../structs/ObjectReference';
+import { vec2 } from '../../../structs/vec2';
+import { vec3 } from '../../../structs/vec3';
+import { vec4 } from '../../../structs/vec4';
+import { AbstractBaseProperty } from '../AbstractBaseProperty';
 
 
 export type BasicMultipleStructPropertyValue = {
@@ -55,74 +58,38 @@ export type FICFrameRangeStructPropertyValue = {
 
 export type GENERIC_STRUCT_PROPERTY_VALUE = BasicMultipleStructPropertyValue | BasicStructPropertyValue | BoxStructPropertyValue | RailroadTrackPositionStructPropertyValue |
     InventoryItemStructPropertyValue | FICFrameRangeStructPropertyValue | FClientIdentityInfo | DynamicStructPropertyValue | col4 | vec2 | vec3 | vec4 | string |
-    FINNetworkTrace | FINGPUT1BufferPixel | FLBBalancerIndexing | FINLuaRuntimePersistenceState;
+    FINNetworkTrace | FINGPUT1BufferPixel | FLBBalancerIndexing | FINLuaRuntimePersistenceState | FUniqueNetIdRepl | FPlayerInfoHandle;
 
-export const isStructProperty = (property: any): property is StructProperty => !Array.isArray(property) && property.type === 'StructProperty';
+export const isStructProperty = (property: any): property is StructProperty => !Array.isArray(property) && property.propertyTagType.name === 'StructProperty';
 
 export type StructProperty = AbstractBaseProperty & {
     type: 'StructProperty';
     subtype: string;
     value: GENERIC_STRUCT_PROPERTY_VALUE;
-    unk1?: number;
-    unk2?: number;
-    unk3?: number;
-    unk4?: number;
 };
 
 export namespace StructProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number, size: number, subtype: string): StructProperty => {
-
-        const guidInfo = GUIDInfo.read(reader);
-
-        const struct: StructProperty = {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'StructProperty',
-            value: { values: [] },
-            subtype
-        };
-
-        const unk1 = reader.readInt32();
-        if (unk1 !== 0) {
-            struct.unk1 = unk1;
-        }
-
-        const unk2 = reader.readInt32();
-        if (unk2 !== 0) {
-            struct.unk2 = unk2;
-        }
-
-        const unk3 = reader.readInt32();
-        if (unk3 !== 0) {
-            struct.unk3 = unk3;
-        }
-
-        const unk4 = reader.readInt32();
-        if (unk4 !== 0) {
-            struct.unk4 = unk4;
-        }
+    export function Parse(reader: ContextReader, property: StructProperty, tag: FPropertyTag): void {
 
         const before = reader.getBufferPosition();
-        struct.value = ParseValue(reader, struct.subtype, size);
+        property.value = ParseValue(reader, property.propertyTagType.children[0], tag.binarySize);
         const readBytes = reader.getBufferPosition() - before;
-        if (readBytes !== size) {
-            if (size - readBytes === 4) {
-                // U8, fine
-                reader.skipBytes(size - readBytes);
+        if (readBytes !== tag.binarySize) {
+            if (tag.binarySize - readBytes === 4) {
+                // U8, fine - honestly i am not sure whether this is even still relevant. with some bug fixes this most likely has been fixed.
+                reader.skipBytes(tag.binarySize - readBytes);
             } else {
-                throw new Error(`possibly corrupt. Read ${readBytes} for StructProperty Content of ${struct.subtype}, but ${size} were indicated.`);
+                throw new Error(`possibly corrupt. Read ${readBytes} for structproperty of ${JSON.stringify(property.propertyTagType.children[0].name)}, but ${tag.binarySize} were indicated.`);
             }
         }
-
-        return struct;
     }
 
-    export const ParseValue = (reader: ContextReader, subtype: string, size: number): GENERIC_STRUCT_PROPERTY_VALUE => {
+    export function ParseValue(reader: ContextReader, propertyTagType: FPropertyTagNode, size: number): GENERIC_STRUCT_PROPERTY_VALUE {
 
         let value: GENERIC_STRUCT_PROPERTY_VALUE;
-        const start = reader.getBufferPosition();
 
-        switch (subtype) {
+        switch (propertyTagType.name) {
             case 'Color':
                 value = FColor.read(reader);
                 break;
@@ -136,22 +103,22 @@ export namespace StructProperty {
                 break;
 
             case 'Vector2D':
-                value = (reader.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? vec2.Parse(reader) : vec2.ParseF(reader);
+                value = (reader.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? vec2.Parse(reader) : vec2.ParseF(reader);
                 break;
 
             case 'Vector':
             case 'Rotator':
-                value = (reader.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? vec3.Parse(reader) : vec3.ParseF(reader);
+                value = (reader.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? vec3.Parse(reader) : vec3.ParseF(reader);
                 break;
 
             case 'Quat':
             case 'Vector4':
             case 'Vector4D':
-                value = (reader.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? vec4.Parse(reader) : vec4.ParseF(reader);
+                value = (reader.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? vec4.Parse(reader) : vec4.ParseF(reader);
                 break;
 
             case 'Box':
-                value = ((reader.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? {
+                value = ((reader.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) ? {
                     min: vec3.Parse(reader),
                     max: vec3.Parse(reader),
                     isValid: reader.readByte() >= 1
@@ -191,7 +158,7 @@ export namespace StructProperty {
                 } satisfies InventoryItemStructPropertyValue;
 
                 // inventory items have potentially an item state. but not before explicit version
-                if (reader.context.saveVersion >= SaveCustomVersion.RefactoredInventoryItemState) {
+                if (reader.context.saveVersion.object >= SaveCustomVersion.RefactoredInventoryItemState) {
                     value.itemState = FGDynamicStruct.Parse(reader);
                 } else {
                     value.legacyItemStateActor = ObjectReference.read(reader);
@@ -211,6 +178,14 @@ export namespace StructProperty {
 
             case 'DateTime':
                 value = reader.readInt64().toString();
+                break;
+
+            case 'UniqueNetIdRepl':
+                value = FUniqueNetIdRepl.read(reader, size);
+                break;
+
+            case 'PlayerInfoHandle':
+                value = FPlayerInfoHandle.read(reader);
                 break;
 
             // FixsitCamera mod
@@ -239,31 +214,18 @@ export namespace StructProperty {
                 break;
 
             default:
-                //TODO: use buildversion
-                value = DynamicStructPropertyValue.read(reader, subtype);
+                value = DynamicStructPropertyValue.read(reader, propertyTagType.name);
                 break;
         }
 
         return value;
     }
 
-    export const CalcOverhead = (property: StructProperty, subtype: string): number => {
-        return subtype.length + 5 + 4 + 4 + 4 + 4 + 1;
+    export function Serialize(writer: ContextWriter, property: StructProperty): void {
+        StructProperty.SerializeValue(writer, property.propertyTagType.children[0].name, property.value);
     }
 
-    export const Serialize = (writer: ContextWriter, property: StructProperty): void => {
-        writer.writeString(property.subtype);
-        GUIDInfo.write(writer, property.guidInfo);
-
-        writer.writeInt32(property.unk1 ?? 0);
-        writer.writeInt32(property.unk2 ?? 0);
-        writer.writeInt32(property.unk3 ?? 0);
-        writer.writeInt32(property.unk4 ?? 0);
-
-        StructProperty.SerializeValue(writer, property.subtype, property.value);
-    }
-
-    export const SerializeValue = (writer: ContextWriter, subtype: string, value: GENERIC_STRUCT_PROPERTY_VALUE): void => {
+    export function SerializeValue(writer: ContextWriter, subtype: string, value: GENERIC_STRUCT_PROPERTY_VALUE): void {
 
         switch (subtype) {
             case 'Color':
@@ -280,7 +242,7 @@ export namespace StructProperty {
 
             case 'Vector2D':
                 value = value as vec2;
-                if (writer.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
+                if (writer.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
                     vec2.Serialize(writer, value);
                 } else {
                     vec2.SerializeF(writer, value);
@@ -290,7 +252,7 @@ export namespace StructProperty {
             case 'Vector':
             case 'Rotator':
                 value = value as vec3;
-                if (writer.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
+                if (writer.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
                     vec3.Serialize(writer, value as vec3);
                 } else {
                     vec3.SerializeF(writer, value as vec3);
@@ -301,7 +263,7 @@ export namespace StructProperty {
             case 'Vector4':
             case 'Vector4D':
                 value = value as vec4;
-                if (writer.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
+                if (writer.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
                     vec4.Serialize(writer, value as vec4);
                 } else {
                     vec4.SerializeF(writer, value as vec4);
@@ -310,7 +272,7 @@ export namespace StructProperty {
 
             case 'Box':
                 value = value as BoxStructPropertyValue;
-                if (writer.context.saveVersion >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
+                if (writer.context.saveVersion.object >= SaveCustomVersion.SwitchTo64BitSaveArchive) {
                     vec3.Serialize(writer, value.min);
                     vec3.Serialize(writer, value.max);
                 } else {
@@ -345,7 +307,7 @@ export namespace StructProperty {
                 value = value as InventoryItemStructPropertyValue;
                 ObjectReference.write(writer, value.itemReference);
 
-                if (writer.context.saveVersion >= SaveCustomVersion.RefactoredInventoryItemState) {
+                if (writer.context.saveVersion.object >= SaveCustomVersion.RefactoredInventoryItemState) {
                     FGDynamicStruct.Serialize(writer, value.itemState!);
                 } else {
                     ObjectReference.write(writer, value.legacyItemStateActor!);
@@ -358,8 +320,7 @@ export namespace StructProperty {
                 break;
 
             case 'SlateBrush':
-                value = value as string;
-                writer.writeString(value);
+                writer.writeString(value as string);
                 break;
 
             case 'DateTime':
@@ -367,10 +328,17 @@ export namespace StructProperty {
                 writer.writeInt64(BigInt(value));
                 break;
 
+            case 'UniqueNetIdRepl':
+                FUniqueNetIdRepl.write(writer, value as FUniqueNetIdRepl);
+                break;
+
+            case 'PlayerInfoHandle':
+                FPlayerInfoHandle.write(writer, value as FPlayerInfoHandle);
+                break;
+
             // MODS
             case 'FICFrameRange':
-                value = value as FICFrameRange;
-                FICFrameRange.write(writer, value);
+                FICFrameRange.write(writer, value as FICFrameRange);
                 break;
 
             // MLB mod
@@ -381,13 +349,11 @@ export namespace StructProperty {
             // FicsItNetworks mod
             case 'FINNetworkTrace':
             case 'FIRTrace':
-                value = value as FINNetworkTrace;
-                FINNetworkTrace.write(writer, value);
+                FINNetworkTrace.write(writer, value as FINNetworkTrace);
                 break;
 
             case 'FINGPUT1BufferPixel':
-                value = value as FINGPUT1BufferPixel;
-                FINGPUT1BufferPixel.write(writer, value);
+                FINGPUT1BufferPixel.write(writer, value as FINGPUT1BufferPixel);
                 break;
 
             case 'FINLuaProcessorStateStorage':
@@ -396,9 +362,7 @@ export namespace StructProperty {
                 break;
 
             default:
-                //TODO: use buildversion
-                value = value as DynamicStructPropertyValue;
-                DynamicStructPropertyValue.write(writer, value);
+                DynamicStructPropertyValue.write(writer, value as DynamicStructPropertyValue);
                 break;
         }
     }

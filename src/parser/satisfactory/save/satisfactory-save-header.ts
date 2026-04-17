@@ -1,7 +1,9 @@
 import { ContextReader } from '../../context/context-reader';
 import { ContextWriter } from '../../context/context-writer';
+import { HierarchyVersion } from '../../context/hierarchical-version-context';
 import { UnsupportedVersionError } from '../../error/parser.error';
 import { MD5Hash } from '../types/structs/MD5Hash';
+import { SaveCustomVersion } from './save-custom-version';
 import { SaveHeaderType } from './save-header-type';
 import { SaveReader } from './save-reader';
 import { SatisfactoryModMetadata } from './save.types';
@@ -78,7 +80,7 @@ export namespace SatisfactorySaveHeader {
 
         // set context
         reader.context.saveHeaderType = header.saveHeaderType;
-        reader.context.saveVersion = header.saveVersion;
+        reader.context.saveVersion = HierarchyVersion.CreateOnHeader(header.saveVersion);
         reader.context.buildVersion = header.buildVersion;
         reader.context.mods = Object.fromEntries(header.modMetadata?.Mods?.map(mod => [mod.Reference, mod.Version]) ?? []);
 
@@ -100,7 +102,7 @@ export namespace SatisfactorySaveHeader {
             header.creativeModeEnabled = reader.readInt32() == 1;
         }
 
-        if (header.saveVersion < 21) {
+        if (header.saveVersion < SaveCustomVersion.SaveFileIsCompressed) {
             throw new UnsupportedVersionError("The save version is too old to support encoding currently. Save in newer game version.");
         }
 
@@ -153,7 +155,7 @@ export namespace SatisfactorySaveHeader {
             writer.writeInt32(header.creativeModeEnabled ? 1 : 0);
         }
 
-        if (header.saveVersion < 21) {
+        if (header.saveVersion < SaveCustomVersion.SaveFileIsCompressed) {
             throw new UnsupportedVersionError("The save version is too old to be supported currently.");
         }
     }

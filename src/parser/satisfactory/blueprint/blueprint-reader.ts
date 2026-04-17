@@ -1,8 +1,10 @@
 import { Alignment } from "../../byte/alignment.enum";
 import { ContextReader } from '../../context/context-reader';
+import { HierarchyVersion } from "../../context/hierarchical-version-context";
 import { CorruptBlueprintError, CorruptSaveError } from "../../error/parser.error";
-import { Level } from '../save/level';
+import { EUnrealEngineObjectUE5Version } from "../../unreal-engine/EUnrealEngineObjectUE5Version";
 import { ChunkCompressionInfo, SaveBodyChunks } from '../save/save-body-chunks';
+import { TOCBlob } from "../save/toc-blob";
 import { SaveComponent, isSaveComponent } from "../types/objects/SaveComponent";
 import { SaveEntity, isSaveEntity } from "../types/objects/SaveEntity";
 import { SaveObject } from "../types/objects/SaveObject";
@@ -18,6 +20,7 @@ export class BlueprintReader extends ContextReader {
 
 	constructor(bluePrintBuffer: ArrayBufferLike) {
 		super(bluePrintBuffer, Alignment.LITTLE_ENDIAN);
+		this.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(EUnrealEngineObjectUE5Version.INITIAL_VERSION);
 	}
 
 	public inflateChunks(): { inflatedData: ArrayBufferLike } {
@@ -46,7 +49,7 @@ export class BlueprintReader extends ContextReader {
 		// object headers
 		const objectHeadersBinarySize = reader.readInt32();
 		let objects: (SaveEntity | SaveComponent)[] = [];
-		Level.ReadAllObjectHeaders(reader, objects);
+		TOCBlob.Read(reader, objects);
 
 		const someChecksumThing = reader.readInt32();
 
@@ -83,5 +86,6 @@ export class BlueprintConfigReader extends ContextReader {
 
 	constructor(public bluePrintConfigBuffer: ArrayBufferLike) {
 		super(bluePrintConfigBuffer, Alignment.LITTLE_ENDIAN);
+		this.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(EUnrealEngineObjectUE5Version.INITIAL_VERSION);
 	}
 }

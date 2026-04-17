@@ -1,42 +1,31 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isStrProperty = (property: any): property is StrProperty => !Array.isArray(property) && property.type === 'StrProperty';
+export const isStrProperty = (property: any): property is StrProperty => !Array.isArray(property) && property.propertyTagType.name === 'StrProperty';
 
 export type StrProperty = AbstractBaseProperty & {
     type: 'StrProperty';
+    propertyTagType: { name: 'StrProperty', children: FPropertyTagNode[] };
     value: string;
 };
 
 export namespace StrProperty {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): StrProperty => {
-        const guidInfo = GUIDInfo.read(reader);
-        const value = ReadValue(reader);
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'StrProperty',
-            value,
-        } satisfies StrProperty;
+    export function Parse(reader: ContextReader, currentProperty: StrProperty): void {
+        currentProperty.value = ReadValue(reader);
     }
 
-    export const ReadValue = (reader: ContextReader): string => {
+    export function ReadValue(reader: ContextReader): string {
         return reader.readString();
     }
 
-    export const CalcOverhead = (property: StrProperty): number => {
-        return 1;
-    }
-
-    export const Serialize = (writer: ContextWriter, property: StrProperty): void => {
-        GUIDInfo.write(writer, property.guidInfo);
+    export function Serialize(writer: ContextWriter, property: StrProperty): void {
         SerializeValue(writer, property.value);
     }
 
-    export const SerializeValue = (writer: ContextWriter, value: string): void => {
+    export function SerializeValue(writer: ContextWriter, value: string): void {
         writer.writeString(value);
     }
 }

@@ -55,7 +55,7 @@ export namespace SaveBodyChunks {
                 }
             }
 
-            // TODO: rather is int64. but in JS we have to use bigint, which is cumbersome. Find a way.
+            // TODO: rather is int64. but in JS we would have to use bigint. for not it seems int32 suffices.
             const chunkUncompressedLength = array.getInt32(currentByte + (chunkHeaderVersion === HEADER_V1 ? 24 : 25), alignment === Alignment.LITTLE_ENDIAN);
             const chunkCompressedLength = array.getInt32(currentByte + (chunkHeaderVersion === HEADER_V1 ? 32 : 33), alignment === Alignment.LITTLE_ENDIAN);
 
@@ -114,10 +114,10 @@ export namespace SaveBodyChunks {
         const totalUncompressedSize = bufferArray.byteLength;
         const chunkHeaderSize = compressionInfo.chunkHeaderVersion === SaveBodyChunks.HEADER_V1 ? 48 : 49;
 
-        const saveBody = new Uint8Array(bufferArray.byteLength + (blueprintOrSave === 'blueprint' ? 4 : 8));
+        const saveBody = new Uint8Array(bufferArray.byteLength + 4);
         saveBody.set(new Uint8Array(bufferArray), 4);
         const miniView = new DataView(saveBody.buffer);
-        miniView.setInt32(0, totalUncompressedSize, alignment === Alignment.LITTLE_ENDIAN);
+        miniView.setInt32(0, totalUncompressedSize - (blueprintOrSave === 'save' ? 4 : 0), alignment === Alignment.LITTLE_ENDIAN);
         onBinaryBeforeCompressing(saveBody.buffer);
 
         // collect slices of chunks with help of compression info for max chunk size

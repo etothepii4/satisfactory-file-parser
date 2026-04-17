@@ -145,6 +145,13 @@ export abstract class ByteWriter implements BinaryWritable {
 		this.jumpTo(after);
 	}
 
+	public writeInt32At(position: number, value: number) {
+		const here = this.getBufferPosition();
+		this.jumpTo(position);
+		this.writeInt32(value);
+		this.jumpTo(here);
+	}
+
 	/**
 	 * automatically extends the current buffer if the given space exceeds the available rest capacity of the current buffer.
 	 * @param countNeededBytes the needed space

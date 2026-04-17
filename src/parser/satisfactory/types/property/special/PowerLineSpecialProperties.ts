@@ -26,7 +26,7 @@ export namespace PowerLineSpecialProperties {
         };
 
         // seems to be, that for blueprints the cached position is stored.
-        if (reader.context.blueprintConfigVersion !== undefined && reader.context.saveVersion >= SaveCustomVersion.AddedCachedLocationsForWire) {
+        if (reader.context.blueprintConfigVersion !== undefined && reader.context.saveVersion.object >= SaveCustomVersion.AddedCachedLocationsForWire) {
             if (remainingLen - (reader.getBufferPosition() - start) >= 24) {
                 property.sourceTranslation = vec3.ParseF(reader);
                 property.targetTranslation = vec3.ParseF(reader);
@@ -39,7 +39,7 @@ export namespace PowerLineSpecialProperties {
     export const Serialize = (writer: ContextWriter, property: PowerLineSpecialProperties): void => {
         ObjectReference.write(writer, property.source);
         ObjectReference.write(writer, property.target);
-        if (writer.context.blueprintConfigVersion !== undefined && writer.context.saveVersion >= SaveCustomVersion.AddedCachedLocationsForWire) {
+        if (writer.context.blueprintConfigVersion !== undefined && writer.context.saveVersion.object >= SaveCustomVersion.AddedCachedLocationsForWire) {
             if (property.sourceTranslation && property.targetTranslation) {
                 vec3.SerializeF(writer, property.sourceTranslation);
                 vec3.SerializeF(writer, property.targetTranslation);

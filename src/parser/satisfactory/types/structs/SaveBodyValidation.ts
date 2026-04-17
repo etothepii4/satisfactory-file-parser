@@ -25,7 +25,6 @@ export type Grids = {
 export namespace SaveBodyValidation {
     export const Parse = (reader: ContextReader): SaveBodyValidation => {
 
-        reader.readInt32Zero();
         const grids: Grids = {};
 
         // normal game map has 6 grids: None, main grid, landscape grid, exploration grid, foliage grid, hlod0
@@ -51,7 +50,6 @@ export namespace SaveBodyValidation {
     }
 
     export const Serialize = (writer: ContextWriter, saveBodyValidation: SaveBodyValidation): void => {
-        writer.writeInt32(0);
         writer.writeInt32(Object.entries(saveBodyValidation.grids).length);
         for (const gridEntry of Object.entries(saveBodyValidation.grids)) {
             writer.writeString(gridEntry[0]);

@@ -4,7 +4,7 @@ import { ContextWriter } from '../../../context/context-writer';
 export type SoftObjectReference = {
 	instanceName: string;
 	pathName: string;
-	unk: number;
+	subPathString: number;
 };
 
 export namespace SoftObjectReference {
@@ -12,13 +12,13 @@ export namespace SoftObjectReference {
 		return {
 			pathName: reader.readString(),
 			instanceName: reader.readString(),
-			unk: reader.readInt32()	//TODO: other values than 0 not seen yet.
+			subPathString: reader.readInt32()
 		};
 	};
 
 	export const write = (writer: ContextWriter, ref: SoftObjectReference): void => {
 		writer.writeString(ref.pathName);
 		writer.writeString(ref.instanceName);
-		writer.writeInt32(ref.unk);
+		writer.writeInt32(ref.subPathString);
 	};
 };

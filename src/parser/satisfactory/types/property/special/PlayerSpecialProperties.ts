@@ -1,8 +1,6 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
 
-
-
 export const isPlayerSpecialProperties = (obj: any): obj is PlayerSpecialProperties => obj.type === 'PlayerSpecialProperties';
 
 export type PlayerSpecialProperties = {

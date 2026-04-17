@@ -1,3 +1,4 @@
+import { HierarchyVersion } from './context/hierarchical-version-context';
 import { UnsupportedVersionError } from './error/parser.error';
 import { BlueprintConfig } from './satisfactory/blueprint/blueprint-config';
 import { BlueprintHeader } from './satisfactory/blueprint/blueprint-header';
@@ -10,6 +11,7 @@ import { ChunkSummary } from './satisfactory/save/save-body-chunks';
 import { SaveCustomVersion } from './satisfactory/save/save-custom-version';
 import { SaveReader } from './satisfactory/save/save-reader';
 import { SaveWriter } from "./satisfactory/save/save-writer";
+import { FSaveObjectVersionData } from './satisfactory/types/structs/binary/FSaveObjectVersionData';
 import { ObjectReference } from './satisfactory/types/structs/ObjectReference';
 import { SaveBodyValidation } from './satisfactory/types/structs/SaveBodyValidation';
 
@@ -41,7 +43,7 @@ export class Parser {
 		const save = new SatisfactorySave(name, header);
 
 		// guard save version
-		const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion);
+		const roughSaveVersion = SaveReader.GetApproximateSaveVersion(header.saveVersion);
 		if (roughSaveVersion === '<U6') {
 			throw new UnsupportedVersionError('Game Version < U6 is not supported in the parser. Please save the file in a newer game version.');
 		}
@@ -55,11 +57,21 @@ export class Parser {
 			options.onDecompressedSaveBody(reader.getBuffer());
 		}
 
-		// world partition and validation
-		if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-			save.saveBodyValidation = SaveBodyValidation.Parse(reader);
+		// might be padding?
+		if (reader.context.saveVersion.header >= SaveCustomVersion.UnrealEngine5) {
+			reader.readInt32();
 		}
 
+		// read FSaveObjectVersionData
+		if (reader.context.saveVersion.header >= SaveCustomVersion.SerializeDataPackageVersionAndCustomVersions) {
+			save.objectVersionData = FSaveObjectVersionData.read(reader);
+			reader.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(save.objectVersionData.packageFileVersion.ue5Version);
+		}
+
+		// world partition and validation
+		if (reader.context.saveVersion.header >= SaveCustomVersion.IntroducedWorldPartition) {
+			save.saveBodyValidation = SaveBodyValidation.Parse(reader);
+		}
 
 		// parse levels
 		save.levels = reader.readLevels();
@@ -98,27 +110,36 @@ export class Parser {
 
 		const writer = new SaveWriter();
 		writer.context.saveHeaderType = save.header.saveHeaderType;
-		writer.context.saveVersion = save.header.saveVersion;
+		writer.context.saveVersion = HierarchyVersion.CreateOnHeader(save.header.saveVersion);
 		writer.context.buildVersion = save.header.buildVersion;
 		writer.context.mapName = save.header.mapName;
 		writer.context.mods = Object.fromEntries(save.header.modMetadata?.Mods?.map(mod => [mod.Reference, mod.Version]) ?? []);
 
+
 		SatisfactorySaveHeader.Serialize(writer, save.header);
 		const posAfterHeader = writer.getBufferPosition();
 
-		if (writer.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
+		// might be padding?
+		if (writer.context.saveVersion.header >= SaveCustomVersion.UnrealEngine5) {
+			writer.writeInt32(0);
+		}
+
+		// read FSaveObjectVersionData
+		if (writer.context.saveVersion.header >= SaveCustomVersion.SerializeDataPackageVersionAndCustomVersions) {
+			FSaveObjectVersionData.write(writer, save.objectVersionData!);
+			writer.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(save.objectVersionData!.packageFileVersion.ue5Version);
+		}
+
+		if (writer.context.saveVersion.header >= SaveCustomVersion.IntroducedWorldPartition) {
 			SaveBodyValidation.Serialize(writer, save.saveBodyValidation);
 		}
 
 		SaveWriter.WriteLevels(writer, save);
 
 		// unresolved data
-		// TODO: check if we ever encounter it.
-		if (save.unresolvedWorldSaveData && save.unresolvedWorldSaveData.length > 0) {
-			writer.writeInt32(save.unresolvedWorldSaveData.length);
-			for (const actor of save.unresolvedWorldSaveData) {
-				ObjectReference.write(writer, actor);
-			}
+		writer.writeInt32(save.unresolvedWorldSaveData?.length ?? 0);
+		for (const actor of save.unresolvedWorldSaveData ?? []) {
+			ObjectReference.write(writer, actor);
 		}
 
 		writer.endWriting();
@@ -148,7 +169,7 @@ export class Parser {
 		// write main blueprint file
 		const blueprintWriter = new BlueprintWriter();
 		blueprintWriter.context.blueprintConfigVersion = blueprint.config.configVersion;
-		blueprintWriter.context.saveVersion = blueprint.header.saveVersion;
+		blueprintWriter.context.saveVersion = HierarchyVersion.CreateOnHeader(blueprint.header.saveVersion);
 		blueprintWriter.context.buildVersion = blueprint.header.buildVersion;
 
 		BlueprintHeader.Serialize(blueprintWriter, blueprint.header);
@@ -170,8 +191,8 @@ export class Parser {
 		// write config as well.
 		const configWriter = new BlueprintConfigWriter();
 		configWriter.context.blueprintConfigVersion = blueprint.config.configVersion;
-		blueprintWriter.context.saveVersion = blueprint.header.saveVersion;
-		blueprintWriter.context.buildVersion = blueprint.header.buildVersion;
+		configWriter.context.saveVersion = HierarchyVersion.CreateOnHeader(blueprint.header.saveVersion);
+		configWriter.context.buildVersion = blueprint.header.buildVersion;
 
 		BlueprintConfig.Serialize(configWriter, blueprint.config);
 		const configFileBinary = configWriter.endWriting();
@@ -200,13 +221,10 @@ export class Parser {
 		}>
 	): Blueprint {
 
-		// read config file
-		const blueprintConfigReader = new BlueprintConfigReader(blueprintConfigFile);
-		const config = BlueprintConfig.Parse(blueprintConfigReader);
 
 		// read actual blueprint file. with context from config
 		const blueprintReader = new BlueprintReader(blueprintFile);
-		blueprintReader.context.blueprintConfigVersion = config.configVersion;
+		//blueprintReader.context.blueprintConfigVersion = config.configVersion;
 
 		blueprintReader.context.throwErrors = options?.throwErrors !== undefined ? options.throwErrors : false;
 		const header = BlueprintHeader.Parse(blueprintReader);
@@ -218,6 +236,13 @@ export class Parser {
 		}
 
 		const blueprintObjects = BlueprintReader.ParseObjects(blueprintReader);
+
+
+		// read config file with context from blueprint header
+		const blueprintConfigReader = new BlueprintConfigReader(blueprintConfigFile);
+		blueprintConfigReader.context.saveVersion = HierarchyVersion.CreateOnHeader(header.saveVersion);
+		const config = BlueprintConfig.Parse(blueprintConfigReader);
+
 		const blueprint: Blueprint = {
 			name,
 			compressionInfo: blueprintReader.compressionInfo,
@@ -246,4 +271,4 @@ export class Parser {
 			return value;
 		}, indent)
 
-}
+} 

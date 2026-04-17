@@ -1,4 +1,5 @@
 import { ChunkCompressionInfo } from "../satisfactory/save/save-body-chunks";
+import { HierarchyVersion } from "./hierarchical-version-context";
 
 /**
  * Merged Context Type for Saves and Blueprints.
@@ -13,11 +14,12 @@ export type ReaderWriterContext = SaveReaderWriterContext & BlueprintReaderWrite
 export type SaveReaderWriterContext = {
     throwErrors: boolean;
     saveHeaderType: number;
-    saveVersion: number;
+    saveVersion: HierarchyVersion;
     buildVersion: number;
     mods: Record<string, string>;
     mapName?: string;
     compressionInfo?: ChunkCompressionInfo;
+    packageFileVersionUE5: HierarchyVersion;
 }
 
 /**
@@ -26,7 +28,7 @@ export type SaveReaderWriterContext = {
 export type BlueprintReaderWriterContext = {
     throwErrors: boolean;
     headerVersion: number;
-    saveVersion: number;
+    saveVersion: HierarchyVersion;
     buildVersion: number;
     blueprintConfigVersion: number;
 }

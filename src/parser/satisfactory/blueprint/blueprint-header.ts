@@ -1,5 +1,8 @@
 import { ContextReader } from '../../context/context-reader';
 import { ContextWriter } from '../../context/context-writer';
+import { HierarchyVersion } from '../../context/hierarchical-version-context';
+import { SaveCustomVersion } from '../save/save-custom-version';
+import { FSaveObjectVersionData } from '../types/structs/binary/FSaveObjectVersionData';
 import { ObjectReference } from '../types/structs/ObjectReference';
 import { vec3 } from '../types/structs/vec3';
 
@@ -11,6 +14,7 @@ export type BlueprintHeader = {
     designerDimension?: vec3;
     itemCosts: [ObjectReference, number][];
     recipeReferences: ObjectReference[];
+    objectVersionData?: FSaveObjectVersionData;
 }
 
 export namespace BlueprintHeader {
@@ -24,7 +28,11 @@ export namespace BlueprintHeader {
 
         // set context
         reader.context.headerVersion = headerVersion;
-        reader.context.saveVersion = saveVersion;
+        reader.context.saveVersion = {
+            header: saveVersion,
+            level: saveVersion,
+            object: saveVersion
+        };
         reader.context.buildVersion = buildVersion;
 
 
@@ -34,7 +42,6 @@ export namespace BlueprintHeader {
         for (let i = 0; i < itemTypeCount; i++) {
             let itemPathName = ObjectReference.read(reader);
             let itemCount = reader.readInt32();
-
             itemCosts[i] = [itemPathName, itemCount];
         }
 
@@ -46,15 +53,22 @@ export namespace BlueprintHeader {
             recipeReferences[i] = recipeName;
         }
 
-        return {
+        const header: BlueprintHeader = {
             headerVersion,
             saveVersion,
             buildVersion,
             designerDimension,
             recipeReferences,
             itemCosts
-        } satisfies BlueprintHeader;
+        };
 
+        // read FSaveObjectVersionData
+        if (reader.context.saveVersion.header >= SaveCustomVersion.SerializeDataPackageVersionAndCustomVersions) {
+            header.objectVersionData = FSaveObjectVersionData.read(reader);
+            reader.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(header.objectVersionData.packageFileVersion.ue5Version);
+        }
+
+        return header;
     }
 
     export const Serialize = (writer: ContextWriter, header: BlueprintHeader): void => {
@@ -84,6 +98,12 @@ export namespace BlueprintHeader {
         writer.writeInt32(header.recipeReferences.length);
         for (const recipeReference of header.recipeReferences) {
             ObjectReference.write(writer, recipeReference);
+        }
+
+        // read FSaveObjectVersionData
+        if (writer.context.saveVersion.header >= SaveCustomVersion.SerializeDataPackageVersionAndCustomVersions) {
+            FSaveObjectVersionData.write(writer, header.objectVersionData!);
+            writer.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(header.objectVersionData!.packageFileVersion.ue5Version);
         }
     }
 }

@@ -1,38 +1,27 @@
 import { ContextReader } from '../../../../context/context-reader';
 import { ContextWriter } from '../../../../context/context-writer';
-import { GUIDInfo } from '../../structs/GUIDInfo';
+import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isInt8Property = (property: any): property is Int8Property => !Array.isArray(property) && property.type === 'Int8Property';
+export const isInt8Property = (property: any): property is Int8Property => !Array.isArray(property) && property.propertyTagType.name === 'Int8Property';
 
 export type Int8Property = AbstractBaseProperty & {
     type: 'Int8Property';
+    propertyTagType: { name: 'Int8Property', children: FPropertyTagNode[] };
     value: number;
 };
 
 export namespace Int8Property {
 
-    export const Parse = (reader: ContextReader, ueType: string, index: number = 0): Int8Property => {
-        const guidInfo = GUIDInfo.read(reader);
-        const value = ReadValue(reader);
-
-        return {
-            ...AbstractBaseProperty.Create({ index, ueType, guidInfo, type: '' }),
-            type: 'Int8Property',
-            value,
-        } satisfies Int8Property;
+    export function Parse(reader: ContextReader, property: Int8Property): void {
+        property.value = ReadValue(reader);
     }
 
-    export const ReadValue = (reader: ContextReader): number => {
+    export function ReadValue(reader: ContextReader): number {
         return reader.readInt8();
     }
 
-    export const CalcOverhead = (property: Int8Property): number => {
-        return 1;
-    }
-
-    export const Serialize = (writer: ContextWriter, property: Int8Property): void => {
-        GUIDInfo.write(writer, property.guidInfo);
+    export function Serialize(writer: ContextWriter, property: Int8Property): void {
         SerializeValue(writer, property.value);
     }
 

@@ -1,6 +1,7 @@
-import { QueuingStrategy, ReadableStream, ReadableStreamDefaultController } from "stream/web";
+import { HierarchyVersion } from "../../context/hierarchical-version-context";
 import { UnsupportedVersionError } from '../../error/parser.error';
-import { Level } from '../../satisfactory/save/level';
+import { DataBlob } from "../../satisfactory/save/data-blob";
+import { Level } from "../../satisfactory/save/level";
 import { LevelToDestroyedActorsMap } from '../../satisfactory/save/level-to-destroyed-actors-map';
 import { ObjectReferencesList } from '../../satisfactory/save/object-references-list';
 import { SatisfactorySave } from "../../satisfactory/save/satisfactory-save";
@@ -8,11 +9,35 @@ import { SatisfactorySaveHeader } from '../../satisfactory/save/satisfactory-sav
 import { ChunkCompressionInfo } from "../../satisfactory/save/save-body-chunks";
 import { SaveCustomVersion } from '../../satisfactory/save/save-custom-version';
 import { SaveReader } from '../../satisfactory/save/save-reader';
+import { TOCBlob } from "../../satisfactory/save/toc-blob";
 import { ObjectReference } from '../../satisfactory/types/structs/ObjectReference';
 import { SaveBodyValidation } from "../../satisfactory/types/structs/SaveBodyValidation";
+import { FSaveObjectVersionData } from "../../satisfactory/types/structs/binary/FSaveObjectVersionData";
+
+interface StreamWeb {
+	ReadableStream: any;
+	QueuingStrategy: any;
+	ReadableStreamDefaultController: any;
+}
+
+const streamWeb: StreamWeb = (() => {
+	try {
+		return require('stream/web');
+	} catch {
+		try {
+			return require('web-streams-polyfill');
+		} catch {
+			return {
+				ReadableStream: (globalThis as any).ReadableStream as any,
+				QueuingStrategy: (globalThis as any).QueuingStrategy as any,
+				ReadableStreamDefaultController: (globalThis as any).ReadableStreamDefaultController as any
+			};
+		}
+	}
+})();
 
 const DEFAULT_BYTE_HIGHWATERMARK = 1024 * 1024 * 200;	// 200MiB
-const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): QueuingStrategy<string> => ({
+const createStringLengthQueuingStrategy = (highWaterMark: number = DEFAULT_BYTE_HIGHWATERMARK / 4): any => ({
 	highWaterMark,
 	size: (chunk: string | undefined) => {
 		if (chunk === undefined) {
@@ -58,21 +83,21 @@ class SimpleWaitForConsumerLock {
 export class ReadableStreamParser {
 
 	private static CreateReadableStreamForParsingSave = (
-		onStart: (controller: ReadableStreamDefaultController<string>) => void,
+		onStart: (controller: any) => void,
 		onCancel: (reason: any) => void,
 		onPullRequest: (desiredSize: number) => void,
 		highWaterMark = DEFAULT_BYTE_HIGHWATERMARK / 4
 	) => {
-		let ourController: ReadableStreamDefaultController<string> | null = null;
-		const stream = new ReadableStream<string>({
-			start: (controller: ReadableStreamDefaultController<string>) => {
+		let ourController: any = null;
+		const stream = new (streamWeb.ReadableStream as any)({
+			start: (controller: any) => {
 				ourController = controller;
 				onStart(ourController);
 			},
-			pull: (controller: ReadableStreamDefaultController<string>) => {
+			pull: (controller: any) => {
 				onPullRequest(ourController!.desiredSize ?? 1);
 			},
-			cancel: (reason) => {
+			cancel: (reason: any) => {
 				console.warn('parsing stream was canceled!', reason);
 				if (ourController !== null) {
 					ourController.close();
@@ -106,7 +131,7 @@ export class ReadableStreamParser {
 			onDecompressedSaveBody: (buffer: ArrayBufferLike) => void,
 			onProgress: (progress: number, message?: string) => void
 		}>
-	): { stream: ReadableStream<string>, startStreaming: () => Promise<void> } => {
+	): { stream: any, startStreaming: () => Promise<void> } => {
 
 		// create a simple lock to sync with consumer of the stream. Aka handle backpressure.
 		const waitForConsumerLock = new SimpleWaitForConsumerLock();
@@ -148,7 +173,7 @@ export class ReadableStreamParser {
 			const save = new SatisfactorySave(name, header);
 
 			// guard save version
-			const roughSaveVersion = SaveReader.GetRoughSaveVersion(header.saveVersion);
+			const roughSaveVersion = SaveReader.GetApproximateSaveVersion(header.saveVersion);
 			if (roughSaveVersion === '<U6') {
 				throw new UnsupportedVersionError('Game Version < U6 is not supported in the parser. Please save the file in a newer game version.');
 			}
@@ -162,12 +187,25 @@ export class ReadableStreamParser {
 				options.onDecompressedSaveBody(reader.getBuffer());
 			}
 
-			let saveBodyValidation = save.saveBodyValidation;
-			if (reader.context.saveVersion >= SaveCustomVersion.IntroducedWorldPartition) {
-				saveBodyValidation = SaveBodyValidation.Parse(reader);
+			// might be padding?
+			if (reader.context.saveVersion.header >= SaveCustomVersion.UnrealEngine5) {
+				reader.readInt32();
 			}
 
-			await ReadableStreamParser.WriteHeaderAndSaveBodyValidation(write, name, inflateResult.compressionInfo, header, saveBodyValidation);
+			// read FSaveObjectVersionData
+			let saveObjectVersionData = save.objectVersionData;
+			if (reader.context.saveVersion.header >= SaveCustomVersion.SerializeDataPackageVersionAndCustomVersions) {
+				saveObjectVersionData = FSaveObjectVersionData.read(reader);
+				reader.context.packageFileVersionUE5 = HierarchyVersion.CreateOnHeader(saveObjectVersionData.packageFileVersion.ue5Version);
+			}
+
+			// world partition and validation
+			let saveBodyValidation = save.saveBodyValidation;
+			if (reader.context.saveVersion.header >= SaveCustomVersion.IntroducedWorldPartition) {
+				saveBodyValidation = SaveBodyValidation.Parse(reader);
+			}
+			await ReadableStreamParser.WriteHeaderAndFieldsBeforeLevel(write, name, inflateResult.compressionInfo, header, saveBodyValidation, saveObjectVersionData);
+
 
 			// parse levels
 			await ReadableStreamParser.ReadWriteLevels(write, reader, save.header.mapName, save.header.buildVersion);
@@ -185,10 +223,6 @@ export class ReadableStreamParser {
 				}
 			}
 
-			if (save.name !== undefined) {
-				await write(`, "name": "${save.name}" `, false);
-			}
-
 			if (options?.onProgress !== undefined) {
 				options.onProgress(1, 'finished parsing.');
 			}
@@ -202,14 +236,18 @@ export class ReadableStreamParser {
 	}
 
 
-	private static WriteHeaderAndSaveBodyValidation = async (
+	private static WriteHeaderAndFieldsBeforeLevel = async (
 		write: (value: string, waitTilConsumingEndIsReady?: boolean) => Promise<void>,
 		name: string,
 		compressionInfo: ChunkCompressionInfo,
 		header: SatisfactorySaveHeader,
-		saveBodyValidation: SaveBodyValidation
+		saveBodyValidation: SaveBodyValidation,
+		saveObjectVersionData?: FSaveObjectVersionData
 	) => {
-		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", "compressionInfo": ${JSON.stringify(compressionInfo)}, "saveBodyValidation": ${JSON.stringify(saveBodyValidation)}, "levels": {`, false);
+		const compressionInfoEntry = `"compressionInfo": ${JSON.stringify(compressionInfo)}`;
+		const saveBodyValidationEntry = saveBodyValidation !== undefined ? `, "saveBodyValidation": ${JSON.stringify(saveBodyValidation)}` : '';
+		const saveObjectVersionDataEntry = saveObjectVersionData !== undefined ? `, "objectVersionData": ${JSON.stringify(saveObjectVersionData)}` : '';
+		return write(`{"header": ${JSON.stringify(header)}, "name": "${name}", ${compressionInfoEntry}${saveBodyValidationEntry}${saveObjectVersionDataEntry}, "levels": {`, false);
 	}
 
 	private static async ReadWriteLevels(
@@ -230,26 +268,64 @@ export class ReadableStreamParser {
 		let destroyedActorsMap: LevelToDestroyedActorsMap = {};
 		for (let j = 0; j <= levelCount; j++) {
 			let levelName = (j === levelCount) ? '' + mapName : reader.readString();
+			const level: Level = {
+				name: levelName,
+				objects: [],
+				collectables: [],
+				writesDestroyedActorsInTOCBlob: false
+			}
 			const isPersistentLevel = levelName === mapName;
 
 			if (j % 500 === 0) {
 				reader.onProgressCallback(reader.getBufferProgress(), `reading level [${(j + 1)}/${(levelCount + 1)}] ${levelName}`);
 			}
+			await write(`${j > 0 ? ', ' : ''}"${levelName}": {"name": "${levelName}",`, false);
 
-			// we will intentionally NOT wait for next pull request, since these few characters don't make waiting useful.
-			await write(`${j > 0 ? ', ' : ''}"${levelName}": {"name": "${levelName}", "objects": [`, false);
+			// read blobs later
+			const tocBlobMarker = TOCBlob.SkipOver(reader);
+			const dataBlobMarker = DataBlob.SkipOver(reader);
 
-
-			// object headers
-			const headersBinLen = reader.readInt32(); // object headers + destroyed colelctables
-			if (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
-				reader.readInt32Zero();
+			// save Version in Streaming level
+			if (!isPersistentLevel) {
+				if (reader.context.saveVersion.header >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
+					level.saveCustomVersion = reader.readInt32();
+					await write(`"saveCustomVersion": ${level.saveCustomVersion},`, false);
+				}
 			}
 
-			const posBeforeHeaders = reader.getBufferPosition();
-			const afterAllHeaders = posBeforeHeaders + headersBinLen;
-			let countObjectHeaders = reader.readInt32();
+			// for persistent level, we have LevelToDestroyedActorsMap, else collectibles + object version data
+			// 2nd appearance of destroyed actors / collectables. the lists are equal at both locations
+			if (isPersistentLevel) {
+				const destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
+				await write(`"destroyedActorsMap": ${JSON.stringify(destroyedActorsMap)},`, false);
+			} else {
+				level.collectables = ObjectReferencesList.ReadList(reader);
 
+				if (reader.context.saveVersion.header >= SaveCustomVersion.SerializeDataPackageVersionAndCustomVersions) {
+					const shouldSerializePerObjectVersionData = reader.readInt32() >= 1;
+					if (shouldSerializePerObjectVersionData) {
+						level.objectVersionData = FSaveObjectVersionData.read(reader);
+						await write(`"objectVersionData": ${JSON.stringify(level.objectVersionData)},`, false);
+					}
+				}
+			}
+			await write(`"collectables": [${level.collectables.map(obj => JSON.stringify(obj)).join(', ')}],`, false);
+
+			// set appropriate version context.
+			HierarchyVersion.SetOnLevel(reader.context.saveVersion, level.saveCustomVersion);
+			HierarchyVersion.SetOnLevel(reader.context.packageFileVersionUE5, level.objectVersionData?.packageFileVersion.ue5Version);
+
+			// jump back and read TOCBlob, DataBlob with accurate save version
+			const endOfLevelPosition = reader.getBufferPosition();
+
+
+			// we will intentionally NOT wait for next pull request, since these few characters don't make waiting useful.
+			await write(`"objects": [`, false);
+			reader.jumpTo(tocBlobMarker.position);
+
+
+			// we do the same as TOCBlob.read & DataBlob.read. but jumping back and forth between batches.
+			let countObjectHeaders = reader.readInt32();
 			let totalReadObjectsInLevel = 0;
 			let writtenObjectsInLevel = 0;
 			let afterHeadersOfBatch = reader.getBufferPosition();	// at first no batch is read.
@@ -258,50 +334,39 @@ export class ReadableStreamParser {
 			do {
 
 				// jump to after last read batch
-				reader.skipBytes(afterHeadersOfBatch - reader.getBufferPosition());
+				reader.jumpTo(afterHeadersOfBatch);
 
 				// read batch
 				const objectCountToRead = Math.min(countObjectHeaders - totalReadObjectsInLevel, batchingSizeOfObjects);
-				const objects = Level.ReadNObjectHeaders(reader, objectCountToRead);
-
+				const objects = TOCBlob.ReadNObjectHeaders(reader, objectCountToRead);
 				afterHeadersOfBatch = reader.getBufferPosition();
 
-
-				// after headers, there MAY be destroyed entities. don't have to.
-				// But either way, we can safely ignore them.
+				// 1st lsit of collectables / destroyed actors in toc blob.
 				if (countObjectHeaders === totalReadObjectsInLevel + objects.length) {
-					const bytesLeft = afterAllHeaders - reader.getBufferPosition();
-					if (bytesLeft > 0) {
+					let remainingSize = tocBlobMarker.length - (reader.getBufferPosition() - tocBlobMarker.position);
+					if (remainingSize > 0) {
 						if (isPersistentLevel) {
 							destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
 						} else {
 							collectables = ObjectReferencesList.ReadList(reader);
 						}
+						level.writesDestroyedActorsInTOCBlob = true;
 					}
-
 				}
-
 
 				if (totalReadObjectsInLevel === 0) {
 
 					// jump to after all headers
-					reader.skipBytes(afterAllHeaders - reader.getBufferPosition());
-
-					const objectContentsBinLen = reader.readInt32();
-					if (reader.context.saveVersion >= SaveCustomVersion.UnrealEngine5) {
-						reader.readInt32Zero();
-					}
-
+					reader.jumpTo(dataBlobMarker.position);
 					const posBeforeContents = reader.getBufferPosition();
 					const countEntities = reader.readInt32();
 					afterObjectsOfBatch = reader.getBufferPosition();	// at first no batch is read.
 				} else {
-					reader.skipBytes(afterObjectsOfBatch - reader.getBufferPosition());
+					reader.jumpTo(afterObjectsOfBatch);
 				}
 
-				Level.ReadNObjectContents(reader, objectCountToRead, objects, 0);
+				DataBlob.ReadNObjectContents(reader, objectCountToRead, objects, 0);
 				afterObjectsOfBatch = reader.getBufferPosition();
-
 				totalReadObjectsInLevel += objectCountToRead;
 				if (countObjectHeaders > 10000 && totalReadObjectsInLevel % 10000 === 0) {
 					reader.onProgressCallback(reader.getBufferProgress(), `read object count [${(totalReadObjectsInLevel + 1)}/${(countObjectHeaders + 1)}] in level ${levelName}`);
@@ -322,31 +387,9 @@ export class ReadableStreamParser {
 
 
 			await write('], ', false);
+			await write(`"writesDestroyedActorsInTOCBlob": ${JSON.stringify(level.writesDestroyedActorsInTOCBlob)}`, false);
 
-			// only NOT in the persistent level, we have saveVersion
-			if (!isPersistentLevel) {
-				if (reader.context.saveVersion >= SaveCustomVersion.SerializePerStreamableLevelTOCVersion) {
-					const saveCustomVersion = reader.readInt32();
-					await write(`"saveCustomVersion": ${saveCustomVersion}, `, false);
-				}
-			}
-
-			// only in persistent level, we have LevelToDestroyedActorsMap
-			if (isPersistentLevel) {
-				destroyedActorsMap = LevelToDestroyedActorsMap.read(reader);
-				await write(`"destroyedActorsMap": ${JSON.stringify(destroyedActorsMap)}, `, false);
-			}
-
-			await write('"collectables": [', false);
-
-			// only NOT in the persistent level, we have 2nd collectables.
-			if (!isPersistentLevel) {
-				collectables = ObjectReferencesList.ReadList(reader);
-			}
-
-			await write(`${collectables.map(obj => JSON.stringify(obj)).join(', ')}`, true);
-
-			await write(']', false);
+			reader.jumpTo(endOfLevelPosition);
 			await write('}', false);
 		}
 	}
