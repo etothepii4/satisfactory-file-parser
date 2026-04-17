@@ -1,6 +1,11 @@
 # Changelog
 Make sure to use the same version for parsing and serializing saves, if possible.
 
+### [4.0.1] (2026-04-18)
+### Bugfix
+* ByteProperty wasnt read correctly, when node purities were overwritten from 1.2 game mode.
+* Harden some type guards
+
 ### [4.0.0] (2026-04-18)
 ## 1.2 Support, Breaking Changes
 * Supporting 1.2 Saves and Blueprints. Usage from parsing did not change, but properties quite a bit. Taking the chance to trim some fat. Reach out if you still find bugs or have other ideas.
