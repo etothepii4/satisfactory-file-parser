@@ -3,7 +3,7 @@ import { ContextWriter } from '../../../../context/context-writer';
 import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isIntProperty = (property: any): property is IntProperty => !Array.isArray(property) && property.propertyTagType.name === 'IntProperty';
+export const isIntProperty = (property: any): property is IntProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'IntProperty';
 
 export type IntProperty = AbstractBaseProperty & {
     type: 'IntProperty';

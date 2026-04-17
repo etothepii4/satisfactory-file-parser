@@ -18,7 +18,7 @@ import { StrProperty } from '../StrProperty';
 import { TextProperty } from '../TextProperty';
 import { StructProperty } from './StructProperty';
 
-export const isArrayProperty = (property: any): property is ArrayProperty => !Array.isArray(property) && property.propertyTagType.name === 'ArrayProperty';
+export const isArrayProperty = (property: any): property is ArrayProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'ArrayProperty';
 
 export type ArrayProperty = AbstractBaseProperty & {
     type: 'ArrayProperty';

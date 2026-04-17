@@ -3,7 +3,7 @@ import { ContextWriter } from '../../../../context/context-writer';
 import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isUInt64Property = (property: any): property is Uint64Property => !Array.isArray(property) && property.propertyTagType.name === 'UInt64Property';
+export const isUInt64Property = (property: any): property is Uint64Property => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'UInt64Property';
 
 export type Uint64Property = AbstractBaseProperty & {
     type: 'Uint64Property';

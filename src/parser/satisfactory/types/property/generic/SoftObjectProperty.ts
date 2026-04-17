@@ -4,7 +4,7 @@ import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { SoftObjectReference } from '../../structs/SoftObjectReference';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
-export const isSoftObjectProperty = (property: any): property is SoftObjectProperty => !Array.isArray(property) && property.propertyTagType.name === 'SoftObjectProperty';
+export const isSoftObjectProperty = (property: any): property is SoftObjectProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'SoftObjectProperty';
 
 export type SoftObjectProperty = AbstractBaseProperty & {
     type: 'SoftObjectProperty';

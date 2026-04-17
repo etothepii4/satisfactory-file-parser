@@ -5,7 +5,7 @@ import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isBoolProperty = (property: any): property is BoolProperty => !Array.isArray(property) && property.propertyTagType.name === 'BoolProperty';
+export const isBoolProperty = (property: any): property is BoolProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'BoolProperty';
 
 export type BoolProperty = AbstractBaseProperty & {
     type: 'BoolProperty';

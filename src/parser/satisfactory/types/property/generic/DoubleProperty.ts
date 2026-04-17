@@ -4,7 +4,7 @@ import { FPropertyTagNode } from '../../structs/binary/FPropertyTagNode';
 import { AbstractBaseProperty } from './AbstractBaseProperty';
 
 
-export const isDoubleProperty = (property: any): property is DoubleProperty => !Array.isArray(property) && property.propertyTagType.name === 'DoubleProperty';
+export const isDoubleProperty = (property: any): property is DoubleProperty => property !== null && !Array.isArray(property) && property.propertyTagType?.name === 'DoubleProperty';
 
 export type DoubleProperty = AbstractBaseProperty & {
     type: 'DoubleProperty';

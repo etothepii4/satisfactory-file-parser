@@ -6,7 +6,7 @@ import { Transform } from '../structs/Transform';
 import { SaveObject, SaveObjectHeader } from "./SaveObject";
 
 export const isSaveEntity = (obj: any): obj is SaveEntity => {
-	return obj.type === 'SaveEntity';
+	return obj !== null && typeof obj === 'object' && 'type' in obj && obj.type === 'SaveEntity';
 }
 
 export interface SaveEntityHeader extends SaveObjectHeader {
