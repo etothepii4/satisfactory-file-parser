@@ -1,6 +1,10 @@
 # Changelog
 Make sure to use the same version for parsing and serializing saves, if possible.
 
+### [4.0.2] (2026-04-23)
+### Bugfix
+* StructProperty had `subtype` in typescript definition, even tho it is no longer filled.
+
 ### [4.0.1] (2026-04-18)
 ### Bugfix
 * ByteProperty wasnt read correctly, when node purities were overwritten from 1.2 game mode.

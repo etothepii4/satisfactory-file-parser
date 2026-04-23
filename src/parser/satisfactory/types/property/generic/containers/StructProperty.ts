@@ -64,7 +64,6 @@ export const isStructProperty = (property: any): property is StructProperty => !
 
 export type StructProperty = AbstractBaseProperty & {
     type: 'StructProperty';
-    subtype: string;
     value: GENERIC_STRUCT_PROPERTY_VALUE;
 };
 
