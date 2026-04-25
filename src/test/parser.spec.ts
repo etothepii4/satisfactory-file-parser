@@ -5,7 +5,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Writable } from 'node:stream';
 import { format, isDeepStrictEqual } from 'node:util';
-import { ArrayProperty, ContextReader, DynamicStructPropertyValue, IntProperty, Level, ObjectProperty, Parser, ReadableStreamParser, SatisfactorySave, SaveComponent, SaveEntity, SaveObject, StructProperty } from '../index';
+import { ArrayProperty, ContextReader, DynamicStructPropertyValue, FInventoryItem, IntProperty, Level, ObjectProperty, Parser, ReadableStreamParser, SatisfactorySave, SaveComponent, SaveEntity, SaveObject, StructProperty } from '../index';
 import * as PropertiesListMod from '../parser/satisfactory/types/property/PropertiesList';
 import * as FINNetworkTraceMod from '../parser/satisfactory/types/structs/mods/FicsItNetworks/FINNetworkTrace';
 
@@ -103,7 +103,7 @@ describe('modification of saves', () => {
 		const firstStack = inventoryStacks.values[0];
 
 		// modify first item stack
-		(((firstStack as DynamicStructPropertyValue).properties.Item as StructProperty).value as any).itemReference = {
+		(((firstStack as DynamicStructPropertyValue).properties.Item as StructProperty).value as FInventoryItem).itemReference = {
 			levelName: '',
 			pathName: '/Game/FactoryGame/Resource/Parts/Rotor/Desc_Rotor.Desc_Rotor_C'
 		};
