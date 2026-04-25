@@ -26,11 +26,11 @@ export namespace FGDynamicStruct {
 
         if (struct.hasValidStruct) {
             struct.structReference = ObjectReference.read(reader);
+            const savedPayloadSize = reader.readInt32();
 
             if (reader.context.mods.FicsItNetworks !== undefined && FINItemStateFileSystem.IsFINItemStateFileSystem(struct)) {
-                struct.rawBytes = FINItemStateFileSystem.read(reader);
+                struct.rawBytes = FINItemStateFileSystem.read(reader, savedPayloadSize);
             } else {
-                const binarySize = reader.readInt32();
                 struct.properties = PropertiesList.ParseList(reader);
             }
 

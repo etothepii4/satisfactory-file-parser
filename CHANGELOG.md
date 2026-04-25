@@ -1,6 +1,11 @@
 # Changelog
 Make sure to use the same version for parsing and serializing saves, if possible.
 
+### [4.1.0] (2026-04-25)
+### Bugfix
+* The state of inventory items and items on belts wasn't quite correct. Like the chainsaw stores energy value in its state.
+* Items on belts referenced by `ConvyorChainActor`s had wrong positions/offsets. Because they were read as int32 instead of float32.
+
 ### [4.0.2] (2026-04-23)
 ### Bugfix
 * StructProperty had `subtype` in typescript definition, even tho it is no longer filled.
