@@ -97,8 +97,6 @@ export namespace SpecialProperties {
             ConveyorSpecialProperties.Serialize(writer, property);
         } else if (isCircuitSpecialProperties(property)) {
             CircuitSpecialProperties.Serialize(writer, property);
-        } else if (isConveyorSpecialProperties(property)) {
-            ConveyorSpecialProperties.Serialize(writer, property);
         } else if (isConveyorChainActorSpecialProperties(property)) {
             ConveyorChainActorSpecialProperties.Serialize(writer, property);
         } else if (isPowerLineSpecialProperties(property)) {

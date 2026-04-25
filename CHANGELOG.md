@@ -1,6 +1,10 @@
 # Changelog
 Make sure to use the same version for parsing and serializing saves, if possible.
 
+### [4.1.1] (2026-04-25)
+### Bugfix
+* Barrel file included jest/test files, which it shouldnt.
+
 ### [4.1.0] (2026-04-25)
 ### Bugfix
 * The state of inventory items and items on belts wasn't quite correct. Like the chainsaw stores energy value in its state.
