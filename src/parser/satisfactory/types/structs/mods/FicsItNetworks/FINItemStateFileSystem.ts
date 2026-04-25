@@ -19,8 +19,7 @@ export namespace FINItemStateFileSystem {
         return ObjectReference.IsEqual(struct.structReference!, ExactStructReference);
     }
 
-    export const read = (reader: ContextReader): FINItemStateFileSystem => {
-        const numBytes = reader.readInt32();
+    export const read = (reader: ContextReader, numBytes: number): FINItemStateFileSystem => {
         return Array.from(reader.readBytes(numBytes));
     }
 

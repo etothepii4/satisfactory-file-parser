@@ -3,6 +3,7 @@ import { ContextWriter } from '../../../../../context/context-writer';
 import { SaveCustomVersion } from '../../../../save/save-custom-version';
 import { FClientIdentityInfo } from '../../../structs/binary/FClientIdentityInfo';
 import { FColor } from '../../../structs/binary/FColor';
+import { FInventoryItem } from '../../../structs/binary/FInventoryItem';
 import { FLinearColor } from '../../../structs/binary/FLinearColor';
 import { FPlayerInfoHandle } from '../../../structs/binary/FPlayerInfoHandle';
 import { FPropertyTag } from '../../../structs/binary/FPropertyTag';
@@ -11,13 +12,11 @@ import { FUniqueNetIdRepl } from '../../../structs/binary/FUniqueNetIdRepl';
 import { GUID } from '../../../structs/binary/GUID';
 import { col4 } from '../../../structs/col4';
 import { DynamicStructPropertyValue } from '../../../structs/DynamicStructPropertyValue';
-import { FGDynamicStruct } from '../../../structs/FGDynamicStruct';
 import { FICFrameRange } from '../../../structs/mods/FicsItCam/FICFrameRange';
 import { FINGPUT1BufferPixel } from '../../../structs/mods/FicsItNetworks/FINGPUT1BufferPixel';
 import { FINLuaRuntimePersistenceState } from '../../../structs/mods/FicsItNetworks/FINLuaRuntimePersistenceState';
 import { FINNetworkTrace } from '../../../structs/mods/FicsItNetworks/FINNetworkTrace';
 import { FLBBalancerIndexing } from '../../../structs/mods/ModularLoadBalancers/FLBBalancerIndexing';
-import { ObjectReference } from '../../../structs/ObjectReference';
 import { vec2 } from '../../../structs/vec2';
 import { vec3 } from '../../../structs/vec3';
 import { vec4 } from '../../../structs/vec4';
@@ -45,19 +44,13 @@ export type RailroadTrackPositionStructPropertyValue = {
     forward: number;
 };
 
-export type InventoryItemStructPropertyValue = {
-    itemReference: ObjectReference;
-    itemState?: FGDynamicStruct;
-    legacyItemStateActor?: ObjectReference;
-};
-
 export type FICFrameRangeStructPropertyValue = {
     begin: string;
     end: string;
 };
 
 export type GENERIC_STRUCT_PROPERTY_VALUE = BasicMultipleStructPropertyValue | BasicStructPropertyValue | BoxStructPropertyValue | RailroadTrackPositionStructPropertyValue |
-    InventoryItemStructPropertyValue | FICFrameRangeStructPropertyValue | FClientIdentityInfo | DynamicStructPropertyValue | col4 | vec2 | vec3 | vec4 | string |
+    FInventoryItem | FICFrameRangeStructPropertyValue | FClientIdentityInfo | DynamicStructPropertyValue | col4 | vec2 | vec3 | vec4 | string |
     FINNetworkTrace | FINGPUT1BufferPixel | FLBBalancerIndexing | FINLuaRuntimePersistenceState | FUniqueNetIdRepl | FPlayerInfoHandle;
 
 export const isStructProperty = (property: any): property is StructProperty => !Array.isArray(property) && property.propertyTagType.name === 'StructProperty';
@@ -150,19 +143,7 @@ export namespace StructProperty {
                 break;
 
             case 'InventoryItem':
-                const before = reader.getBufferPosition();
-
-                value = {
-                    itemReference: ObjectReference.read(reader)
-                } satisfies InventoryItemStructPropertyValue;
-
-                // inventory items have potentially an item state. but not before explicit version
-                if (reader.context.saveVersion.object >= SaveCustomVersion.RefactoredInventoryItemState) {
-                    value.itemState = FGDynamicStruct.Parse(reader);
-                } else {
-                    value.legacyItemStateActor = ObjectReference.read(reader);
-                }
-
+                value = FInventoryItem.read(reader);
                 break;
 
             case 'FluidBox':
@@ -303,14 +284,7 @@ export namespace StructProperty {
                 break;
 
             case 'InventoryItem':
-                value = value as InventoryItemStructPropertyValue;
-                ObjectReference.write(writer, value.itemReference);
-
-                if (writer.context.saveVersion.object >= SaveCustomVersion.RefactoredInventoryItemState) {
-                    FGDynamicStruct.Serialize(writer, value.itemState!);
-                } else {
-                    ObjectReference.write(writer, value.legacyItemStateActor!);
-                }
+                FInventoryItem.write(writer, value as FInventoryItem);
                 break;
 
             case 'FluidBox':
