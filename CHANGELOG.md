@@ -1,6 +1,10 @@
 # Changelog
 Make sure to use the same version for parsing and serializing saves, if possible.
 
+### [4.1.2] (2026-07-26)
+### Bugfix: FicsitNetworks Mod
+* FicsitNetworks Mod wasnt parseable when having a FINDynamicStructHolder. Now at least the parser interprets a part of it and saves the rest.
+
 ### [4.1.1] (2026-04-25)
 ### Bugfix
 * Barrel file included jest/test files, which it shouldnt.

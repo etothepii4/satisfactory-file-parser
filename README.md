@@ -267,6 +267,7 @@ When `throwErrors` is `false` the behavior is as follows:
 - Errors on the broader save structure (order of header, body, structure of body) still get thrown no matter what. Then your save cant be interpreted no matter what.
 
 # [Auto-Generated TypeDoc Reference](https://raw.githack.com/etothepii4/satisfactory-file-parser/main/docs/index.html).
+index barrel file is also auto generated using barrelsby. `npx barrelsby --directory src --delete --recursive --verbose --exclude src/test`
 
 # [Basic Guide](https://github.com/etothepii4/satisfactory-file-parser/blob/main/GUIDE.md).
 More detailed explanation of some basic things in the parser.
